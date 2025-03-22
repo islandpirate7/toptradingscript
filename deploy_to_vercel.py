@@ -127,6 +127,15 @@ def commit_and_push(commit_message, branch="main"):
     print(f"Committing with message: '{commit_message}'")
     run_command(f'git commit -m "{commit_message}"')
     
+    # Check if branch exists, create it if it doesn't
+    branches = run_command("git branch")
+    if branch not in branches:
+        print(f"Creating branch '{branch}'...")
+        run_command(f"git checkout -b {branch}")
+    else:
+        print(f"Checking out branch '{branch}'...")
+        run_command(f"git checkout {branch}")
+    
     print(f"Pushing to branch '{branch}'...")
     result = run_command(f"git push -u origin {branch}")
     
