@@ -1,0 +1,44 @@
+[
+    {
+        "category": "Direction Bias",
+        "recommendation": "Increase weight for LONG signals",
+        "implementation": "Adjust technical indicators to favor LONG signals (e.g., lower RSI oversold threshold)",
+        "expected_impact": "Higher allocation to LONG positions which performed better"
+    },
+    {
+        "category": "Score Thresholds",
+        "recommendation": "Focus on stocks with scores in the 0.6-0.7 range",
+        "implementation": "Modify scoring algorithm to produce more scores in this range or filter final selection",
+        "expected_impact": "Higher allocation to stocks in the optimal scoring range"
+    },
+    {
+        "category": "Position Sizing",
+        "recommendation": "Increase position size for historically top performing stocks",
+        "implementation": "Add position size multiplier for top symbols: NVDA, TSLA, META, AMD, SCHW",
+        "expected_impact": "Higher allocation to historically strong performers"
+    },
+    {
+        "category": "Market Regime",
+        "recommendation": "Optimize for mixed market regime",
+        "implementation": "Adjust market regime detection to better identify favorable conditions",
+        "expected_impact": "Better adaptation to market conditions"
+    },
+    {
+        "category": "Portfolio Size",
+        "recommendation": "Increase number of selected stocks",
+        "implementation": "Increase top_n parameter from 25 to 40-50 stocks",
+        "expected_impact": "Better diversification and potentially higher returns"
+    },
+    {
+        "category": "Holding Period",
+        "recommendation": "Test different holding periods",
+        "implementation": "Run backtests with holding periods of 3, 5, and 10 days",
+        "expected_impact": "Optimize trade duration for maximum returns"
+    },
+    {
+        "category": "Technical Indicators",
+        "recommendation": "Optimize technical indicator parameters",
+        "implementation": "Run parameter sweep for RSI, MACD, and Bollinger Bands",
+        "expected_impact": "More accurate technical signals"
+    }
+]

@@ -1,0 +1,45 @@
+{
+    "period": "Year-End Rally 2023",
+    "total_return_pct": {
+        "original": 4.3029921646118074,
+        "enhanced": 106.56537664794921,
+        "difference": 102.2623844833374,
+        "percent_improvement": 2376.5412664320515
+    },
+    "annualized_return_pct": {
+        "original": 29.21273956871233,
+        "enhanced": 8152.774327960111,
+        "difference": 8123.561588391399,
+        "percent_improvement": 27808.284016922407
+    },
+    "sharpe_ratio": {
+        "original": 15.874507866387544,
+        "enhanced": 30.072993275249875,
+        "difference": 14.19848540886233,
+        "percent_improvement": 89.44205091816421
+    },
+    "max_drawdown_pct": {
+        "original": 0.0,
+        "enhanced": 2.724752013628592,
+        "difference": 2.724752013628592,
+        "percent_improvement": 0
+    },
+    "win_rate": {
+        "original": 0.7,
+        "enhanced": 0.6128205128205129,
+        "difference": -0.08717948717948709,
+        "percent_improvement": -12.454212454212442
+    },
+    "profit_factor": {
+        "original": 2.181296790410045,
+        "enhanced": 1.9007713616438164,
+        "difference": -0.28052542876622866,
+        "percent_improvement": -12.860488769778772
+    },
+    "total_trades": {
+        "original": 20,
+        "enhanced": 390,
+        "difference": 370,
+        "percent_change": 1850.0
+    }
+}

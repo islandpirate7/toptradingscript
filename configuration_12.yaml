@@ -1,0 +1,238 @@
+# Multi-Strategy Trading System Configuration
+# ------------------------------------------
+# Configuration 12: Optimized configuration with balanced strategy weights and enhanced risk management
+
+# Overall System Configuration
+initial_capital: 100000.0         # Starting capital
+max_open_positions: 8            # Reduced from 10 to improve risk management
+max_positions_per_symbol: 1      # Limit to 1 position per symbol to avoid overexposure
+max_correlated_positions: 3      # Limit correlated positions to reduce systemic risk
+max_sector_exposure_pct: 25.0    # Limit sector concentration
+max_portfolio_risk_daily_pct: 1.5  # Conservative daily risk limit
+rebalance_interval: 1d           # Daily rebalancing
+data_lookback_days: 60           # Increased lookback for better historical context
+market_hours_start: '09:30'      # Market open time (EST)
+market_hours_end: '16:00'        # Market close time (EST)
+debug_mode: true                 # Enable debug mode for verbose logging
+
+# Data Source Configuration
+data_source: ALPACA             # Using Alpaca for historical data (free tier)
+api_key: null                  # Will be loaded from alpaca_credentials.json
+api_secret: null               # Will be loaded from alpaca_credentials.json
+
+# Strategy Weights (optimized based on performance analysis)
+strategy_weights:
+  MeanReversion: 0.35          # Increased weight for MeanReversion with optimized ATR settings
+  TrendFollowing: 0.30         # Balanced weight for trend following
+  VolatilityBreakout: 0.25     # Moderate weight for volatility breakout
+  GapTrading: 0.10             # Reduced weight for gap trading
+
+# Trading Configuration
+enable_auto_trading: false     # Disabled auto trading for now
+backtesting_mode: true         # Enable backtesting mode
+paper_trading: true            # Use paper trading for testing
+
+# Signal Quality Filters Configuration (enhanced)
+signal_quality_filters:
+  min_score_threshold: 0.7       # Higher threshold for signal quality
+  max_correlation_threshold: 0.6 # Reduced correlation threshold
+  min_volume_percentile: 60      # Ensure sufficient liquidity
+  min_price: 10.0                # Focus on more liquid stocks
+  max_spread_percent: 0.8        # Ensure better execution
+  min_volatility_percentile: 30  # Ensure sufficient volatility
+  max_volatility_percentile: 80  # Avoid extremely volatile stocks
+  min_regime_weight: 0.4         # Ensure strategy-regime fit
+  max_signals_per_regime: 3      # Focus on best signals
+  max_sector_exposure: 0.25      # Limit sector concentration
+  max_signals_per_day: 5         # Focus on best signals
+
+# Adaptive Position Sizing Configuration (enhanced)
+position_sizing_config:
+  base_risk_per_trade: 0.008     # Conservative risk per trade
+  max_position_size: 0.08        # Maximum position size as percentage of portfolio
+  min_position_size: 0.005       # Minimum position size as percentage of portfolio
+  volatility_adjustment: true    # Adjust position size based on volatility
+  signal_strength_adjustment: true # Adjust position size based on signal strength
+  atr_multiplier: 2.0            # ATR multiplier for stop loss calculation
+  max_risk_per_trade_pct: 1.0    # Maximum risk per trade percentage
+
+# ML-Based Strategy Selection Configuration
+ml_strategy_selector:
+  ml_lookback_window: 45         # Increased lookback window for ML models
+  ml_min_training_samples: 150   # More training samples for better model quality
+  ml_retraining_frequency: 5     # More frequent retraining
+  ml_feature_columns:            # Features used for ML models
+    - vix
+    - market_adx
+    - trending_strength
+    - range_bound_strength
+    - volatility_strength
+    - regime_change_probability
+    - sector_rotation
+
+# Strategies Configuration
+strategies:
+  MeanReversion:
+    bb_period: 20
+    bb_std_dev: 2.0
+    rsi_period: 14
+    rsi_overbought: 70
+    rsi_oversold: 30
+    min_reversal_candles: 2
+    require_reversal: true
+    # Optimized ATR multipliers based on extensive testing
+    stop_loss_atr: 2.0
+    take_profit_atr: 3.0
+  
+  VolatilityBreakout:
+    bb_period: 20
+    bb_std_dev: 2.0
+    kc_period: 20
+    kc_multiplier: 1.5
+    min_squeeze_length: 10
+    volume_threshold: 1.5
+    # Added ATR-based risk management
+    stop_loss_atr: 1.5
+    take_profit_atr: 2.5
+  
+  TrendFollowing:
+    ma_short_period: 20
+    ma_long_period: 50
+    atr_period: 14
+    atr_multiplier: 2.5
+    min_trend_strength: 0.5
+    volume_confirmation: true
+    # Added ATR-based risk management
+    stop_loss_atr: 2.0
+    take_profit_atr: 3.0
+  
+  GapTrading:
+    min_gap_percent: 1.5
+    max_gap_percent: 7.0
+    volume_threshold: 1.5
+    # Added ATR-based risk management
+    stop_loss_atr: 1.5
+    take_profit_atr: 2.5
+    max_risk_percent: 1.0
+
+# Stocks Configuration
+stocks:
+  - symbol: AAPL
+    max_position_size: 300
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.4
+    min_volume: 20000
+    beta: 1.2
+    sector: Technology
+  
+  - symbol: MSFT
+    max_position_size: 300
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.4
+    min_volume: 20000
+    beta: 1.1
+    sector: Technology
+  
+  - symbol: GOOGL
+    max_position_size: 300
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.4
+    min_volume: 20000
+    beta: 1.3
+    sector: Technology
+  
+  - symbol: AMZN
+    max_position_size: 300
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.4
+    min_volume: 20000
+    beta: 1.4
+    sector: Consumer Discretionary
+  
+  - symbol: META
+    max_position_size: 300
+    min_position_size: 5
+    max_risk_per_trade_pct: 0.4
+    min_volume: 20000
+    beta: 1.5
+    sector: Communication Services
+  
+  - symbol: TSLA
+    max_position_size: 200
+    min_position_size: 5
+    max_risk_per_trade_pct: 0.3
+    min_volume: 30000
+    beta: 2.0
+    sector: Consumer Discretionary
+  
+  - symbol: NVDA
+    max_position_size: 200
+    min_position_size: 5
+    max_risk_per_trade_pct: 0.3
+    min_volume: 25000
+    beta: 1.8
+    sector: Technology
+  
+  - symbol: JPM
+    max_position_size: 400
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.4
+    min_volume: 5000
+    beta: 1.0
+    sector: Financials
+  
+  - symbol: V
+    max_position_size: 400
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.4
+    min_volume: 5000
+    beta: 0.9
+    sector: Financials
+  
+  - symbol: JNJ
+    max_position_size: 500
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.5
+    min_volume: 3000
+    beta: 0.7
+    sector: Healthcare
+  
+  - symbol: PG
+    max_position_size: 500
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.5
+    min_volume: 3000
+    beta: 0.6
+    sector: Consumer Staples
+  
+  - symbol: XOM
+    max_position_size: 500
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.5
+    min_volume: 5000
+    beta: 0.8
+    sector: Energy
+  
+  - symbol: HD
+    max_position_size: 400
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.4
+    min_volume: 4000
+    beta: 1.0
+    sector: Consumer Discretionary
+  
+  - symbol: UNH
+    max_position_size: 400
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.4
+    min_volume: 3000
+    beta: 0.8
+    sector: Healthcare
+  
+  - symbol: BAC
+    max_position_size: 500
+    min_position_size: 20
+    max_risk_per_trade_pct: 0.5
+    min_volume: 10000
+    beta: 1.2
+    sector: Financials

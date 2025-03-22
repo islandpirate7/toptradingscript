@@ -1,0 +1,14 @@
+Metric,Original MeanReversion,Enhanced MeanReversion,Difference
+Period,N/A to N/A,2024-01-02 to 2024-03-28,N/A
+Initial Capital,$0.00,$100000.00,N/A
+Final Equity,$0.00,$99439.67,$99439.67
+Total Return (%),0.00%,-0.56%,-0.56%
+Annualized Return (%),0.00%,-2.36%,-2.36%
+Maximum Drawdown (%),0.00%,1.25%,1.25%
+Sharpe Ratio,0.00,-0.89,-0.89
+Win Rate (%),0.00%,100.00%,100.00%
+Profit Factor,0.00,inf,inf
+Total Trades,0,3,3
+Winning Trades,0,3,3
+Losing Trades,0,0,0
+Average Trade Duration (days),N/A,9.7 days,N/A

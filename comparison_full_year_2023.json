@@ -1,0 +1,45 @@
+{
+    "period": "Full Year 2023",
+    "total_return_pct": {
+        "original": 15.46173731994629,
+        "enhanced": 16534.579341949466,
+        "difference": 16519.11760462952,
+        "percent_improvement": 106838.6900049011
+    },
+    "annualized_return_pct": {
+        "original": 15.507350227549344,
+        "enhanced": 16769.93866735994,
+        "difference": 16754.431317132392,
+        "percent_improvement": 108041.87092755258
+    },
+    "sharpe_ratio": {
+        "original": 18.467135310818005,
+        "enhanced": 6.482381599835367,
+        "difference": -11.984753710982638,
+        "percent_improvement": -64.89774136198588
+    },
+    "max_drawdown_pct": {
+        "original": 3.0343053436560044,
+        "enhanced": 0.3960559650816162,
+        "difference": -2.638249378574388,
+        "percent_improvement": 86.94739255857445
+    },
+    "win_rate": {
+        "original": 0.675,
+        "enhanced": 0.6444897959183673,
+        "difference": -0.03051020408163274,
+        "percent_improvement": -4.5200302343159615
+    },
+    "profit_factor": {
+        "original": 1.49911258110211,
+        "enhanced": 4.1999034087269544,
+        "difference": 2.7007908276248447,
+        "percent_improvement": 180.15930635705098
+    },
+    "total_trades": {
+        "original": 40,
+        "enhanced": 2450,
+        "difference": 2410,
+        "percent_change": 6025.0
+    }
+}

@@ -1,0 +1,2 @@
+symbol,direction,entry_date,exit_date,entry_price,exit_price,shares,pnl,return_pct,regime,strategy,reason
+AMD,SHORT,2023-06-29 04:00:00,2023-06-30 04:00:00,125.27,113.91,38,431.67999999999995,9.068412229584096,range_bound,mean_reversion,end_of_backtest

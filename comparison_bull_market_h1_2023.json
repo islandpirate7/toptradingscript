@@ -1,0 +1,45 @@
+{
+    "period": "Bull Market H1 2023",
+    "total_return_pct": {
+        "original": 12.16094578552247,
+        "enhanced": 10901.473307296754,
+        "difference": 10889.31236151123,
+        "percent_improvement": 89543.30159480596
+    },
+    "annualized_return_pct": {
+        "original": 21.960442136175896,
+        "enhanced": 339853.655709111,
+        "difference": 339831.69526697486,
+        "percent_improvement": 1547472.009714973
+    },
+    "sharpe_ratio": {
+        "original": 0.0,
+        "enhanced": 6.256681610220091,
+        "difference": 6.256681610220091,
+        "percent_improvement": 0
+    },
+    "max_drawdown_pct": {
+        "original": 0.0,
+        "enhanced": 0.764339260457188,
+        "difference": 0.764339260457188,
+        "percent_improvement": 0
+    },
+    "win_rate": {
+        "original": 0.7,
+        "enhanced": 0.7830985915492957,
+        "difference": 0.08309859154929577,
+        "percent_improvement": 11.871227364185112
+    },
+    "profit_factor": {
+        "original": 10.07026940778996,
+        "enhanced": 3.9782588014226006,
+        "difference": -6.092010606367359,
+        "percent_improvement": -60.49501120252872
+    },
+    "total_trades": {
+        "original": 10,
+        "enhanced": 1420,
+        "difference": 1410,
+        "percent_change": 14100.0
+    }
+}

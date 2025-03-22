@@ -1,0 +1,71 @@
+strategies:
+  MeanReversion:
+    # Core parameters
+    bb_period: 20
+    bb_std_dev: 1.8  # Tighter Bollinger Bands for more frequent signals
+    rsi_period: 14
+    rsi_overbought: 65  # Less extreme threshold for more signals
+    rsi_oversold: 35  # Less extreme threshold for more signals
+    
+    # Signal generation parameters
+    require_reversal: false  # Don't require reversal pattern for more signals
+    min_reversal_candles: 1  # Only need 1 candle for reversal if enabled
+    
+    # Risk management parameters
+    stop_loss_atr: 2.0  # 2x ATR for stop loss
+    take_profit_atr: 3.0  # 3x ATR for take profit (1.5:1 risk-reward)
+    
+    # Position sizing parameters
+    max_position_size: 0.1  # Maximum 10% of portfolio per position
+    
+    # Strategy weight in multi-strategy system
+    base_weight: 0.3  # Higher weight due to good signal generation
+
+  VolatilityBreakout:
+    # Keep existing parameters
+    base_weight: 0.2
+
+  TrendFollowing:
+    # Keep existing parameters
+    base_weight: 0.3
+
+  GapTrading:
+    # Keep existing parameters
+    base_weight: 0.2
+
+# Global settings
+global:
+  max_open_positions: 5
+  max_positions_per_symbol: 2
+  max_correlated_positions: 3
+  correlation_threshold: 0.7
+  max_portfolio_risk: 0.02  # Maximum 2% portfolio risk per day
+  default_position_size: 0.05  # Default 5% of portfolio per position
+  
+# Stock-specific configurations
+stocks:
+  AAPL:
+    position_size: 0.08
+    strategies:
+      MeanReversion:
+        weight_multiplier: 1.2  # Increase MeanReversion weight for AAPL
+  MSFT:
+    position_size: 0.08
+    strategies:
+      MeanReversion:
+        weight_multiplier: 1.2  # Increase MeanReversion weight for MSFT
+  GOOGL:
+    position_size: 0.07
+    strategies:
+      MeanReversion:
+        weight_multiplier: 1.1  # Slight increase for GOOGL
+  AMZN:
+    position_size: 0.07
+    strategies:
+      MeanReversion:
+        weight_multiplier: 1.1  # Slight increase for AMZN
+  META:
+    position_size: 0.07
+    strategies:
+      MeanReversion:
+        weight_multiplier: 1.3  # Larger increase for META due to strong signals

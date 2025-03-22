@@ -1,0 +1,151 @@
+# Configuration for Combined Strategy with March Seasonality Stocks - Aggressive Settings
+
+# General settings
+general:
+  log_level: INFO
+  initial_capital: 100000
+  max_positions: 15
+  max_portfolio_risk_pct: 0.02
+  min_capital_per_trade: 1000
+  symbols:
+    # Top seasonal stocks for March
+    - LIN    # Top seasonal stock for March
+    - NVDA   # Top seasonal stock for March
+    - NEE    # Top seasonal stock for March
+    - VLO    # Top seasonal stock for March
+    - MRK    # Top seasonal stock for March
+    - PSX    # Top seasonal stock for March
+    - DE     # Top seasonal stock for March
+    - EOG    # Top seasonal stock for March
+    - CVX    # Top seasonal stock for March (also in original list)
+    - XLU    # Top seasonal stock for March
+  timeframe: '1D'
+  position_size_pct: 0.05  # Base position size (will be adjusted dynamically)
+  backtest_start_date: '2024-03-01'
+  backtest_end_date: '2024-03-31'
+  min_signal_score: 0.45  # Lowered significantly to allow more signals
+
+# Strategy-specific configurations
+strategy_configs:
+  # Mean Reversion Strategy parameters - More aggressive settings
+  MeanReversion:
+    weight: 0.45
+    bb_period: 15        # Shorter period for more sensitivity
+    bb_std: 1.5          # Lower standard deviation for more signals
+    rsi_period: 10       # Shorter period for more sensitivity
+    rsi_lower: 45        # Less extreme threshold for more signals
+    rsi_upper: 55        # Less extreme threshold for more signals
+    require_reversal: false  # Don't require reversal for more signals
+    stop_loss_atr_multiplier: 2.0
+    take_profit_atr_multiplier: 3.0
+    atr_period: 10       # Shorter period for more sensitivity
+    volume_filter: false # Disable volume filter for more signals
+    min_volume_percentile: 20  # Lower threshold
+    min_atr_percentile: 20     # Lower threshold
+    min_price: 5.0       # Lower minimum price
+    max_price: 2000.0    # Higher maximum price
+    max_spread_pct: 1.0  # Allow wider spreads
+    signal_expiry_bars: 5 # Longer signal expiry
+    entry_limit_pct: 1.0  # Wider entry limit
+    exit_limit_pct: 1.0   # Wider exit limit
+    symbol_weights:
+      LIN: 1.5
+      NVDA: 1.5
+      NEE: 1.5
+      VLO: 1.5
+      MRK: 1.5
+      PSX: 1.5
+      DE: 1.5
+      EOG: 1.5
+      CVX: 1.5
+      XLU: 1.5
+
+  # Trend Following Strategy parameters - More aggressive settings
+  TrendFollowing:
+    weight: 0.55
+    ema_short: 5         # Shorter period for more sensitivity
+    ema_medium: 15       # Shorter period for more sensitivity
+    ema_long: 30         # Shorter period for more sensitivity
+    macd_fast: 8         # Faster MACD for more signals
+    macd_slow: 17        # Faster MACD for more signals
+    macd_signal: 6       # Faster signal line
+    adx_period: 10       # Shorter period
+    adx_threshold: 15    # Lower threshold for more signals
+    stop_loss_atr_multiplier: 2.0
+    take_profit_atr_multiplier: 3.0
+    atr_period: 10       # Shorter period
+    volume_filter: false # Disable volume filter
+    min_volume_percentile: 20  # Lower threshold
+    min_atr_percentile: 20     # Lower threshold
+    min_price: 5.0       # Lower minimum price
+    max_price: 2000.0    # Higher maximum price
+    max_spread_pct: 1.0  # Allow wider spreads
+    signal_expiry_bars: 5 # Longer signal expiry
+    entry_limit_pct: 1.0  # Wider entry limit
+    exit_limit_pct: 1.0   # Wider exit limit
+    symbol_weights:
+      LIN: 1.5
+      NVDA: 1.5
+      NEE: 1.5
+      VLO: 1.5
+      MRK: 1.5
+      PSX: 1.5
+      DE: 1.5
+      EOG: 1.5
+      CVX: 1.5
+      XLU: 1.5
+
+# Combined strategy parameters
+combined_strategy:
+    dynamic_weights: true
+    signal_threshold: 0.45  # Lower threshold for more signals
+    signal_expiry_bars: 5   # Longer signal expiry
+    adx_period: 10          # Shorter period
+    adx_threshold: 15       # Lower threshold
+    min_signal_score: 0.45  # Lower threshold
+    max_signals_per_day: 10 # Allow more signals per day
+    position_size_pct: 0.05
+
+# Risk management parameters
+risk_management:
+  max_portfolio_risk_pct: 0.03  # Higher risk tolerance
+  max_position_risk_pct: 0.01   # Higher risk tolerance
+  max_sector_exposure_pct: 0.30 # Higher sector exposure
+  max_drawdown_exit_pct: 0.20   # Higher drawdown tolerance
+  trailing_stop_activation_pct: 0.03  # Activate trailing stop sooner
+  trailing_stop_distance_pct: 0.05    # Wider trailing stop
+  profit_taking_levels:
+    - level: 0.03
+      size_reduction_pct: 0.25
+    - level: 0.07
+      size_reduction_pct: 0.50
+  volatility_adjustment: true
+  volatility_lookback: 15        # Shorter lookback
+  volatility_scaling_factor: 1.0 # No scaling down
+
+# Market regime configuration
+market_regime:
+  adx_threshold: 15             # Lower threshold
+  volatility_period: 15         # Shorter period
+  regime_lookback: 5            # Shorter lookback
+  trending_weights:
+    mean_reversion: 0.3
+    trend_following: 0.7
+  range_bound_weights:
+    mean_reversion: 0.7
+    trend_following: 0.3
+  mixed_weights:
+    mean_reversion: 0.5
+    trend_following: 0.5
+
+# Seasonality configuration
+seasonality:
+  enabled: true
+  data_file: 'output/seasonal_opportunities_converted.yaml'
+  min_score_threshold: 0.5      # Lower threshold
+  weight_adjustment: true
+  sector_influence: 0.3
+  stock_specific_influence: 0.7
+  top_n_selection: 10
+  boost_factor: 0.5             # Significantly increased boost
+  penalty_factor: 0.5           # Significantly increased penalty

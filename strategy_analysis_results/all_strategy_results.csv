@@ -1,0 +1,6 @@
+total_return,win_rate,profit_factor,max_drawdown,sharpe_ratio,total_trades,strategy,period,start_date,end_date
+0,0,0,0,0,0,MeanReversion,H1_2023,2023-01-01,2023-06-30
+0,0,0,0,0,0,VolatilityBreakout,H1_2023,2023-01-01,2023-06-30
+0,0,0,0,0,0,TrendFollowing,H1_2023,2023-01-01,2023-06-30
+0,0,0,0,0,0,GapTrading,H1_2023,2023-01-01,2023-06-30
+0,0,0,0,0,0,Combined,H1_2023,2023-01-01,2023-06-30

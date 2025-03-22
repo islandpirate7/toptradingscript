@@ -1,0 +1,179 @@
+# SP500 Strategy Configuration
+
+# Trading mode: 'backtest', 'paper', or 'live'
+mode: 'paper'
+
+# General strategy parameters
+strategy:
+  # Initial capital for backtesting and trading
+  initial_capital: 300
+  
+  # Position sizing
+  base_position_size: 1000       # Base position size in dollars
+  max_positions: 100             # Maximum number of positions
+  max_capital_per_direction: 60000  # Maximum capital per direction
+  holding_period: 3              # Holding period in days
+  
+  # Percentage-based position sizing
+  position_sizing:
+    base_position_pct: 5         # Base position size as percentage of initial capital
+    
+    # Tiered position sizing
+    tier_multipliers:
+      'Tier 1 (≥0.9)': 3.0
+      'Tier 2 (0.8-0.9)': 1.5
+      'Below Threshold (<0.8)': 0.0
+    
+    # Direction multipliers
+    long_multiplier: 3.0         # Increased from 1.5 to 3.0 to allocate more capital to LONG positions
+    short_multiplier: 1.0        # Base allocation for SHORT positions
+  
+  # Signal thresholds
+  signal_thresholds:
+    long: 0.70  # Keep threshold for LONG signals
+    short: 0.80  # Increased from 0.65 to 0.80 to focus only on highest-quality shorts
+    min_score: 0.7               # Minimum score to consider a signal valid
+    tier_1: 0.9
+    tier_2: 0.8
+    tier_3: 0.7
+    tier_4: 0.6
+  
+  # Sector adjustments
+  sector_adjustments:
+    enabled: true
+    # Sector weights for position sizing
+    sector_weights:
+      Communication Services: 2.0  # 82.76% win rate
+      Industrials: 1.8            # 77.50% win rate
+      Technology: 1.5             # 69.77% win rate
+      Utilities: 1.5              # 69.64% win rate
+      Financials: 1.4             # 68.93% win rate
+      Healthcare: 1.4             # 68.35% win rate
+      Consumer Discretionary: 1.3 # 67.86% win rate
+      Materials: 1.2              # 64.86% win rate
+      Energy: 1.1                 # 62.50% win rate
+      Consumer Staples: 1.1       # 60.94% win rate
+      Real Estate: 0.8            # 47.06% win rate
+    sector_etfs:
+      - XLK    # Technology
+      - XLF    # Financials
+      - XLV    # Healthcare
+      - XLE    # Energy
+      - XLI    # Industrials
+      - XLY    # Consumer Discretionary
+      - XLP    # Consumer Staples
+      - XLB    # Materials
+      - XLU    # Utilities
+      - XLRE   # Real Estate
+      - XLC    # Communication Services
+
+  # Mid-cap stock inclusion
+  include_midcap: true    # Enable mid-cap stock inclusion
+  midcap_stocks:
+    min_avg_volume: 500000  # Minimum average daily volume for mid-cap stocks
+    max_symbols: 50         # Maximum number of mid-cap symbols to include
+    large_cap_percentage: 70  # Percentage of signals allocated to large-cap stocks (70% large-cap, 30% mid-cap)
+    position_factor: 0.8    # Position size factor for mid-cap stocks (80% of large-cap position size)
+    boost_factor: 1.2       # Boost factor for mid-cap stocks in signal prioritization
+    # Predefined list of liquid mid-cap stocks (optional)
+    symbols:
+      - 'AXON'  # Axon Enterprise
+      - 'DECK'  # Deckers Outdoor
+      - 'BLDR'  # Builders FirstSource
+      - 'PODD'  # Insulet Corporation
+      - 'LSCC'  # Lattice Semiconductor
+      - 'EXAS'  # Exact Sciences
+      - 'CSGP'  # CoStar Group
+      - 'NATI'  # National Instruments
+      - 'UTHR'  # United Therapeutics
+      - 'HALO'  # Halozyme Therapeutics
+      - 'CGNX'  # Cognex Corporation
+      - 'SYNA'  # Synaptics
+      - 'PNFP'  # Pinnacle Financial Partners
+      - 'FOXF'  # Fox Factory Holding
+      - 'QLYS'  # Qualys
+      - 'CRVL'  # CorVel Corporation
+      - 'OMCL'  # Omnicell
+      - 'CVLT'  # Commvault Systems
+      - 'XPEL'  # XPEL Inc
+      - 'NSIT'  # Insight Enterprises
+  
+  # Technical indicator parameters
+  rsi_period: 10                 # RSI period
+  macd_fast: 8                   # MACD fast period
+  macd_slow: 17                  # MACD slow period
+  macd_signal: 5                 # MACD signal period
+  bb_period: 15                  # Bollinger Bands period
+  atr_period: 10                 # ATR period
+  
+  # Risk management
+  stop_loss:
+    enabled: true
+    long_threshold: -0.02        # 2% loss for LONG positions
+    short_threshold: -0.01       # 1% loss for SHORT positions
+    
+    # Enhanced adaptive stop loss settings
+    adaptive:
+      enabled: true              # Enable adaptive stop loss
+      volatility_scaling: true   # Adjust stop loss based on volatility
+      signal_quality_scaling: true # Adjust stop loss based on signal quality
+      market_regime_scaling: true # Adjust stop loss based on market regime
+      sector_regime_scaling: true # Adjust stop loss based on sector performance
+      time_scaling: true         # Adjust stop loss based on position age
+      
+    # Trailing stop loss settings
+    trailing:
+      enabled: true              # Enable trailing stops for profitable positions
+      profit_tiers:              # Profit tiers for trailing stops
+        tier1:                   # Positions up more than 10%
+          threshold: 10.0        # Percentage profit threshold
+          lock_in: 7.0           # Minimum profit to lock in
+          retain_pct: 0.7        # Percentage of profit to retain (70%)
+        tier2:                   # Positions up more than 5%
+          threshold: 5.0         # Percentage profit threshold
+          lock_in: 3.0           # Minimum profit to lock in
+          retain_pct: 0.6        # Percentage of profit to retain (60%)
+        tier3:                   # Positions up more than 3%
+          threshold: 3.0         # Percentage profit threshold
+          lock_in: 1.0           # Minimum profit to lock in
+          retain_pct: 0.5        # Percentage of profit to retain (50%)
+  
+  # Market regime detection
+  market_regime:
+    enabled: true
+    sma_short_period: 5          # Short SMA period
+    sma_long_period: 20          # Long SMA period
+    change_period: 5             # Period for percentage change calculation
+  
+# Backtest parameters
+backtest:
+  # Predefined quarters for backtesting
+  quarters:
+    q1_2024:
+      start_date: '2024-01-01'
+      end_date: '2024-03-31'
+    q4_2023:
+      start_date: '2023-10-01'
+      end_date: '2023-12-31'
+    q3_2023:
+      start_date: '2023-07-01'
+      end_date: '2023-09-30'
+    q2_2023:
+      start_date: '2023-04-01'
+      end_date: '2023-06-30'
+  
+  # Performance metrics to calculate
+  metrics:
+    - 'total_return'
+    - 'sharpe_ratio'
+    - 'max_drawdown'
+    - 'win_rate'
+    - 'profit_factor'
+
+# Paths for saving data
+paths:
+  performance: 'performance/SP500Strategy'
+  trades: 'trades'
+  plots: 'plots'
+  backtest_results: 'backtest_results'
+  stop_loss_history: 'stop_loss_history.csv'

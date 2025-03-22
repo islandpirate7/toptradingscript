@@ -1,0 +1,49 @@
+{
+    "total_trades": 6,
+    "winning_trades": 2,
+    "losing_trades": 4,
+    "win_rate": 0.3333333333333333,
+    "profit_factor": 1.0435088786855253,
+    "total_pnl": 75.93782937690946,
+    "max_drawdown": 0.009939039060331487,
+    "sharpe_ratio": -0.07578237786998307,
+    "avg_trade_duration_days": 3.3333333333333335,
+    "final_equity": 99924.06217062309,
+    "return_pct": -0.07593782937691529,
+    "symbol_metrics": {
+        "AAPL": {
+            "trades": 2,
+            "win_rate": 0.5,
+            "total_pnl": 475.499234828837,
+            "avg_pnl": 237.7496174144185
+        },
+        "AMZN": {
+            "trades": 1,
+            "win_rate": 0.0,
+            "total_pnl": -540.5087168904071,
+            "avg_pnl": -540.5087168904071
+        },
+        "META": {
+            "trades": 1,
+            "win_rate": 0.0,
+            "total_pnl": -534.4168827464691,
+            "avg_pnl": -534.4168827464691
+        },
+        "GOOGL": {
+            "trades": 2,
+            "win_rate": 0.5,
+            "total_pnl": 675.3641941849487,
+            "avg_pnl": 337.68209709247435
+        }
+    },
+    "start_date": "2023-01-01T00:00:00",
+    "end_date": "2023-03-31T00:00:00",
+    "initial_capital": 100000,
+    "symbols": [
+        "AAPL",
+        "MSFT",
+        "GOOGL",
+        "AMZN",
+        "META"
+    ]
+}

@@ -1,0 +1,2543 @@
+{
+    "start_date": "2023-01-01",
+    "end_date": "2023-12-31",
+    "initial_capital": 100000,
+    "final_capital": -39663.171659149564,
+    "total_return_pct": -139.66317165914955,
+    "annualized_return_pct": NaN,
+    "sharpe_ratio": 2.4208397543577873,
+    "max_drawdown_pct": 165.9281714136632,
+    "win_rate": 0.5916666666666667,
+    "profit_factor": 0.682174618833582,
+    "total_trades": 120,
+    "monthly_returns": {
+        "2023-01": -203.76295036484697,
+        "2023-02": 0.0,
+        "2023-03": 0.0,
+        "2023-04": 0.0,
+        "2023-05": 0.0,
+        "2023-06": 0.0,
+        "2023-07": 0.0,
+        "2023-08": 0.0,
+        "2023-09": 0.0,
+        "2023-10": 0.0,
+        "2023-11": 0.0,
+        "2023-12": 0.0
+    },
+    "equity_curve": [
+        [
+            "2023-01-01 09:30:00",
+            100000
+        ],
+        [
+            "2023-01-02 09:30:00",
+            100000.0
+        ],
+        [
+            "2023-01-02 09:45:00",
+            -65928.17141366318
+        ],
+        [
+            "2023-01-02 10:00:00",
+            -38543.60796751708
+        ],
+        [
+            "2023-01-02 10:15:00",
+            -36901.07796778307
+        ],
+        [
+            "2023-01-02 10:30:00",
+            -37301.05631951016
+        ],
+        [
+            "2023-01-02 10:45:00",
+            -36350.41587761666
+        ],
+        [
+            "2023-01-02 11:00:00",
+            -36935.477031127215
+        ],
+        [
+            "2023-01-02 11:15:00",
+            -34856.77076308285
+        ],
+        [
+            "2023-01-02 11:30:00",
+            -36229.71009141825
+        ],
+        [
+            "2023-01-02 11:45:00",
+            -36336.0600297576
+        ],
+        [
+            "2023-01-02 12:00:00",
+            -36643.44875664734
+        ],
+        [
+            "2023-01-02 12:15:00",
+            -38335.167226510646
+        ],
+        [
+            "2023-01-02 12:30:00",
+            -38557.476397311446
+        ],
+        [
+            "2023-01-02 12:45:00",
+            -38995.555156025934
+        ],
+        [
+            "2023-01-02 13:00:00",
+            -39040.099530872394
+        ],
+        [
+            "2023-01-02 13:15:00",
+            -40207.523402663865
+        ],
+        [
+            "2023-01-02 13:30:00",
+            -40033.323835789284
+        ],
+        [
+            "2023-01-02 13:45:00",
+            -38664.10165498532
+        ],
+        [
+            "2023-01-02 14:00:00",
+            -37388.97855050414
+        ],
+        [
+            "2023-01-04 15:15:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-01-12 13:45:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-01-13 10:30:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-01-16 10:00:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-01-20 12:30:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-01-23 14:30:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-01-23 14:45:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-01-27 09:30:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-01-31 12:15:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-02-01 15:45:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-02-06 13:30:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-02-21 11:30:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-02-22 14:00:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-02-24 14:00:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-03-16 13:45:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-03-16 14:45:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-03-22 12:30:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-03-27 10:15:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-03-29 14:00:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-04-10 13:00:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-05-02 12:00:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-05-04 14:00:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-05-05 09:30:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-05-11 15:15:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-05-23 13:30:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-06-01 15:45:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-07-06 15:30:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-07-13 14:45:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-07-21 13:45:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-07-31 13:30:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-08-22 10:15:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-08-22 11:15:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-08-25 11:15:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-09-18 14:30:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-09-21 15:00:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-10-09 14:45:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-10-13 12:15:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-10-17 11:00:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-10-25 15:45:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-11-07 15:15:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-11-13 10:45:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-11-22 14:45:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-11-24 11:00:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-12-04 12:30:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-12-07 10:45:00",
+            -39663.171659149564
+        ],
+        [
+            "2023-12-14 09:45:00",
+            -39663.171659149564
+        ]
+    ],
+    "drawdown_curve": [
+        [
+            "2023-01-01 09:30:00",
+            0.0
+        ],
+        [
+            "2023-01-02 09:30:00",
+            0.0
+        ],
+        [
+            "2023-01-02 09:45:00",
+            165.9281714136632
+        ],
+        [
+            "2023-01-02 10:00:00",
+            130.69142975347273
+        ],
+        [
+            "2023-01-02 10:15:00",
+            129.38351913578242
+        ],
+        [
+            "2023-01-02 10:30:00",
+            129.7020131256364
+        ],
+        [
+            "2023-01-02 10:45:00",
+            128.94503898954167
+        ],
+        [
+            "2023-01-02 11:00:00",
+            129.41091035554325
+        ],
+        [
+            "2023-01-02 11:15:00",
+            127.75568214085318
+        ],
+        [
+            "2023-01-02 11:30:00",
+            128.8489236191003
+        ],
+        [
+            "2023-01-02 11:45:00",
+            128.93360774271886
+        ],
+        [
+            "2023-01-02 12:00:00",
+            129.17837464482872
+        ],
+        [
+            "2023-01-02 12:15:00",
+            130.52545296256744
+        ],
+        [
+            "2023-01-02 12:30:00",
+            130.70247287997984
+        ],
+        [
+            "2023-01-02 12:45:00",
+            131.0513053883663
+        ],
+        [
+            "2023-01-02 13:00:00",
+            131.08677509718714
+        ],
+        [
+            "2023-01-02 13:15:00",
+            132.0163691243942
+        ],
+        [
+            "2023-01-02 13:30:00",
+            131.87765782953252
+        ],
+        [
+            "2023-01-02 13:45:00",
+            130.78737623434665
+        ],
+        [
+            "2023-01-02 14:00:00",
+            129.77202367002016
+        ],
+        [
+            "2023-01-04 15:15:00",
+            131.58291376880504
+        ],
+        [
+            "2023-01-12 13:45:00",
+            131.58291376880504
+        ],
+        [
+            "2023-01-13 10:30:00",
+            131.58291376880504
+        ],
+        [
+            "2023-01-16 10:00:00",
+            131.58291376880504
+        ],
+        [
+            "2023-01-20 12:30:00",
+            131.58291376880504
+        ],
+        [
+            "2023-01-23 14:30:00",
+            131.58291376880504
+        ],
+        [
+            "2023-01-23 14:45:00",
+            131.58291376880504
+        ],
+        [
+            "2023-01-27 09:30:00",
+            131.58291376880504
+        ],
+        [
+            "2023-01-31 12:15:00",
+            131.58291376880504
+        ],
+        [
+            "2023-02-01 15:45:00",
+            131.58291376880504
+        ],
+        [
+            "2023-02-06 13:30:00",
+            131.58291376880504
+        ],
+        [
+            "2023-02-21 11:30:00",
+            131.58291376880504
+        ],
+        [
+            "2023-02-22 14:00:00",
+            131.58291376880504
+        ],
+        [
+            "2023-02-24 14:00:00",
+            131.58291376880504
+        ],
+        [
+            "2023-03-16 13:45:00",
+            131.58291376880504
+        ],
+        [
+            "2023-03-16 14:45:00",
+            131.58291376880504
+        ],
+        [
+            "2023-03-22 12:30:00",
+            131.58291376880504
+        ],
+        [
+            "2023-03-27 10:15:00",
+            131.58291376880504
+        ],
+        [
+            "2023-03-29 14:00:00",
+            131.58291376880504
+        ],
+        [
+            "2023-04-10 13:00:00",
+            131.58291376880504
+        ],
+        [
+            "2023-05-02 12:00:00",
+            131.58291376880504
+        ],
+        [
+            "2023-05-04 14:00:00",
+            131.58291376880504
+        ],
+        [
+            "2023-05-05 09:30:00",
+            131.58291376880504
+        ],
+        [
+            "2023-05-11 15:15:00",
+            131.58291376880504
+        ],
+        [
+            "2023-05-23 13:30:00",
+            131.58291376880504
+        ],
+        [
+            "2023-06-01 15:45:00",
+            131.58291376880504
+        ],
+        [
+            "2023-07-06 15:30:00",
+            131.58291376880504
+        ],
+        [
+            "2023-07-13 14:45:00",
+            131.58291376880504
+        ],
+        [
+            "2023-07-21 13:45:00",
+            131.58291376880504
+        ],
+        [
+            "2023-07-31 13:30:00",
+            131.58291376880504
+        ],
+        [
+            "2023-08-22 10:15:00",
+            131.58291376880504
+        ],
+        [
+            "2023-08-22 11:15:00",
+            131.58291376880504
+        ],
+        [
+            "2023-08-25 11:15:00",
+            131.58291376880504
+        ],
+        [
+            "2023-09-18 14:30:00",
+            131.58291376880504
+        ],
+        [
+            "2023-09-21 15:00:00",
+            131.58291376880504
+        ],
+        [
+            "2023-10-09 14:45:00",
+            131.58291376880504
+        ],
+        [
+            "2023-10-13 12:15:00",
+            131.58291376880504
+        ],
+        [
+            "2023-10-17 11:00:00",
+            131.58291376880504
+        ],
+        [
+            "2023-10-25 15:45:00",
+            131.58291376880504
+        ],
+        [
+            "2023-11-07 15:15:00",
+            131.58291376880504
+        ],
+        [
+            "2023-11-13 10:45:00",
+            131.58291376880504
+        ],
+        [
+            "2023-11-22 14:45:00",
+            131.58291376880504
+        ],
+        [
+            "2023-11-24 11:00:00",
+            131.58291376880504
+        ],
+        [
+            "2023-12-04 12:30:00",
+            131.58291376880504
+        ],
+        [
+            "2023-12-07 10:45:00",
+            131.58291376880504
+        ],
+        [
+            "2023-12-14 09:45:00",
+            131.58291376880504
+        ]
+    ],
+    "trade_history": [
+        {
+            "symbol": "AAPL",
+            "direction": "SHORT",
+            "entry_price": 188.34413804021713,
+            "stop_loss": 179.9338205376108,
+            "take_profit": 195.31847074868344,
+            "position_size": 990,
+            "entry_time": "2023-03-28 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-03-31 16:00:00",
+            "is_active": false,
+            "strategy": "GapTrading",
+            "current_price": 188.34413804021713,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 169.44025916454325
+        },
+        {
+            "symbol": "AAPL",
+            "direction": "SHORT",
+            "entry_price": 146.20090340115974,
+            "stop_loss": 139.58303810877229,
+            "take_profit": 148.01562911127505,
+            "position_size": 716,
+            "entry_time": "2023-10-27 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-11-02 16:00:00",
+            "is_active": false,
+            "strategy": "TrendFollowing",
+            "current_price": 146.20090340115974,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 234.0071758918757
+        },
+        {
+            "symbol": "AAPL",
+            "direction": "LONG",
+            "entry_price": 170.8736396798489,
+            "stop_loss": 163.7371033532495,
+            "take_profit": 177.75378288101976,
+            "position_size": 767,
+            "entry_time": "2023-02-20 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-02-26 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 170.8736396798489,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 248.64807086486712
+        },
+        {
+            "symbol": "AAPL",
+            "direction": "SHORT",
+            "entry_price": 56.67624028628885,
+            "stop_loss": 54.25306131330217,
+            "take_profit": 58.94873966343607,
+            "position_size": 807,
+            "entry_time": "2023-01-16 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-01-19 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 56.67624028628885,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -674.3914508219137
+        },
+        {
+            "symbol": "AAPL",
+            "direction": "LONG",
+            "entry_price": 167.94143782428927,
+            "stop_loss": 161.53816776691764,
+            "take_profit": 171.30124761596673,
+            "position_size": 516,
+            "entry_time": "2023-08-16 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-08-21 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 167.94143782428927,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -110.45253413394835
+        },
+        {
+            "symbol": "AAPL",
+            "direction": "SHORT",
+            "entry_price": 164.52302381384774,
+            "stop_loss": 161.4108792981988,
+            "take_profit": 171.91796987374656,
+            "position_size": 690,
+            "entry_time": "2023-03-04 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-03-13 16:00:00",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 164.52302381384774,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 804.3542190469886
+        },
+        {
+            "symbol": "AAPL",
+            "direction": "LONG",
+            "entry_price": 155.45887068321986,
+            "stop_loss": 150.79493612212067,
+            "take_profit": 158.54341449345648,
+            "position_size": 552,
+            "entry_time": "2023-02-09 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-02-18 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 155.45887068321986,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -184.4317713669294
+        },
+        {
+            "symbol": "AAPL",
+            "direction": "SHORT",
+            "entry_price": 157.19162838443276,
+            "stop_loss": 150.62323785393977,
+            "take_profit": 162.29676700960712,
+            "position_size": 894,
+            "entry_time": "2023-02-19 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-02-23 16:00:00",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 157.19162838443276,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 126.05513724392631
+        },
+        {
+            "symbol": "AAPL",
+            "direction": "SHORT",
+            "entry_price": 170.7611084296965,
+            "stop_loss": 166.79553504276154,
+            "take_profit": 174.6815547191752,
+            "position_size": 411,
+            "entry_time": "2023-01-16 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-01-19 16:00:00",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 170.7611084296965,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -702.1106488069313
+        },
+        {
+            "symbol": "AAPL",
+            "direction": "SHORT",
+            "entry_price": 145.42468023385652,
+            "stop_loss": 140.88438304463796,
+            "take_profit": 149.5726460256447,
+            "position_size": 515,
+            "entry_time": "2023-05-18 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-05-26 16:00:00",
+            "is_active": false,
+            "strategy": "GapTrading",
+            "current_price": 145.42468023385652,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 420.98260747657014
+        },
+        {
+            "symbol": "MSFT",
+            "direction": "SHORT",
+            "entry_price": 109.34467363784748,
+            "stop_loss": 106.57596069968581,
+            "take_profit": 112.85713491217764,
+            "position_size": 959,
+            "entry_time": "2023-01-05 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-01-06 16:00:00",
+            "is_active": false,
+            "strategy": "GapTrading",
+            "current_price": 109.34467363784748,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -69.97280402668889
+        },
+        {
+            "symbol": "MSFT",
+            "direction": "SHORT",
+            "entry_price": 80.09177983079175,
+            "stop_loss": 77.28902750378263,
+            "take_profit": 82.50230476303796,
+            "position_size": 160,
+            "entry_time": "2023-11-11 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-11-15 16:00:00",
+            "is_active": false,
+            "strategy": "GapTrading",
+            "current_price": 80.09177983079175,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 255.2509322390547
+        },
+        {
+            "symbol": "MSFT",
+            "direction": "SHORT",
+            "entry_price": 115.8259573424766,
+            "stop_loss": 112.63940076262762,
+            "take_profit": 120.89370828249949,
+            "position_size": 736,
+            "entry_time": "2023-12-13 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-12-16 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 115.8259573424766,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 516.6731720652069
+        },
+        {
+            "symbol": "MSFT",
+            "direction": "SHORT",
+            "entry_price": 170.975711123304,
+            "stop_loss": 163.85688981901876,
+            "take_profit": 178.87748692351124,
+            "position_size": 882,
+            "entry_time": "2023-03-24 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-04-01 16:00:00",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 170.975711123304,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 53.79483361834991
+        },
+        {
+            "symbol": "MSFT",
+            "direction": "SHORT",
+            "entry_price": 51.799030255341094,
+            "stop_loss": 49.282055057492904,
+            "take_profit": 53.268021354991426,
+            "position_size": 281,
+            "entry_time": "2023-03-07 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-03-08 16:00:00",
+            "is_active": false,
+            "strategy": "TrendFollowing",
+            "current_price": 51.799030255341094,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 160.83864266184173
+        },
+        {
+            "symbol": "MSFT",
+            "direction": "SHORT",
+            "entry_price": 196.3607273596171,
+            "stop_loss": 190.36290524900784,
+            "take_profit": 204.2353510668296,
+            "position_size": 853,
+            "entry_time": "2023-08-28 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-08-30 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 196.3607273596171,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 290.90546508155603
+        },
+        {
+            "symbol": "MSFT",
+            "direction": "SHORT",
+            "entry_price": 109.7763372933278,
+            "stop_loss": 104.50257804921685,
+            "take_profit": 111.94758130770902,
+            "position_size": 834,
+            "entry_time": "2023-02-15 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-02-19 16:00:00",
+            "is_active": false,
+            "strategy": "GapTrading",
+            "current_price": 109.7763372933278,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -776.8699776609537
+        },
+        {
+            "symbol": "MSFT",
+            "direction": "LONG",
+            "entry_price": 132.71977911436545,
+            "stop_loss": 131.05630983620884,
+            "take_profit": 134.14004984926757,
+            "position_size": 166,
+            "entry_time": "2023-10-30 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-11-05 16:00:00",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 132.71977911436545,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -394.0411271707933
+        },
+        {
+            "symbol": "MSFT",
+            "direction": "LONG",
+            "entry_price": 126.65137297343027,
+            "stop_loss": 124.74281553707056,
+            "take_profit": 128.148673353139,
+            "position_size": 298,
+            "entry_time": "2023-12-10 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-12-14 16:00:00",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 126.65137297343027,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -378.1864162115744
+        },
+        {
+            "symbol": "MSFT",
+            "direction": "LONG",
+            "entry_price": 161.71461520715678,
+            "stop_loss": 158.7471579203008,
+            "take_profit": 164.575864835876,
+            "position_size": 207,
+            "entry_time": "2023-01-11 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-01-13 16:00:00",
+            "is_active": false,
+            "strategy": "GapTrading",
+            "current_price": 161.71461520715678,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -671.2143379491469
+        },
+        {
+            "symbol": "AMZN",
+            "direction": "LONG",
+            "entry_price": 127.7313650364855,
+            "stop_loss": 124.91491606360395,
+            "take_profit": 131.8339360977316,
+            "position_size": 571,
+            "entry_time": "2023-03-29 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-04-06 16:00:00",
+            "is_active": false,
+            "strategy": "GapTrading",
+            "current_price": 127.7313650364855,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -115.14488415532662
+        },
+        {
+            "symbol": "AMZN",
+            "direction": "SHORT",
+            "entry_price": 165.10323342195034,
+            "stop_loss": 159.55148618604767,
+            "take_profit": 169.23207532405385,
+            "position_size": 162,
+            "entry_time": "2023-08-31 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-09-04 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 165.10323342195034,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -18.305773766847892
+        },
+        {
+            "symbol": "AMZN",
+            "direction": "SHORT",
+            "entry_price": 173.57243396755644,
+            "stop_loss": 169.88288455543642,
+            "take_profit": 177.9833158812682,
+            "position_size": 296,
+            "entry_time": "2023-03-11 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-03-14 16:00:00",
+            "is_active": false,
+            "strategy": "TrendFollowing",
+            "current_price": 173.57243396755644,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 460.58830054426494
+        },
+        {
+            "symbol": "AMZN",
+            "direction": "SHORT",
+            "entry_price": 159.42961871159173,
+            "stop_loss": 153.68540722352083,
+            "take_profit": 163.06557242379745,
+            "position_size": 919,
+            "entry_time": "2023-01-27 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-02-03 16:00:00",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 159.42961871159173,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 414.95302150608313
+        },
+        {
+            "symbol": "AMZN",
+            "direction": "LONG",
+            "entry_price": 148.95834799285478,
+            "stop_loss": 145.40316706257374,
+            "take_profit": 153.72668668525318,
+            "position_size": 404,
+            "entry_time": "2023-08-01 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-08-08 16:00:00",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 148.95834799285478,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 558.6714399109042
+        },
+        {
+            "symbol": "AMZN",
+            "direction": "SHORT",
+            "entry_price": 84.22260906921409,
+            "stop_loss": 80.70832078903929,
+            "take_profit": 86.93996063188271,
+            "position_size": 370,
+            "entry_time": "2023-07-11 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-07-13 16:00:00",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 84.22260906921409,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -666.0189301091193
+        },
+        {
+            "symbol": "AMZN",
+            "direction": "LONG",
+            "entry_price": 101.9394521919917,
+            "stop_loss": 99.16234834310278,
+            "take_profit": 104.49676855073254,
+            "position_size": 237,
+            "entry_time": "2023-11-26 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-12-05 16:00:00",
+            "is_active": false,
+            "strategy": "TrendFollowing",
+            "current_price": 101.9394521919917,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 311.4370740343147
+        },
+        {
+            "symbol": "AMZN",
+            "direction": "LONG",
+            "entry_price": 101.94797714527547,
+            "stop_loss": 99.68742399950108,
+            "take_profit": 104.17897591657665,
+            "position_size": 879,
+            "entry_time": "2023-11-03 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-11-08 16:00:00",
+            "is_active": false,
+            "strategy": "GapTrading",
+            "current_price": 101.94797714527547,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 993.2041269905551
+        },
+        {
+            "symbol": "AMZN",
+            "direction": "LONG",
+            "entry_price": 57.797874916749954,
+            "stop_loss": 55.22015550152207,
+            "take_profit": 59.24745808095472,
+            "position_size": 605,
+            "entry_time": "2023-05-22 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-05-26 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 57.797874916749954,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -220.54507146883793
+        },
+        {
+            "symbol": "AMZN",
+            "direction": "LONG",
+            "entry_price": 99.63028571377149,
+            "stop_loss": 95.76468335928818,
+            "take_profit": 101.18898230176116,
+            "position_size": 578,
+            "entry_time": "2023-11-28 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-12-04 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 99.63028571377149,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -313.7143854017032
+        },
+        {
+            "symbol": "GOOGL",
+            "direction": "LONG",
+            "entry_price": 63.64249868821385,
+            "stop_loss": 62.273580337570905,
+            "take_profit": 65.07649218346306,
+            "position_size": 354,
+            "entry_time": "2023-01-30 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-02-06 16:00:00",
+            "is_active": false,
+            "strategy": "GapTrading",
+            "current_price": 63.64249868821385,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -127.4767128526795
+        },
+        {
+            "symbol": "GOOGL",
+            "direction": "LONG",
+            "entry_price": 169.44736052179985,
+            "stop_loss": 167.2723102025242,
+            "take_profit": 174.0541274863621,
+            "position_size": 270,
+            "entry_time": "2023-05-21 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-05-23 16:00:00",
+            "is_active": false,
+            "strategy": "GapTrading",
+            "current_price": 169.44736052179985,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 336.9489127659824
+        },
+        {
+            "symbol": "GOOGL",
+            "direction": "LONG",
+            "entry_price": 62.61049737828674,
+            "stop_loss": 61.639873229734086,
+            "take_profit": 65.35449557500966,
+            "position_size": 387,
+            "entry_time": "2023-01-20 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-01-28 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 62.61049737828674,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 728.512778482808
+        },
+        {
+            "symbol": "GOOGL",
+            "direction": "SHORT",
+            "entry_price": 153.78252804428973,
+            "stop_loss": 147.67912703194963,
+            "take_profit": 159.7683269266332,
+            "position_size": 712,
+            "entry_time": "2023-04-18 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-04-22 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 153.78252804428973,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -130.75920412386768
+        },
+        {
+            "symbol": "GOOGL",
+            "direction": "SHORT",
+            "entry_price": 84.70632750625387,
+            "stop_loss": 82.46424976928687,
+            "take_profit": 88.37098567406997,
+            "position_size": 406,
+            "entry_time": "2023-11-01 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-11-02 16:00:00",
+            "is_active": false,
+            "strategy": "TrendFollowing",
+            "current_price": 84.70632750625387,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 381.50778037097075
+        },
+        {
+            "symbol": "GOOGL",
+            "direction": "LONG",
+            "entry_price": 58.449132744891074,
+            "stop_loss": 55.73921751470655,
+            "take_profit": 60.650660944231596,
+            "position_size": 984,
+            "entry_time": "2023-09-16 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-09-19 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 58.449132744891074,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 972.9348476582304
+        },
+        {
+            "symbol": "GOOGL",
+            "direction": "LONG",
+            "entry_price": 67.73832162956535,
+            "stop_loss": 64.6033102727362,
+            "take_profit": 69.59213330606589,
+            "position_size": 879,
+            "entry_time": "2023-03-11 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-03-15 16:00:00",
+            "is_active": false,
+            "strategy": "GapTrading",
+            "current_price": 67.73832162956535,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -87.34398614581653
+        },
+        {
+            "symbol": "GOOGL",
+            "direction": "LONG",
+            "entry_price": 76.38798280901523,
+            "stop_loss": 72.86748477551805,
+            "take_profit": 77.8694356802223,
+            "position_size": 677,
+            "entry_time": "2023-12-19 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-12-22 16:00:00",
+            "is_active": false,
+            "strategy": "TrendFollowing",
+            "current_price": 76.38798280901523,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 264.77153954867094
+        },
+        {
+            "symbol": "GOOGL",
+            "direction": "LONG",
+            "entry_price": 72.35662447305407,
+            "stop_loss": 70.73926894963289,
+            "take_profit": 74.40926733226888,
+            "position_size": 705,
+            "entry_time": "2023-07-05 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-07-07 16:00:00",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 72.35662447305407,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -446.47708308157314
+        },
+        {
+            "symbol": "GOOGL",
+            "direction": "LONG",
+            "entry_price": 127.56454118236533,
+            "stop_loss": 124.11651197228008,
+            "take_profit": 131.56429801083218,
+            "position_size": 155,
+            "entry_time": "2023-10-07 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-10-09 16:00:00",
+            "is_active": false,
+            "strategy": "GapTrading",
+            "current_price": 127.56454118236533,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -312.86389997883873
+        },
+        {
+            "symbol": "META",
+            "direction": "LONG",
+            "entry_price": 114.86995827798124,
+            "stop_loss": 112.15371625491761,
+            "take_profit": 120.45976229684085,
+            "position_size": 315,
+            "entry_time": "2023-05-29 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-06-07 16:00:00",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 114.86995827798124,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -760.8827920097809
+        },
+        {
+            "symbol": "META",
+            "direction": "LONG",
+            "entry_price": 104.03442483924024,
+            "stop_loss": 101.49590389051627,
+            "take_profit": 106.29148358568189,
+            "position_size": 266,
+            "entry_time": "2023-07-01 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-07-02 16:00:00",
+            "is_active": false,
+            "strategy": "TrendFollowing",
+            "current_price": 104.03442483924024,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 847.8623403796619
+        },
+        {
+            "symbol": "META",
+            "direction": "SHORT",
+            "entry_price": 147.10629295294498,
+            "stop_loss": 142.42745431905263,
+            "take_profit": 150.31442448437608,
+            "position_size": 130,
+            "entry_time": "2023-05-03 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-05-11 16:00:00",
+            "is_active": false,
+            "strategy": "GapTrading",
+            "current_price": 147.10629295294498,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -970.2604749636372
+        },
+        {
+            "symbol": "META",
+            "direction": "SHORT",
+            "entry_price": 80.34451330440793,
+            "stop_loss": 78.94039990685503,
+            "take_profit": 83.23612003209742,
+            "position_size": 482,
+            "entry_time": "2023-07-26 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-08-02 16:00:00",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 80.34451330440793,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -5.863822253202102
+        },
+        {
+            "symbol": "META",
+            "direction": "SHORT",
+            "entry_price": 154.8457086937496,
+            "stop_loss": 148.33077638466227,
+            "take_profit": 158.49903338640834,
+            "position_size": 389,
+            "entry_time": "2023-02-13 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-02-19 16:00:00",
+            "is_active": false,
+            "strategy": "TrendFollowing",
+            "current_price": 154.8457086937496,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 717.075057141331
+        },
+        {
+            "symbol": "META",
+            "direction": "LONG",
+            "entry_price": 175.09420520934057,
+            "stop_loss": 167.72677377713333,
+            "take_profit": 176.8784512614616,
+            "position_size": 839,
+            "entry_time": "2023-01-02 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-01-11 16:00:00",
+            "is_active": false,
+            "strategy": "GapTrading",
+            "current_price": 175.09420520934057,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 468.01514113546864
+        },
+        {
+            "symbol": "META",
+            "direction": "LONG",
+            "entry_price": 65.99838141247278,
+            "stop_loss": 65.03353496995932,
+            "take_profit": 68.95826465679025,
+            "position_size": 184,
+            "entry_time": "2023-11-03 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-11-06 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 65.99838141247278,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 112.23171803275613
+        },
+        {
+            "symbol": "META",
+            "direction": "SHORT",
+            "entry_price": 192.06200961868208,
+            "stop_loss": 185.35112126229882,
+            "take_profit": 199.515840195098,
+            "position_size": 573,
+            "entry_time": "2023-11-29 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-12-03 16:00:00",
+            "is_active": false,
+            "strategy": "GapTrading",
+            "current_price": 192.06200961868208,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 444.5179897997966
+        },
+        {
+            "symbol": "META",
+            "direction": "SHORT",
+            "entry_price": 85.69517068531117,
+            "stop_loss": 82.81381808823504,
+            "take_profit": 86.71524892330015,
+            "position_size": 564,
+            "entry_time": "2023-12-29 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-12-31 16:00:00",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 85.69517068531117,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 100.04814901072064
+        },
+        {
+            "symbol": "META",
+            "direction": "LONG",
+            "entry_price": 195.5581308715946,
+            "stop_loss": 190.11194620014032,
+            "take_profit": 199.06029201419977,
+            "position_size": 503,
+            "entry_time": "2023-12-20 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-12-22 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 195.5581308715946,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 533.1360965648214
+        },
+        {
+            "symbol": "NVDA",
+            "direction": "LONG",
+            "entry_price": 122.43301350865009,
+            "stop_loss": 117.71047791238365,
+            "take_profit": 128.53779674423367,
+            "position_size": 431,
+            "entry_time": "2023-04-23 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-05-01 16:00:00",
+            "is_active": false,
+            "strategy": "GapTrading",
+            "current_price": 122.43301350865009,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 757.036134782835
+        },
+        {
+            "symbol": "NVDA",
+            "direction": "LONG",
+            "entry_price": 177.0618174178664,
+            "stop_loss": 174.67794281681907,
+            "take_profit": 180.06995921845362,
+            "position_size": 479,
+            "entry_time": "2023-07-22 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-07-23 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 177.0618174178664,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 320.6341734977718
+        },
+        {
+            "symbol": "NVDA",
+            "direction": "LONG",
+            "entry_price": 108.91860018038406,
+            "stop_loss": 107.69141392234451,
+            "take_profit": 111.04935605258153,
+            "position_size": 513,
+            "entry_time": "2023-01-31 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-02-02 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 108.91860018038406,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 289.93261439781395
+        },
+        {
+            "symbol": "NVDA",
+            "direction": "SHORT",
+            "entry_price": 90.74690852782176,
+            "stop_loss": 88.26082975840968,
+            "take_profit": 92.32854398414464,
+            "position_size": 324,
+            "entry_time": "2023-06-20 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-06-28 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 90.74690852782176,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 940.3515411210567
+        },
+        {
+            "symbol": "NVDA",
+            "direction": "SHORT",
+            "entry_price": 162.30935138288459,
+            "stop_loss": 156.46115174849135,
+            "take_profit": 168.618266041504,
+            "position_size": 337,
+            "entry_time": "2023-01-29 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-01-31 16:00:00",
+            "is_active": false,
+            "strategy": "TrendFollowing",
+            "current_price": 162.30935138288459,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 2.9613604076932916
+        },
+        {
+            "symbol": "NVDA",
+            "direction": "SHORT",
+            "entry_price": 98.4333242168608,
+            "stop_loss": 95.79215295349199,
+            "take_profit": 99.5870865200505,
+            "position_size": 261,
+            "entry_time": "2023-03-04 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-03-09 16:00:00",
+            "is_active": false,
+            "strategy": "TrendFollowing",
+            "current_price": 98.4333242168608,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 787.6652391580083
+        },
+        {
+            "symbol": "NVDA",
+            "direction": "LONG",
+            "entry_price": 84.5171638665909,
+            "stop_loss": 83.52227112785424,
+            "take_profit": 87.35765539776386,
+            "position_size": 476,
+            "entry_time": "2023-08-05 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-08-06 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 84.5171638665909,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -133.98824018253652
+        },
+        {
+            "symbol": "NVDA",
+            "direction": "LONG",
+            "entry_price": 182.63558749508758,
+            "stop_loss": 177.48787196929857,
+            "take_profit": 188.3188201060511,
+            "position_size": 730,
+            "entry_time": "2023-09-20 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-09-29 16:00:00",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 182.63558749508758,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 264.9473547230059
+        },
+        {
+            "symbol": "NVDA",
+            "direction": "LONG",
+            "entry_price": 155.2544329544948,
+            "stop_loss": 153.51227503102595,
+            "take_profit": 157.39334703334814,
+            "position_size": 466,
+            "entry_time": "2023-02-06 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-02-12 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 155.2544329544948,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 41.42082255907371
+        },
+        {
+            "symbol": "NVDA",
+            "direction": "SHORT",
+            "entry_price": 80.85707940576133,
+            "stop_loss": 77.46090637803258,
+            "take_profit": 81.80172279715734,
+            "position_size": 834,
+            "entry_time": "2023-05-24 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-05-26 16:00:00",
+            "is_active": false,
+            "strategy": "GapTrading",
+            "current_price": 80.85707940576133,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 282.2696524420246
+        },
+        {
+            "symbol": "TSLA",
+            "direction": "LONG",
+            "entry_price": 159.59474167568953,
+            "stop_loss": 155.1899549403053,
+            "take_profit": 162.93311155744382,
+            "position_size": 603,
+            "entry_time": "2023-10-09 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-10-15 16:00:00",
+            "is_active": false,
+            "strategy": "GapTrading",
+            "current_price": 159.59474167568953,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 431.4789926145718
+        },
+        {
+            "symbol": "TSLA",
+            "direction": "LONG",
+            "entry_price": 105.33881467519194,
+            "stop_loss": 100.75900001154449,
+            "take_profit": 108.54997258258288,
+            "position_size": 259,
+            "entry_time": "2023-09-03 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-09-08 16:00:00",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 105.33881467519194,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 519.3897388928872
+        },
+        {
+            "symbol": "TSLA",
+            "direction": "SHORT",
+            "entry_price": 108.35762650667397,
+            "stop_loss": 106.55218068985432,
+            "take_profit": 109.49965675784445,
+            "position_size": 262,
+            "entry_time": "2023-04-18 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-04-19 16:00:00",
+            "is_active": false,
+            "strategy": "TrendFollowing",
+            "current_price": 108.35762650667397,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -743.4554554230383
+        },
+        {
+            "symbol": "TSLA",
+            "direction": "SHORT",
+            "entry_price": 99.02642902995467,
+            "stop_loss": 96.07224210062051,
+            "take_profit": 102.11873276746296,
+            "position_size": 759,
+            "entry_time": "2023-08-26 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-09-02 16:00:00",
+            "is_active": false,
+            "strategy": "TrendFollowing",
+            "current_price": 99.02642902995467,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -578.6998454009363
+        },
+        {
+            "symbol": "TSLA",
+            "direction": "LONG",
+            "entry_price": 86.59797625541648,
+            "stop_loss": 83.84282305479178,
+            "take_profit": 90.8463601064225,
+            "position_size": 596,
+            "entry_time": "2023-12-20 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-12-29 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 86.59797625541648,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 552.0757818607574
+        },
+        {
+            "symbol": "TSLA",
+            "direction": "LONG",
+            "entry_price": 121.25945542486375,
+            "stop_loss": 118.86474100817001,
+            "take_profit": 126.39903005196348,
+            "position_size": 207,
+            "entry_time": "2023-05-04 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-05-06 16:00:00",
+            "is_active": false,
+            "strategy": "GapTrading",
+            "current_price": 121.25945542486375,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -241.22175370765535
+        },
+        {
+            "symbol": "TSLA",
+            "direction": "SHORT",
+            "entry_price": 184.97012083506763,
+            "stop_loss": 181.7184249024379,
+            "take_profit": 190.14989160261112,
+            "position_size": 687,
+            "entry_time": "2023-12-22 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-12-24 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 184.97012083506763,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -894.8741007483762
+        },
+        {
+            "symbol": "TSLA",
+            "direction": "LONG",
+            "entry_price": 98.20710143082457,
+            "stop_loss": 93.47742052594283,
+            "take_profit": 100.93753053666572,
+            "position_size": 807,
+            "entry_time": "2023-06-16 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-06-19 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 98.20710143082457,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 740.3338270608081
+        },
+        {
+            "symbol": "TSLA",
+            "direction": "LONG",
+            "entry_price": 96.28928510860993,
+            "stop_loss": 93.96157805297229,
+            "take_profit": 99.08561311046768,
+            "position_size": 436,
+            "entry_time": "2023-02-06 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-02-10 16:00:00",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 96.28928510860993,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -766.275336658542
+        },
+        {
+            "symbol": "TSLA",
+            "direction": "LONG",
+            "entry_price": 183.28217425137052,
+            "stop_loss": 180.42646028368262,
+            "take_profit": 190.01464684534042,
+            "position_size": 398,
+            "entry_time": "2023-03-13 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-03-21 16:00:00",
+            "is_active": false,
+            "strategy": "TrendFollowing",
+            "current_price": 183.28217425137052,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 192.59513612130286
+        },
+        {
+            "symbol": "JPM",
+            "direction": "SHORT",
+            "entry_price": 86.26043548450198,
+            "stop_loss": 84.00194590278106,
+            "take_profit": 87.99540355743784,
+            "position_size": 639,
+            "entry_time": "2023-07-02 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-07-06 16:00:00",
+            "is_active": false,
+            "strategy": "GapTrading",
+            "current_price": 86.26043548450198,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 281.4952367316796
+        },
+        {
+            "symbol": "JPM",
+            "direction": "SHORT",
+            "entry_price": 184.30949786429025,
+            "stop_loss": 177.00968491506933,
+            "take_profit": 190.10365664679964,
+            "position_size": 772,
+            "entry_time": "2023-07-05 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-07-09 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 184.30949786429025,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 565.874546276084
+        },
+        {
+            "symbol": "JPM",
+            "direction": "SHORT",
+            "entry_price": 67.03263515830194,
+            "stop_loss": 64.93001446722519,
+            "take_profit": 69.53402962331819,
+            "position_size": 408,
+            "entry_time": "2023-05-07 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-05-15 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 67.03263515830194,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -62.60828765097949
+        },
+        {
+            "symbol": "JPM",
+            "direction": "LONG",
+            "entry_price": 168.96436318570338,
+            "stop_loss": 167.08457864233023,
+            "take_profit": 176.09604571845932,
+            "position_size": 168,
+            "entry_time": "2023-08-15 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-08-17 16:00:00",
+            "is_active": false,
+            "strategy": "TrendFollowing",
+            "current_price": 168.96436318570338,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 667.3605793557958
+        },
+        {
+            "symbol": "JPM",
+            "direction": "LONG",
+            "entry_price": 84.06137030721736,
+            "stop_loss": 81.40443153485175,
+            "take_profit": 85.253621003958,
+            "position_size": 198,
+            "entry_time": "2023-05-10 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-05-13 16:00:00",
+            "is_active": false,
+            "strategy": "GapTrading",
+            "current_price": 84.06137030721736,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -502.5089105151066
+        },
+        {
+            "symbol": "JPM",
+            "direction": "LONG",
+            "entry_price": 172.66675690336118,
+            "stop_loss": 170.15275698928536,
+            "take_profit": 176.06806516622117,
+            "position_size": 387,
+            "entry_time": "2023-02-22 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-03-01 16:00:00",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 172.66675690336118,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 309.08428666851455
+        },
+        {
+            "symbol": "JPM",
+            "direction": "SHORT",
+            "entry_price": 102.74613033144217,
+            "stop_loss": 98.5301268458686,
+            "take_profit": 106.6035617829827,
+            "position_size": 153,
+            "entry_time": "2023-09-23 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-09-26 16:00:00",
+            "is_active": false,
+            "strategy": "TrendFollowing",
+            "current_price": 102.74613033144217,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 48.9022788280422
+        },
+        {
+            "symbol": "JPM",
+            "direction": "SHORT",
+            "entry_price": 136.26816762868117,
+            "stop_loss": 133.3685006099593,
+            "take_profit": 142.13295817306613,
+            "position_size": 572,
+            "entry_time": "2023-11-19 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-11-20 16:00:00",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 136.26816762868117,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 264.52001426603647
+        },
+        {
+            "symbol": "JPM",
+            "direction": "SHORT",
+            "entry_price": 144.31018310412082,
+            "stop_loss": 138.71030180633858,
+            "take_profit": 146.09723215112447,
+            "position_size": 364,
+            "entry_time": "2023-06-02 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-06-04 16:00:00",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 144.31018310412082,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 48.03008063364928
+        },
+        {
+            "symbol": "JPM",
+            "direction": "LONG",
+            "entry_price": 75.58689160649836,
+            "stop_loss": 72.678088518494,
+            "take_profit": 77.62777795831,
+            "position_size": 502,
+            "entry_time": "2023-03-29 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-03-31 16:00:00",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 75.58689160649836,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -267.31034322014955
+        },
+        {
+            "symbol": "V",
+            "direction": "SHORT",
+            "entry_price": 178.8227491475541,
+            "stop_loss": 176.5433933396784,
+            "take_profit": 186.57400645532445,
+            "position_size": 169,
+            "entry_time": "2023-11-20 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-11-25 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 178.8227491475541,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 379.8274510173235
+        },
+        {
+            "symbol": "V",
+            "direction": "LONG",
+            "entry_price": 107.78446697388728,
+            "stop_loss": 104.29303850901107,
+            "take_profit": 110.03579868938304,
+            "position_size": 628,
+            "entry_time": "2023-01-23 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-02-01 16:00:00",
+            "is_active": false,
+            "strategy": "GapTrading",
+            "current_price": 107.78446697388728,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 116.90343416968312
+        },
+        {
+            "symbol": "V",
+            "direction": "SHORT",
+            "entry_price": 50.54592969576906,
+            "stop_loss": 49.80283063506579,
+            "take_profit": 51.92794254521783,
+            "position_size": 924,
+            "entry_time": "2023-09-04 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-09-13 16:00:00",
+            "is_active": false,
+            "strategy": "GapTrading",
+            "current_price": 50.54592969576906,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 395.35171391530434
+        },
+        {
+            "symbol": "V",
+            "direction": "SHORT",
+            "entry_price": 102.26546966053976,
+            "stop_loss": 99.0434607537176,
+            "take_profit": 103.80684856562405,
+            "position_size": 603,
+            "entry_time": "2023-01-18 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-01-23 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 102.26546966053976,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -656.7707315171817
+        },
+        {
+            "symbol": "V",
+            "direction": "SHORT",
+            "entry_price": 88.91871821934063,
+            "stop_loss": 85.93602031005653,
+            "take_profit": 91.7647909318235,
+            "position_size": 464,
+            "entry_time": "2023-10-30 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-11-05 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 88.91871821934063,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -772.3193018979715
+        },
+        {
+            "symbol": "V",
+            "direction": "LONG",
+            "entry_price": 122.32223142936061,
+            "stop_loss": 117.98602615791097,
+            "take_profit": 124.94848353488665,
+            "position_size": 465,
+            "entry_time": "2023-10-07 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-10-10 16:00:00",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 122.32223142936061,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -918.7423946187707
+        },
+        {
+            "symbol": "V",
+            "direction": "SHORT",
+            "entry_price": 58.78554655869259,
+            "stop_loss": 56.340808527974005,
+            "take_profit": 59.6357825298275,
+            "position_size": 571,
+            "entry_time": "2023-07-02 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-07-03 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 58.78554655869259,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 590.965113455758
+        },
+        {
+            "symbol": "V",
+            "direction": "LONG",
+            "entry_price": 73.2312588222159,
+            "stop_loss": 70.09752088535132,
+            "take_profit": 74.70083918377297,
+            "position_size": 202,
+            "entry_time": "2023-08-26 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-09-01 16:00:00",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 73.2312588222159,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 290.58967556339553
+        },
+        {
+            "symbol": "V",
+            "direction": "SHORT",
+            "entry_price": 60.551823958140396,
+            "stop_loss": 58.8635669027159,
+            "take_profit": 63.51798990613373,
+            "position_size": 515,
+            "entry_time": "2023-12-17 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-12-26 16:00:00",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 60.551823958140396,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 238.1028339356369
+        },
+        {
+            "symbol": "V",
+            "direction": "LONG",
+            "entry_price": 65.333491570909,
+            "stop_loss": 62.760890259061576,
+            "take_profit": 66.81282606208755,
+            "position_size": 770,
+            "entry_time": "2023-09-01 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-09-06 16:00:00",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 65.333491570909,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -657.6392051573732
+        },
+        {
+            "symbol": "DIS",
+            "direction": "SHORT",
+            "entry_price": 168.64616363712832,
+            "stop_loss": 165.44615641086583,
+            "take_profit": 172.76574307332683,
+            "position_size": 876,
+            "entry_time": "2023-03-02 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-03-07 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 168.64616363712832,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 938.4472827731474
+        },
+        {
+            "symbol": "DIS",
+            "direction": "LONG",
+            "entry_price": 93.77941031515002,
+            "stop_loss": 92.0063488437271,
+            "take_profit": 95.47846089863809,
+            "position_size": 243,
+            "entry_time": "2023-09-25 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-09-27 16:00:00",
+            "is_active": false,
+            "strategy": "TrendFollowing",
+            "current_price": 93.77941031515002,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 108.95241959966006
+        },
+        {
+            "symbol": "DIS",
+            "direction": "LONG",
+            "entry_price": 166.507106904974,
+            "stop_loss": 160.8563940738258,
+            "take_profit": 170.04282552482292,
+            "position_size": 148,
+            "entry_time": "2023-08-26 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-08-30 16:00:00",
+            "is_active": false,
+            "strategy": "GapTrading",
+            "current_price": 166.507106904974,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 292.20227307281743
+        },
+        {
+            "symbol": "DIS",
+            "direction": "LONG",
+            "entry_price": 76.51738065184277,
+            "stop_loss": 73.99573815651537,
+            "take_profit": 77.39720571395102,
+            "position_size": 459,
+            "entry_time": "2023-05-17 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-05-19 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 76.51738065184277,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -43.24686280372168
+        },
+        {
+            "symbol": "DIS",
+            "direction": "SHORT",
+            "entry_price": 90.34112941825362,
+            "stop_loss": 88.02906506168884,
+            "take_profit": 94.58988571543357,
+            "position_size": 885,
+            "entry_time": "2023-01-21 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-01-26 16:00:00",
+            "is_active": false,
+            "strategy": "TrendFollowing",
+            "current_price": 90.34112941825362,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -477.8222703602046
+        },
+        {
+            "symbol": "DIS",
+            "direction": "LONG",
+            "entry_price": 102.29948859774736,
+            "stop_loss": 99.93138907089542,
+            "take_profit": 107.18858958424916,
+            "position_size": 671,
+            "entry_time": "2023-07-05 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-07-13 16:00:00",
+            "is_active": false,
+            "strategy": "GapTrading",
+            "current_price": 102.29948859774736,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 168.662937432156
+        },
+        {
+            "symbol": "DIS",
+            "direction": "SHORT",
+            "entry_price": 123.41174307115854,
+            "stop_loss": 119.36427629820555,
+            "take_profit": 126.60398228193908,
+            "position_size": 792,
+            "entry_time": "2023-01-18 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-01-22 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 123.41174307115854,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 369.62292326504416
+        },
+        {
+            "symbol": "DIS",
+            "direction": "SHORT",
+            "entry_price": 181.06323264579905,
+            "stop_loss": 175.23499488382953,
+            "take_profit": 185.95419029808184,
+            "position_size": 593,
+            "entry_time": "2023-12-08 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-12-10 16:00:00",
+            "is_active": false,
+            "strategy": "GapTrading",
+            "current_price": 181.06323264579905,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": 355.0214091362145
+        },
+        {
+            "symbol": "DIS",
+            "direction": "LONG",
+            "entry_price": 126.8333322205772,
+            "stop_loss": 122.68831890609444,
+            "take_profit": 129.35729512310007,
+            "position_size": 276,
+            "entry_time": "2023-07-02 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-07-08 16:00:00",
+            "is_active": false,
+            "strategy": "VolatilityBreakout",
+            "current_price": 126.8333322205772,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -868.8428448252164
+        },
+        {
+            "symbol": "DIS",
+            "direction": "SHORT",
+            "entry_price": 56.030830138571204,
+            "stop_loss": 53.57200466192529,
+            "take_profit": 57.05206075769006,
+            "position_size": 262,
+            "entry_time": "2023-01-21 09:30:00",
+            "exit_price": null,
+            "exit_time": "2023-01-26 16:00:00",
+            "is_active": false,
+            "strategy": "GapTrading",
+            "current_price": 56.030830138571204,
+            "unrealized_pnl": 0.0,
+            "realized_pnl": -125.07378114317396
+        },
+        {
+            "symbol": "AAPL",
+            "direction": "SHORT",
+            "entry_price": 121.62895272348501,
+            "stop_loss": 123.26970643743138,
+            "take_profit": 117.98008414178047,
+            "position_size": 487,
+            "entry_time": "2025-03-14 23:53:15",
+            "exit_price": 95.36173520131538,
+            "exit_time": "2025-03-14 23:53:17",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 95.36173520131538,
+            "unrealized_pnl": 12792.13493329661,
+            "realized_pnl": 12792.13493329661
+        },
+        {
+            "symbol": "AAPL",
+            "direction": "SHORT",
+            "entry_price": 121.62895272348501,
+            "stop_loss": 123.26970643743138,
+            "take_profit": 117.98008414178047,
+            "position_size": 487,
+            "entry_time": "2025-03-14 23:53:16",
+            "exit_price": 95.36173520131538,
+            "exit_time": "2025-03-14 23:53:17",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 95.36173520131538,
+            "unrealized_pnl": 12792.13493329661,
+            "realized_pnl": 12792.13493329661
+        },
+        {
+            "symbol": "MSFT",
+            "direction": "SHORT",
+            "entry_price": 38.05901823809211,
+            "stop_loss": 38.64961303152789,
+            "take_profit": 36.917247690949345,
+            "position_size": 750,
+            "entry_time": "2025-03-14 23:53:15",
+            "exit_price": 86.28713112531202,
+            "exit_time": "2025-03-14 23:53:17",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 86.28713112531202,
+            "unrealized_pnl": -36171.08466541493,
+            "realized_pnl": -36171.08466541493
+        },
+        {
+            "symbol": "MSFT",
+            "direction": "SHORT",
+            "entry_price": 38.05901823809211,
+            "stop_loss": 38.64961303152789,
+            "take_profit": 36.917247690949345,
+            "position_size": 750,
+            "entry_time": "2025-03-14 23:53:16",
+            "exit_price": 86.28713112531202,
+            "exit_time": "2025-03-14 23:53:17",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 86.28713112531202,
+            "unrealized_pnl": -36171.08466541493,
+            "realized_pnl": -36171.08466541493
+        },
+        {
+            "symbol": "AMZN",
+            "direction": "SHORT",
+            "entry_price": 105.92831624234343,
+            "stop_loss": 107.40082042768731,
+            "take_profit": 102.75046675507312,
+            "position_size": 543,
+            "entry_time": "2025-03-14 23:53:15",
+            "exit_price": 88.15734480502456,
+            "exit_time": "2025-03-14 23:53:17",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 88.15734480502456,
+            "unrealized_pnl": 9649.637490464143,
+            "realized_pnl": 9649.637490464143
+        },
+        {
+            "symbol": "AMZN",
+            "direction": "SHORT",
+            "entry_price": 105.92831624234343,
+            "stop_loss": 107.40082042768731,
+            "take_profit": 102.75046675507312,
+            "position_size": 543,
+            "entry_time": "2025-03-14 23:53:16",
+            "exit_price": 88.15734480502456,
+            "exit_time": "2025-03-14 23:53:17",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 88.15734480502456,
+            "unrealized_pnl": 9649.637490464143,
+            "realized_pnl": 9649.637490464143
+        },
+        {
+            "symbol": "GOOGL",
+            "direction": "SHORT",
+            "entry_price": 175.40459197575564,
+            "stop_loss": 178.5367187912621,
+            "take_profit": 170.14245421648297,
+            "position_size": 255,
+            "entry_time": "2025-03-14 23:53:15",
+            "exit_price": 91.77469178630488,
+            "exit_time": "2025-03-14 23:53:17",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 91.77469178630488,
+            "unrealized_pnl": 21325.62454830994,
+            "realized_pnl": 21325.62454830994
+        },
+        {
+            "symbol": "GOOGL",
+            "direction": "SHORT",
+            "entry_price": 175.40459197575564,
+            "stop_loss": 178.5367187912621,
+            "take_profit": 170.14245421648297,
+            "position_size": 255,
+            "entry_time": "2025-03-14 23:53:16",
+            "exit_price": 91.77469178630488,
+            "exit_time": "2025-03-14 23:53:17",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 91.77469178630488,
+            "unrealized_pnl": 21325.62454830994,
+            "realized_pnl": 21325.62454830994
+        },
+        {
+            "symbol": "META",
+            "direction": "SHORT",
+            "entry_price": 34.395275508511226,
+            "stop_loss": 35.42713377376656,
+            "take_profit": 33.36341724325589,
+            "position_size": 750,
+            "entry_time": "2025-03-14 23:53:15",
+            "exit_price": 100.01613534307009,
+            "exit_time": "2025-03-14 23:53:17",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 100.01613534307009,
+            "unrealized_pnl": -49215.644875919155,
+            "realized_pnl": -49215.644875919155
+        },
+        {
+            "symbol": "META",
+            "direction": "SHORT",
+            "entry_price": 34.395275508511226,
+            "stop_loss": 35.42713377376656,
+            "take_profit": 33.36341724325589,
+            "position_size": 750,
+            "entry_time": "2025-03-14 23:53:16",
+            "exit_price": 100.01613534307009,
+            "exit_time": "2025-03-14 23:53:17",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 100.01613534307009,
+            "unrealized_pnl": -49215.644875919155,
+            "realized_pnl": -49215.644875919155
+        },
+        {
+            "symbol": "NVDA",
+            "direction": "SHORT",
+            "entry_price": 96.95873467679253,
+            "stop_loss": 98.3192460189074,
+            "take_profit": 94.04997263648875,
+            "position_size": 588,
+            "entry_time": "2025-03-14 23:53:15",
+            "exit_price": 124.76741921438645,
+            "exit_time": "2025-03-14 23:53:17",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 124.76741921438645,
+            "unrealized_pnl": -16351.506508105225,
+            "realized_pnl": -16351.506508105225
+        },
+        {
+            "symbol": "NVDA",
+            "direction": "SHORT",
+            "entry_price": 96.95873467679253,
+            "stop_loss": 98.3192460189074,
+            "take_profit": 94.04997263648875,
+            "position_size": 588,
+            "entry_time": "2025-03-14 23:53:16",
+            "exit_price": 124.76741921438645,
+            "exit_time": "2025-03-14 23:53:17",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 124.76741921438645,
+            "unrealized_pnl": -16351.506508105225,
+            "realized_pnl": -16351.506508105225
+        },
+        {
+            "symbol": "TSLA",
+            "direction": "SHORT",
+            "entry_price": 20.83099179626357,
+            "stop_loss": 21.37154628246422,
+            "take_profit": 20.206062042375663,
+            "position_size": 750,
+            "entry_time": "2025-03-14 23:53:15",
+            "exit_price": 69.17056189696714,
+            "exit_time": "2025-03-14 23:53:17",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 69.17056189696714,
+            "unrealized_pnl": -36254.677575527676,
+            "realized_pnl": -36254.677575527676
+        },
+        {
+            "symbol": "JPM",
+            "direction": "SHORT",
+            "entry_price": 30.965021627327157,
+            "stop_loss": 31.291507236546735,
+            "take_profit": 30.036070978507343,
+            "position_size": 750,
+            "entry_time": "2025-03-14 23:53:15",
+            "exit_price": 99.74423906689498,
+            "exit_time": "2025-03-14 23:53:17",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 99.74423906689498,
+            "unrealized_pnl": -51584.41307967586,
+            "realized_pnl": -51584.41307967586
+        },
+        {
+            "symbol": "V",
+            "direction": "SHORT",
+            "entry_price": 80.18628240602236,
+            "stop_loss": 80.86884706700654,
+            "take_profit": 77.78069393384169,
+            "position_size": 750,
+            "entry_time": "2025-03-14 23:53:15",
+            "exit_price": 141.2620586401475,
+            "exit_time": "2025-03-14 23:53:17",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 141.2620586401475,
+            "unrealized_pnl": -45806.83217559386,
+            "realized_pnl": -45806.83217559386
+        },
+        {
+            "symbol": "DIS",
+            "direction": "LONG",
+            "entry_price": 24.669729987727568,
+            "stop_loss": 24.380866352611065,
+            "take_profit": 25.409821887359396,
+            "position_size": 750,
+            "entry_time": "2025-03-14 23:53:15",
+            "exit_price": 106.60368027560482,
+            "exit_time": "2025-03-14 23:53:17",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 106.60368027560482,
+            "unrealized_pnl": 61450.46271590794,
+            "realized_pnl": 61450.46271590794
+        },
+        {
+            "symbol": "DIS",
+            "direction": "SHORT",
+            "entry_price": 24.669729987727568,
+            "stop_loss": 25.36492402485332,
+            "take_profit": 23.92963808809574,
+            "position_size": 750,
+            "entry_time": "2025-03-14 23:53:15",
+            "exit_price": 106.60368027560482,
+            "exit_time": "2025-03-14 23:53:17",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 106.60368027560482,
+            "unrealized_pnl": -61450.46271590794,
+            "realized_pnl": -61450.46271590794
+        },
+        {
+            "symbol": "DIS",
+            "direction": "LONG",
+            "entry_price": 24.669729987727568,
+            "stop_loss": 24.380866352611065,
+            "take_profit": 25.409821887359396,
+            "position_size": 750,
+            "entry_time": "2025-03-14 23:53:16",
+            "exit_price": 106.60368027560482,
+            "exit_time": "2025-03-14 23:53:17",
+            "is_active": false,
+            "strategy": "MeanReversion",
+            "current_price": 106.60368027560482,
+            "unrealized_pnl": 61450.46271590794,
+            "realized_pnl": 61450.46271590794
+        },
+        {
+            "symbol": "V",
+            "direction": "LONG",
+            "entry_price": 80.18628240602236,
+            "stop_loss": 78.22007346030624,
+            "take_profit": 84.1187002974546,
+            "position_size": 406,
+            "entry_time": "2025-03-14 23:53:15",
+            "exit_price": 139.88328562089566,
+            "exit_time": "2025-03-14 23:53:33",
+            "is_active": false,
+            "strategy": "TrendFollowing",
+            "current_price": 142.68401605026196,
+            "unrealized_pnl": 25374.07985956128,
+            "realized_pnl": 24236.983305238562
+        },
+        {
+            "symbol": "V",
+            "direction": "LONG",
+            "entry_price": 80.18628240602236,
+            "stop_loss": 78.22007346030624,
+            "take_profit": 84.1187002974546,
+            "position_size": 406,
+            "entry_time": "2025-03-14 23:53:16",
+            "exit_price": 139.88328562089566,
+            "exit_time": "2025-03-14 23:53:33",
+            "is_active": false,
+            "strategy": "TrendFollowing",
+            "current_price": 142.68401605026196,
+            "unrealized_pnl": 25374.07985956128,
+            "realized_pnl": 24236.983305238562
+        }
+    ],
+    "strategy_performance": {
+        "MeanReversion": {
+            "strategy": "MeanReversion",
+            "win_rate": 44.44444444444444,
+            "profit_factor": 0.527973030123088,
+            "avg_gain": 26304.46492199466,
+            "avg_loss": -39857.28576455841,
+            "max_drawdown": 0.0,
+            "sharpe_ratio": 0.0,
+            "total_trades": 18,
+            "winning_trades": 8,
+            "losing_trades": 10,
+            "total_pnl": -188137.1382696267,
+            "performance_by_regime": {
+                "UNKNOWN": -188137.1382696267
+            }
+        },
+        "TrendFollowing": {
+            "strategy": "TrendFollowing",
+            "win_rate": 100.0,
+            "profit_factor": 0.0,
+            "avg_gain": 24236.983305238562,
+            "avg_loss": 0.0,
+            "max_drawdown": 0.0,
+            "sharpe_ratio": 0.0,
+            "total_trades": 2,
+            "winning_trades": 2,
+            "losing_trades": 0,
+            "total_pnl": 48473.966610477124,
+            "performance_by_regime": {
+                "UNKNOWN": 48473.966610477124
+            }
+        },
+        "VolatilityBreakout": {
+            "strategy": "VolatilityBreakout",
+            "win_rate": 0.0,
+            "profit_factor": 0.0,
+            "avg_gain": 0.0,
+            "avg_loss": 0.0,
+            "max_drawdown": 0.0,
+            "sharpe_ratio": 0.0,
+            "total_trades": 0,
+            "winning_trades": 0,
+            "losing_trades": 0,
+            "total_pnl": 0.0,
+            "performance_by_regime": {}
+        },
+        "GapTrading": {
+            "strategy": "GapTrading",
+            "win_rate": 0.0,
+            "profit_factor": 0.0,
+            "avg_gain": 0.0,
+            "avg_loss": 0.0,
+            "max_drawdown": 0.0,
+            "sharpe_ratio": 0.0,
+            "total_trades": 0,
+            "winning_trades": 0,
+            "losing_trades": 0,
+            "total_pnl": 0.0,
+            "performance_by_regime": {}
+        }
+    }
+}

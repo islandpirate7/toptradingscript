@@ -1,0 +1,45 @@
+{
+    "period": "Volatile Q3 2023",
+    "total_return_pct": {
+        "original": -1.659383430480954,
+        "enhanced": 1139.6926311492919,
+        "difference": 1141.352014579773,
+        "percent_improvement": 68781.6928634128
+    },
+    "annualized_return_pct": {
+        "original": -6.491336545560156,
+        "enhanced": 2428022.0826010196,
+        "difference": 2428028.573937565,
+        "percent_improvement": 37404139.454119824
+    },
+    "sharpe_ratio": {
+        "original": 0.0,
+        "enhanced": 20.742945331695594,
+        "difference": 20.742945331695594,
+        "percent_improvement": 0
+    },
+    "max_drawdown_pct": {
+        "original": 0.0,
+        "enhanced": 0.7950124141377505,
+        "difference": 0.7950124141377505,
+        "percent_improvement": 0
+    },
+    "win_rate": {
+        "original": 0.3,
+        "enhanced": 0.7921875,
+        "difference": 0.49218750000000006,
+        "percent_improvement": 164.06250000000003
+    },
+    "profit_factor": {
+        "original": 0.3868153854861879,
+        "enhanced": 5.796492022342769,
+        "difference": 5.409676636856581,
+        "percent_improvement": 1398.5164085593865
+    },
+    "total_trades": {
+        "original": 10,
+        "enhanced": 640,
+        "difference": 630,
+        "percent_change": 6300.0
+    }
+}

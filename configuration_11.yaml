@@ -1,0 +1,405 @@
+# Multi-Strategy Trading System Configuration
+# ------------------------------------------
+# Configuration 11: Enhanced version with more realistic parameters and better risk management
+
+# Overall System Configuration
+initial_capital: 100000.0         # Starting capital
+max_open_positions: 8            # Reduced from 10 to improve risk management
+max_positions_per_symbol: 1      # Reduced from 2 to avoid overexposure to a single symbol
+max_correlated_positions: 3      # Reduced from 5 to avoid correlated risk
+max_sector_exposure_pct: 25.0    # Reduced from 30.0 to limit sector concentration
+max_portfolio_risk_daily_pct: 1.5  # Reduced from 2.0 to improve risk management
+rebalance_interval: 1d           # Rebalance interval (d=days, h=hours)
+data_lookback_days: 60           # Increased from 30 to provide more historical context
+market_hours_start: '09:30'      # Market open time (EST)
+market_hours_end: '16:00'        # Market close time (EST)
+debug_mode: true                 # Enable debug mode for more verbose logging
+
+# Data Source Configuration
+data_source: YAHOO             # Data source (YAHOO, ALPACA, IB)
+api_key: null                  # API key (if required)
+api_secret: null               # API secret (if required)
+
+# Strategy Weights (adjusted based on performance analysis)
+strategy_weights:
+  MeanReversion: 0.30          # Increased weight for MeanReversion as it's performing well
+  TrendFollowing: 0.30         # Increased weight for TrendFollowing
+  VolatilityBreakout: 0.25     # Kept the same for VolatilityBreakout
+  GapTrading: 0.15             # Reduced weight for GapTrading as it's not generating signals
+
+# Trading Configuration
+enable_auto_trading: false     # Enable automated trading
+backtesting_mode: true         # Enable backtesting mode
+
+# Signal Quality Filters Configuration (enhanced)
+signal_quality_filters:
+  min_score_threshold: 0.7       # Increased from 0.6 to ensure higher quality signals
+  max_correlation_threshold: 0.6 # Reduced from 0.7 to avoid correlated positions
+  min_volume_percentile: 60      # Increased from 50 to ensure sufficient liquidity
+  min_price: 10.0                # Increased from 5.0 to focus on more liquid stocks
+  max_spread_percent: 0.8        # Reduced from 1.0 to ensure better execution
+  min_volatility_percentile: 30  # Increased from 20 to ensure sufficient volatility
+  max_volatility_percentile: 80  # Reduced from 90 to avoid extremely volatile stocks
+  min_regime_weight: 0.4         # Increased from 0.3 to ensure strategy-regime fit
+  max_signals_per_regime: 3      # Reduced from 5 to focus on best signals
+  max_sector_exposure: 0.25      # Reduced from 0.3 to limit sector concentration
+  max_signals_per_day: 5         # Reduced from 10 to focus on best signals
+
+# Adaptive Position Sizing Configuration (enhanced)
+position_sizing_config:
+  base_risk_per_trade: 0.008     # Reduced from 0.01 to improve risk management
+  max_position_size: 0.08        # Reduced from 0.1 to limit position size
+  min_position_size: 0.005       # Kept the same
+  volatility_adjustment: true    # Enable volatility-based position sizing
+  signal_strength_adjustment: true # Enable signal strength-based position sizing
+  atr_multiplier: 2.0            # Added ATR multiplier for stop loss calculation
+  max_risk_per_trade_pct: 1.0    # Added maximum risk per trade percentage
+
+# ML-Based Strategy Selection Configuration
+ml_strategy_selector:
+  ml_lookback_window: 45         # Increased from 30 to provide more training data
+  ml_min_training_samples: 150   # Increased from 100 to ensure better model training
+  ml_retraining_frequency: 5     # Reduced from 7 to retrain more frequently
+  ml_feature_columns:            # Features used for ML models
+    - vix
+    - market_adx
+    - trending_strength
+    - range_bound_strength
+    - volatility_strength
+    - regime_change_probability
+    - sector_rotation           # Added new feature
+
+# Strategies Configuration
+strategies:
+  MeanReversion:
+    bb_period: 20
+    bb_std_dev: 2.0
+    rsi_period: 14
+    rsi_overbought: 70
+    rsi_oversold: 30
+    min_reversal_candles: 2
+    require_reversal: true
+    # Balanced ATR multipliers that work well across different market regimes
+    stop_loss_atr: 2.0
+    take_profit_atr: 3.0
+  VolatilityBreakout:
+    bb_period: 20
+    bb_std_dev: 2.0
+    kc_period: 20
+    kc_multiplier: 1.5
+    min_squeeze_length: 10
+    volume_threshold: 1.5
+
+# Stocks Configuration
+stocks:
+  - symbol: AAPL
+    max_position_size: 300       # Reduced from 500 to limit exposure
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.4  # Reduced from 0.5 to improve risk management
+    min_volume: 20000            # Increased from 10000 to ensure liquidity
+    beta: 1.2
+    sector: Technology
+    industry: Consumer Electronics
+    mean_reversion_params:
+      bb_period: 20              # Increased from 10 for more stable bands
+      bb_std_dev: 2.0            # Increased from 1.0 for more realistic bands
+      rsi_period: 14             # Increased from 7 for more stable RSI
+      rsi_overbought: 70         # Increased from 60 for stricter conditions
+      rsi_oversold: 30           # Reduced from 40 for stricter conditions
+      min_reversal_candles: 2    # Increased from 1 to confirm reversal
+      require_reversal: true     # Added to require price reversal confirmation
+    trend_following_params:
+      adx_threshold: 25          # Increased from 15 for stronger trend confirmation
+      adx_period: 14             # Increased from 7 for more stable ADX
+      ema_short: 9               # Increased from 5 for more stable EMA
+      ema_long: 21               # Increased from 10 for more stable EMA
+    volatility_breakout_params:
+      bb_period: 20              # Added correct parameter name
+      bb_std_dev: 2.0            # Added parameter
+      keltner_period: 20         # Increased from 10 for more stable channels
+      keltner_factor: 1.5        # Added parameter
+      min_squeeze_periods: 5     # Increased from 3 for more reliable squeezes
+      volume_threshold: 1.5      # Added parameter
+    gap_trading_params:
+      min_gap_pct: 1.0           # Increased from 0.5 for more significant gaps
+      min_volume_ratio: 1.5      # Added parameter
+      max_gap_pct: 5.0           # Added parameter to avoid chasing extreme gaps
+
+  - symbol: MSFT
+    max_position_size: 300       # Reduced from 500 to limit exposure
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.4  # Reduced from 0.5 to improve risk management
+    min_volume: 20000            # Increased from 10000 to ensure liquidity
+    beta: 1.1
+    sector: Technology
+    industry: Software
+    mean_reversion_params:
+      bb_period: 20              # Increased from 10 for more stable bands
+      bb_std_dev: 2.0            # Increased from 1.0 for more realistic bands
+      rsi_period: 14             # Increased from 7 for more stable RSI
+      rsi_overbought: 70         # Increased from 60 for stricter conditions
+      rsi_oversold: 30           # Reduced from 40 for stricter conditions
+      min_reversal_candles: 2    # Increased from 1 to confirm reversal
+      require_reversal: true     # Added to require price reversal confirmation
+    trend_following_params:
+      adx_threshold: 25          # Increased from 15 for stronger trend confirmation
+      adx_period: 14             # Increased from 7 for more stable ADX
+      ema_short: 9               # Increased from 5 for more stable EMA
+      ema_long: 21               # Increased from 10 for more stable EMA
+    volatility_breakout_params:
+      bb_period: 20              # Added correct parameter name
+      bb_std_dev: 2.0            # Added parameter
+      keltner_period: 20         # Increased from 10 for more stable channels
+      keltner_factor: 1.5        # Added parameter
+      min_squeeze_periods: 5     # Increased from 3 for more reliable squeezes
+      volume_threshold: 1.5      # Added parameter
+    gap_trading_params:
+      min_gap_pct: 1.0           # Increased from 0.5 for more significant gaps
+      min_volume_ratio: 1.5      # Added parameter
+      max_gap_pct: 5.0           # Added parameter to avoid chasing extreme gaps
+
+  - symbol: GOOGL
+    max_position_size: 300       # Reduced from 500 to limit exposure
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.4  # Reduced from 0.5 to improve risk management
+    min_volume: 20000            # Increased from 10000 to ensure liquidity
+    beta: 1.3
+    sector: Technology
+    industry: Internet Services
+    mean_reversion_params:
+      bb_period: 20              # Increased from 10 for more stable bands
+      bb_std_dev: 2.0            # Increased from 1.0 for more realistic bands
+      rsi_period: 14             # Increased from 7 for more stable RSI
+      rsi_overbought: 70         # Increased from 60 for stricter conditions
+      rsi_oversold: 30           # Reduced from 40 for stricter conditions
+      min_reversal_candles: 2    # Increased from 1 to confirm reversal
+      require_reversal: true     # Added to require price reversal confirmation
+    trend_following_params:
+      adx_threshold: 25          # Increased from 15 for stronger trend confirmation
+      adx_period: 14             # Increased from 7 for more stable ADX
+      ema_short: 9               # Increased from 5 for more stable EMA
+      ema_long: 21               # Increased from 10 for more stable EMA
+    volatility_breakout_params:
+      bb_period: 20              # Added correct parameter name
+      bb_std_dev: 2.0            # Added parameter
+      keltner_period: 20         # Increased from 10 for more stable channels
+      keltner_factor: 1.5        # Added parameter
+      min_squeeze_periods: 5     # Increased from 3 for more reliable squeezes
+      volume_threshold: 1.5      # Added parameter
+    gap_trading_params:
+      min_gap_pct: 1.0           # Increased from 0.5 for more significant gaps
+      min_volume_ratio: 1.5      # Added parameter
+      max_gap_pct: 5.0           # Added parameter to avoid chasing extreme gaps
+
+  - symbol: AMZN
+    max_position_size: 200       # Reduced from 500 to limit exposure
+    min_position_size: 5
+    max_risk_per_trade_pct: 0.4  # Reduced from 0.5 to improve risk management
+    min_volume: 20000            # Increased from 10000 to ensure liquidity
+    beta: 1.4
+    sector: Consumer Discretionary
+    industry: E-Commerce
+    mean_reversion_params:
+      bb_period: 20              # Increased from 10 for more stable bands
+      bb_std_dev: 2.0            # Increased from 1.0 for more realistic bands
+      rsi_period: 14             # Increased from 7 for more stable RSI
+      rsi_overbought: 70         # Increased from 60 for stricter conditions
+      rsi_oversold: 30           # Reduced from 40 for stricter conditions
+      min_reversal_candles: 2    # Increased from 1 to confirm reversal
+      require_reversal: true     # Added to require price reversal confirmation
+    trend_following_params:
+      adx_threshold: 25          # Increased from 15 for stronger trend confirmation
+      adx_period: 14             # Increased from 7 for more stable ADX
+      ema_short: 9               # Increased from 5 for more stable EMA
+      ema_long: 21               # Increased from 10 for more stable EMA
+    volatility_breakout_params:
+      bb_period: 20              # Added correct parameter name
+      bb_std_dev: 2.0            # Added parameter
+      keltner_period: 20         # Increased from 10 for more stable channels
+      keltner_factor: 1.5        # Added parameter
+      min_squeeze_periods: 5     # Increased from 3 for more reliable squeezes
+      volume_threshold: 1.5      # Added parameter
+    gap_trading_params:
+      min_gap_pct: 1.0           # Increased from 0.5 for more significant gaps
+      min_volume_ratio: 1.5      # Added parameter
+      max_gap_pct: 5.0           # Added parameter to avoid chasing extreme gaps
+
+  - symbol: META
+    max_position_size: 300       # Reduced from 500 to limit exposure
+    min_position_size: 5
+    max_risk_per_trade_pct: 0.4  # Reduced from 0.5 to improve risk management
+    min_volume: 20000            # Increased from 10000 to ensure liquidity
+    beta: 1.2
+    sector: Technology
+    industry: Social Media
+    mean_reversion_params:
+      bb_period: 20              # Increased from 10 for more stable bands
+      bb_std_dev: 2.0            # Increased from 1.0 for more realistic bands
+      rsi_period: 14             # Increased from 7 for more stable RSI
+      rsi_overbought: 70         # Increased from 60 for stricter conditions
+      rsi_oversold: 30           # Reduced from 40 for stricter conditions
+      min_reversal_candles: 2    # Increased from 1 to confirm reversal
+      require_reversal: true     # Added to require price reversal confirmation
+    trend_following_params:
+      adx_threshold: 25          # Increased from 15 for stronger trend confirmation
+      adx_period: 14             # Increased from 7 for more stable ADX
+      ema_short: 9               # Increased from 5 for more stable EMA
+      ema_long: 21               # Increased from 10 for more stable EMA
+    volatility_breakout_params:
+      bb_period: 20              # Added correct parameter name
+      bb_std_dev: 2.0            # Added parameter
+      keltner_period: 20         # Increased from 10 for more stable channels
+      keltner_factor: 1.5        # Added parameter
+      min_squeeze_periods: 5     # Increased from 3 for more reliable squeezes
+      volume_threshold: 1.5      # Added parameter
+    gap_trading_params:
+      min_gap_pct: 1.0           # Increased from 0.5 for more significant gaps
+      min_volume_ratio: 1.5      # Added parameter
+      max_gap_pct: 5.0           # Added parameter to avoid chasing extreme gaps
+
+  - symbol: NVDA
+    max_position_size: 300       # Reduced from 500 to limit exposure
+    min_position_size: 5
+    max_risk_per_trade_pct: 0.4  # Reduced from 0.5 to improve risk management
+    min_volume: 20000            # Increased from 10000 to ensure liquidity
+    beta: 1.5
+    sector: Technology
+    industry: Semiconductors
+    mean_reversion_params:
+      bb_period: 20              # Increased from 10 for more stable bands
+      bb_std_dev: 2.0            # Increased from 1.0 for more realistic bands
+      rsi_period: 14             # Increased from 7 for more stable RSI
+      rsi_overbought: 70         # Increased from 60 for stricter conditions
+      rsi_oversold: 30           # Reduced from 40 for stricter conditions
+      min_reversal_candles: 2    # Increased from 1 to confirm reversal
+      require_reversal: true     # Added to require price reversal confirmation
+    trend_following_params:
+      adx_threshold: 25          # Increased from 15 for stronger trend confirmation
+      adx_period: 14             # Increased from 7 for more stable ADX
+      ema_short: 9               # Increased from 5 for more stable EMA
+      ema_long: 21               # Increased from 10 for more stable EMA
+    volatility_breakout_params:
+      bb_period: 20              # Added correct parameter name
+      bb_std_dev: 2.0            # Added parameter
+      keltner_period: 20         # Increased from 10 for more stable channels
+      keltner_factor: 1.5        # Added parameter
+      min_squeeze_periods: 5     # Increased from 3 for more reliable squeezes
+      volume_threshold: 1.5      # Added parameter
+    gap_trading_params:
+      min_gap_pct: 1.0           # Increased from 0.5 for more significant gaps
+      min_volume_ratio: 1.5      # Added parameter
+      max_gap_pct: 5.0           # Added parameter to avoid chasing extreme gaps
+
+  - symbol: AMD
+    max_position_size: 400
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.4  # Reduced from 0.5 to improve risk management
+    min_volume: 20000            # Increased from 10000 to ensure liquidity
+    beta: 1.4
+    sector: Technology
+    industry: Semiconductors
+    mean_reversion_params:
+      bb_std_dev: 1.5
+      rsi_overbought: 65
+      rsi_oversold: 35
+    trend_following_params:
+      adx_threshold: 20
+    volatility_breakout_params:
+      min_squeeze_periods: 6
+    gap_trading_params:
+      min_gap_pct: 1.0
+
+  - symbol: TSLA
+    max_position_size: 100
+    min_position_size: 5
+    max_risk_per_trade_pct: 0.4  # Reduced from 0.5 to improve risk management
+    min_volume: 20000            # Increased from 10000 to ensure liquidity
+    beta: 1.8
+    sector: Consumer Cyclical
+    industry: Auto Manufacturers
+    mean_reversion_params:
+      bb_std_dev: 1.5
+      rsi_overbought: 65
+      rsi_oversold: 35
+    trend_following_params:
+      adx_threshold: 20
+    volatility_breakout_params:
+      min_squeeze_periods: 6
+    gap_trading_params:
+      min_gap_pct: 1.0
+
+  - symbol: JPM
+    max_position_size: 400
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.4  # Reduced from 0.5 to improve risk management
+    min_volume: 5000
+    beta: 1.1
+    sector: Financial Services
+    industry: Banks
+    mean_reversion_params:
+      bb_std_dev: 1.5
+      rsi_overbought: 65
+      rsi_oversold: 35
+    trend_following_params:
+      adx_threshold: 20
+    volatility_breakout_params:
+      min_squeeze_periods: 6
+    gap_trading_params:
+      min_gap_pct: 1.0
+
+  - symbol: DIS
+    max_position_size: 400
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.4  # Reduced from 0.5 to improve risk management
+    min_volume: 5000
+    beta: 1.0
+    sector: Communication Services
+    industry: Entertainment
+    mean_reversion_params:
+      bb_std_dev: 1.5
+      rsi_overbought: 65
+      rsi_oversold: 35
+    trend_following_params:
+      adx_threshold: 20
+    volatility_breakout_params:
+      min_squeeze_periods: 6
+    gap_trading_params:
+      min_gap_pct: 1.0
+
+  - symbol: SPY
+    max_position_size: 500
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.3  # Reduced from 0.5 to improve risk management
+    min_volume: 5000
+    beta: 1.0
+    sector: Index
+    industry: S&P 500
+    mean_reversion_params:
+      bb_std_dev: 1.5
+      rsi_overbought: 65
+      rsi_oversold: 35
+    trend_following_params:
+      adx_threshold: 20
+    volatility_breakout_params:
+      min_squeeze_periods: 6
+    gap_trading_params:
+      min_gap_pct: 1.0
+
+  - symbol: V
+    max_position_size: 400
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.3  # Reduced from 0.5 to improve risk management
+    min_volume: 5000
+    beta: 0.9
+    sector: Financial Services
+    industry: Credit Services
+    mean_reversion_params:
+      bb_std_dev: 1.5
+      rsi_overbought: 65
+      rsi_oversold: 35
+    trend_following_params:
+      adx_threshold: 20
+    volatility_breakout_params:
+      min_squeeze_periods: 6
+    gap_trading_params:
+      min_gap_pct: 1.0

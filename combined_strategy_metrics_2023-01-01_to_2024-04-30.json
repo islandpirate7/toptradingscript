@@ -1,0 +1,25 @@
+{
+    "total_return_pct": -2.154595000000045,
+    "win_rate": 0.6285714285714286,
+    "profit_factor": 1.1377672019177218,
+    "max_drawdown_pct": 21.344235000000058,
+    "sharpe_ratio": 0.014646641589011218,
+    "total_trades": 35,
+    "avg_trade_return_pct": 1.1701574894095452,
+    "avg_win_pct": 18.665688535840587,
+    "avg_loss_pct": -28.437664281473758,
+    "regime_performance": {
+        "range_bound": {
+            "trades": 35,
+            "win_rate": 0.6285714285714286,
+            "total_return": 2154.595000000002
+        }
+    },
+    "strategy_performance": {
+        "mean_reversion": {
+            "trades": 35,
+            "win_rate": 0.6285714285714286,
+            "total_return": 2154.595000000002
+        }
+    }
+}

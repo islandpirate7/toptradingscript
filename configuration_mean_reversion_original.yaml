@@ -1,0 +1,142 @@
+# MeanReversion Strategy Configuration with Original Parameters
+# This uses the default parameters before optimization
+
+# Initial capital
+initial_capital: 100000
+
+# Position Sizing Configuration
+position_sizing_config:
+  base_risk_per_trade: 0.01      # Base risk per trade (as fraction of portfolio)
+  max_position_size: 0.1         # Maximum position size (as fraction of portfolio)
+  min_position_size: 0.005       # Minimum position size (as fraction of portfolio)
+  volatility_adjustment: true    # Enable volatility-based position sizing
+  signal_strength_adjustment: true # Enable signal strength-based position sizing
+
+# MeanReversion Strategy Parameters - ORIGINAL VALUES
+mean_reversion_params:
+  bb_period: 20                  # Bollinger Bands period
+  bb_std_dev: 2.0                # Bollinger Bands standard deviation (original default)
+  rsi_period: 14                 # RSI period
+  rsi_overbought: 70             # RSI overbought threshold (original default)
+  rsi_oversold: 30               # RSI oversold threshold (original default)
+  require_reversal: false        # No requirement for price reversal (original default)
+  min_reversal_candles: 1        # Minimum candles for reversal pattern
+  stop_loss_atr: 2.0             # Stop loss at 2.0x ATR (original default)
+  take_profit_atr: 3.0           # Take profit at 3.0x ATR
+  atr_period: 14                 # ATR period for volatility measurement
+
+# Global settings
+max_open_positions: 10           # Maximum number of open positions
+max_positions_per_symbol: 1      # Maximum positions per symbol
+risk_per_trade: 0.01             # Risk per trade (1% of portfolio)
+max_risk_per_trade_pct: 0.02     # Maximum risk per trade (2% of portfolio)
+
+# Stocks to test - same as optimized config for fair comparison
+stocks:
+  - symbol: AAPL
+    max_position_size: 500
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.02
+    min_volume: 10000
+    sector: Technology
+    mean_reversion_params:
+      weight_multiplier: 1.0     # No symbol-specific weight multiplier in original
+  
+  - symbol: MSFT
+    max_position_size: 500
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.02
+    min_volume: 10000
+    sector: Technology
+    mean_reversion_params:
+      weight_multiplier: 1.0
+  
+  - symbol: GOOGL
+    max_position_size: 500
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.02
+    min_volume: 10000
+    sector: Technology
+    mean_reversion_params:
+      weight_multiplier: 1.0
+  
+  - symbol: AMZN
+    max_position_size: 500
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.02
+    min_volume: 10000
+    sector: Technology
+    mean_reversion_params:
+      weight_multiplier: 1.0
+  
+  - symbol: META
+    max_position_size: 500
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.02
+    min_volume: 10000
+    sector: Technology
+    mean_reversion_params:
+      weight_multiplier: 1.0
+  
+  - symbol: NVDA
+    max_position_size: 500
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.02
+    min_volume: 10000
+    sector: Technology
+    mean_reversion_params:
+      weight_multiplier: 1.0
+  
+  - symbol: AMD
+    max_position_size: 500
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.02
+    min_volume: 10000
+    sector: Technology
+    mean_reversion_params:
+      weight_multiplier: 1.0
+  
+  - symbol: TSLA
+    max_position_size: 500
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.02
+    min_volume: 10000
+    sector: Automotive
+    mean_reversion_params:
+      weight_multiplier: 1.0
+  
+  - symbol: JPM
+    max_position_size: 500
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.02
+    min_volume: 10000
+    sector: Financial
+    mean_reversion_params:
+      weight_multiplier: 1.0
+  
+  - symbol: DIS
+    max_position_size: 500
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.02
+    min_volume: 10000
+    sector: Entertainment
+    mean_reversion_params:
+      weight_multiplier: 1.0
+
+# Cryptocurrencies to test
+cryptos:
+  - symbol: BTC/USD
+    max_position_size: 5
+    min_position_size: 0.1
+    max_risk_per_trade_pct: 0.02
+    min_volume: 1000
+    mean_reversion_params:
+      weight_multiplier: 1.0
+  
+  - symbol: ETH/USD
+    max_position_size: 50
+    min_position_size: 1
+    max_risk_per_trade_pct: 0.02
+    min_volume: 1000
+    mean_reversion_params:
+      weight_multiplier: 1.0

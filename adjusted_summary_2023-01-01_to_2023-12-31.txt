@@ -1,0 +1,10 @@
+Adjusted Backtest Summary: 2023-01-01 to 2023-12-31
+Symbols: ['AAPL', 'MSFT', 'AMZN', 'NVDA', 'AMD', 'TSLA', 'META']
+
+Initial Capital: $100000.00
+Final Capital: $109144.30
+Return: 9.14%
+Win Rate: 39.29%
+Profit Factor: 1.13
+Max Drawdown: 35.00%
+Total Trades: 84

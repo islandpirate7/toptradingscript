@@ -1,0 +1,85 @@
+{
+  "start_date": "2023-01-01",
+  "end_date": "2023-01-05",
+  "initial_capital": 100000,
+  "final_capital": 100000,
+  "total_return_pct": 0.0,
+  "annualized_return_pct": 0.0,
+  "sharpe_ratio": 0,
+  "max_drawdown_pct": 0.0,
+  "win_rate": 0,
+  "profit_factor": Infinity,
+  "total_trades": 0,
+  "strategy_performance": {
+    "MeanReversion": {
+      "strategy": "MeanReversion",
+      "win_rate": 0.0,
+      "profit_factor": 0.0,
+      "avg_gain": 0.0,
+      "avg_loss": 0.0,
+      "max_drawdown": 0.0,
+      "sharpe_ratio": 0.0,
+      "total_trades": 0,
+      "winning_trades": 0,
+      "losing_trades": 0,
+      "total_pnl": 0.0,
+      "performance_by_regime": {}
+    },
+    "TrendFollowing": {
+      "strategy": "TrendFollowing",
+      "win_rate": 0.0,
+      "profit_factor": 0.0,
+      "avg_gain": 0.0,
+      "avg_loss": 0.0,
+      "max_drawdown": 0.0,
+      "sharpe_ratio": 0.0,
+      "total_trades": 0,
+      "winning_trades": 0,
+      "losing_trades": 0,
+      "total_pnl": 0.0,
+      "performance_by_regime": {}
+    },
+    "VolatilityBreakout": {
+      "strategy": "VolatilityBreakout",
+      "win_rate": 0.0,
+      "profit_factor": 0.0,
+      "avg_gain": 0.0,
+      "avg_loss": 0.0,
+      "max_drawdown": 0.0,
+      "sharpe_ratio": 0.0,
+      "total_trades": 0,
+      "winning_trades": 0,
+      "losing_trades": 0,
+      "total_pnl": 0.0,
+      "performance_by_regime": {}
+    },
+    "GapTrading": {
+      "strategy": "GapTrading",
+      "win_rate": 0.0,
+      "profit_factor": 0.0,
+      "avg_gain": 0.0,
+      "avg_loss": 0.0,
+      "max_drawdown": 0.0,
+      "sharpe_ratio": 0.0,
+      "total_trades": 0,
+      "winning_trades": 0,
+      "losing_trades": 0,
+      "total_pnl": 0.0,
+      "performance_by_regime": {}
+    }
+  },
+  "monthly_returns": {},
+  "equity_curve": [
+    [
+      "2023-01-01T09:30:00",
+      100000
+    ]
+  ],
+  "drawdown_curve": [
+    [
+      "2023-01-01T09:30:00",
+      0.0
+    ]
+  ],
+  "trade_history": []
+}

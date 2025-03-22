@@ -1,0 +1,67 @@
+# File: configuration_enhanced_mean_reversion.yaml
+strategies:
+  MeanReversion:
+    # Core parameters from optimized configuration
+    bb_period: 15
+    bb_std_dev: 1.9
+    rsi_period: 10
+    rsi_overbought: 65
+    rsi_oversold: 35
+    
+    # Signal generation parameters
+    require_reversal: true
+    min_reversal_candles: 1
+    long_signal_threshold: 0.6
+    short_signal_threshold: 0.35  # Lowered from 0.4 to 0.35
+    
+    # Risk management parameters - optimized values
+    stop_loss_atr: 1.8
+    take_profit_atr: 3.0
+    atr_period: 10
+    
+    # Position sizing parameters
+    max_position_size: 0.1
+    risk_per_trade: 0.01  # 1% risk per trade
+    
+    # Market regime detection parameters
+    use_regime_filter: true
+    min_regime_score: 0.3
+    regime_filter_strength: 1.0
+    
+    # Seasonality parameters
+    use_seasonality: true
+    min_seasonality_score: 0.55
+    
+    # Volume filter
+    volume_filter: true
+    min_volume_increase: 1.2
+
+global:
+  max_open_positions: 5
+  max_positions_per_symbol: 1
+  initial_capital: 100000
+  commission_rate: 0.0005  # 0.05% commission
+
+paths:
+  backtest_results: "./results/backtest"
+  backtest_plots: "./results/plots"
+  trades: "./results/trades"
+  performance: "./results/performance"
+
+backtest:
+  quarters:
+    Q1_2023:
+      start_date: "2023-01-01"
+      end_date: "2023-03-31"
+    Q2_2023:
+      start_date: "2023-04-01"
+      end_date: "2023-06-30"
+    Q3_2023:
+      start_date: "2023-07-01"
+      end_date: "2023-09-30"
+    Q4_2023:
+      start_date: "2023-10-01"
+      end_date: "2023-12-31"
+    Q1_2024:
+      start_date: "2024-01-01"
+      end_date: "2024-03-31"

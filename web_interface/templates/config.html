@@ -1,0 +1,342 @@
+{% extends 'base.html' %}
+
+{% block title %}Configuration - S&P 500 Trading Strategy{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Strategy Configuration</h1>
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle-fill"></i> Changes to the configuration will take effect for new trading sessions.
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Configuration Settings</h5>
+            </div>
+            <div class="card-body">
+                <form id="configForm">
+                    <ul class="nav nav-tabs" id="configTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab">General</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="signals-tab" data-bs-toggle="tab" data-bs-target="#signals" type="button" role="tab">Signal Generation</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="position-tab" data-bs-toggle="tab" data-bs-target="#position" type="button" role="tab">Position Sizing</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="stoploss-tab" data-bs-toggle="tab" data-bs-target="#stoploss" type="button" role="tab">Stop Loss</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="midcap-tab" data-bs-toggle="tab" data-bs-target="#midcap" type="button" role="tab">Mid-Cap Integration</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="paths-tab" data-bs-toggle="tab" data-bs-target="#paths" type="button" role="tab">Paths</button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content p-3 border border-top-0 rounded-bottom" id="configTabsContent">
+                        <!-- General Settings -->
+                        <div class="tab-pane fade show active" id="general" role="tabpanel">
+                            <h4 class="mb-3">General Settings</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="initialCapital" class="form-label">Initial Capital</label>
+                                        <input type="number" class="form-control" id="initialCapital" name="initial_capital" value="{{ config.initial_capital|default(300) }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="maxPositions" class="form-label">Maximum Positions</label>
+                                        <input type="number" class="form-control" id="maxPositions" name="max_positions" value="{{ config.max_positions|default(20) }}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="holdingPeriod" class="form-label">Default Holding Period (days)</label>
+                                        <input type="number" class="form-control" id="holdingPeriod" name="holding_period" value="{{ config.holding_period|default(3) }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="logLevel" class="form-label">Log Level</label>
+                                        <select class="form-select" id="logLevel" name="log_level">
+                                            <option value="DEBUG" {% if config.log_level == 'DEBUG' %}selected{% endif %}>DEBUG</option>
+                                            <option value="INFO" {% if config.log_level == 'INFO' or not config.log_level %}selected{% endif %}>INFO</option>
+                                            <option value="WARNING" {% if config.log_level == 'WARNING' %}selected{% endif %}>WARNING</option>
+                                            <option value="ERROR" {% if config.log_level == 'ERROR' %}selected{% endif %}>ERROR</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Signal Generation Settings -->
+                        <div class="tab-pane fade" id="signals" role="tabpanel">
+                            <h4 class="mb-3">Signal Generation Settings</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="signalThreshold" class="form-label">Signal Score Threshold</label>
+                                        <input type="number" step="0.01" class="form-control" id="signalThreshold" name="signals.threshold" value="{{ config.signals.threshold|default(0.65) }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="maxSignals" class="form-label">Maximum Signals</label>
+                                        <input type="number" class="form-control" id="maxSignals" name="signals.max_signals" value="{{ config.signals.max_signals|default(100) }}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="rsiWeight" class="form-label">RSI Weight</label>
+                                        <input type="number" step="0.01" class="form-control" id="rsiWeight" name="signals.weights.rsi" value="{{ config.signals.weights.rsi|default(0.3) }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="macdWeight" class="form-label">MACD Weight</label>
+                                        <input type="number" step="0.01" class="form-control" id="macdWeight" name="signals.weights.macd" value="{{ config.signals.weights.macd|default(0.3) }}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="bollingerWeight" class="form-label">Bollinger Bands Weight</label>
+                                        <input type="number" step="0.01" class="form-control" id="bollingerWeight" name="signals.weights.bollinger" value="{{ config.signals.weights.bollinger|default(0.4) }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="marketRegimeEnabled" class="form-label">Market Regime Detection</label>
+                                        <select class="form-select" id="marketRegimeEnabled" name="signals.market_regime.enabled">
+                                            <option value="true" {% if config.signals.market_regime.enabled %}selected{% endif %}>Enabled</option>
+                                            <option value="false" {% if not config.signals.market_regime.enabled %}selected{% endif %}>Disabled</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Position Sizing Settings -->
+                        <div class="tab-pane fade" id="position" role="tabpanel">
+                            <h4 class="mb-3">Position Sizing Settings</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="basePositionSize" class="form-label">Base Position Size (%)</label>
+                                        <input type="number" step="0.1" class="form-control" id="basePositionSize" name="position_sizing.base_size" value="{{ config.position_sizing.base_size|default(5.0) }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="maxPositionSize" class="form-label">Maximum Position Size (%)</label>
+                                        <input type="number" step="0.1" class="form-control" id="maxPositionSize" name="position_sizing.max_size" value="{{ config.position_sizing.max_size|default(10.0) }}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="scoreScaling" class="form-label">Score Scaling Factor</label>
+                                        <input type="number" step="0.1" class="form-control" id="scoreScaling" name="position_sizing.score_scaling" value="{{ config.position_sizing.score_scaling|default(1.5) }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="volatilityScaling" class="form-label">Volatility Scaling</label>
+                                        <select class="form-select" id="volatilityScaling" name="position_sizing.volatility_scaling.enabled">
+                                            <option value="true" {% if config.position_sizing.volatility_scaling.enabled %}selected{% endif %}>Enabled</option>
+                                            <option value="false" {% if not config.position_sizing.volatility_scaling.enabled %}selected{% endif %}>Disabled</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Stop Loss Settings -->
+                        <div class="tab-pane fade" id="stoploss" role="tabpanel">
+                            <h4 class="mb-3">Stop Loss Settings</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="stopLossEnabled" class="form-label">Stop Loss</label>
+                                        <select class="form-select" id="stopLossEnabled" name="stop_loss.enabled">
+                                            <option value="true" {% if config.stop_loss.enabled %}selected{% endif %}>Enabled</option>
+                                            <option value="false" {% if not config.stop_loss.enabled %}selected{% endif %}>Disabled</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="stopLossType" class="form-label">Stop Loss Type</label>
+                                        <select class="form-select" id="stopLossType" name="stop_loss.type">
+                                            <option value="fixed" {% if config.stop_loss.type == 'fixed' %}selected{% endif %}>Fixed</option>
+                                            <option value="adaptive" {% if config.stop_loss.type == 'adaptive' %}selected{% endif %}>Adaptive</option>
+                                            <option value="trailing" {% if config.stop_loss.type == 'trailing' %}selected{% endif %}>Trailing</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="stopLossThreshold" class="form-label">Base Stop Loss Threshold (%)</label>
+                                        <input type="number" step="0.1" class="form-control" id="stopLossThreshold" name="stop_loss.threshold" value="{{ config.stop_loss.threshold|default(5.0) }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="volatilityScalingFactor" class="form-label">Volatility Scaling Factor</label>
+                                        <input type="number" step="0.1" class="form-control" id="volatilityScalingFactor" name="stop_loss.volatility_scaling.factor" value="{{ config.stop_loss.volatility_scaling.factor|default(1.0) }}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="signalQualityScaling" class="form-label">Signal Quality Scaling</label>
+                                        <select class="form-select" id="signalQualityScaling" name="stop_loss.signal_quality_scaling.enabled">
+                                            <option value="true" {% if config.stop_loss.signal_quality_scaling.enabled %}selected{% endif %}>Enabled</option>
+                                            <option value="false" {% if not config.stop_loss.signal_quality_scaling.enabled %}selected{% endif %}>Disabled</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="trailingStopDistance" class="form-label">Trailing Stop Distance (%)</label>
+                                        <input type="number" step="0.1" class="form-control" id="trailingStopDistance" name="stop_loss.trailing.distance" value="{{ config.stop_loss.trailing.distance|default(3.0) }}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Mid-Cap Integration Settings -->
+                        <div class="tab-pane fade" id="midcap" role="tabpanel">
+                            <h4 class="mb-3">Mid-Cap Integration Settings</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="midCapEnabled" class="form-label">Mid-Cap Integration</label>
+                                        <select class="form-select" id="midCapEnabled" name="mid_cap.enabled">
+                                            <option value="true" {% if config.mid_cap.enabled %}selected{% endif %}>Enabled</option>
+                                            <option value="false" {% if not config.mid_cap.enabled %}selected{% endif %}>Disabled</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="midCapPercentage" class="form-label">Target Mid-Cap Percentage (%)</label>
+                                        <input type="number" step="1" class="form-control" id="midCapPercentage" name="mid_cap.target_percentage" value="{{ config.mid_cap.target_percentage|default(30) }}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="midCapBoostFactor" class="form-label">Mid-Cap Boost Factor</label>
+                                        <input type="number" step="0.1" class="form-control" id="midCapBoostFactor" name="mid_cap.boost_factor" value="{{ config.mid_cap.boost_factor|default(1.2) }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="midCapSymbols" class="form-label">Mid-Cap Symbols (comma-separated)</label>
+                                        <input type="text" class="form-control" id="midCapSymbols" name="mid_cap.symbols" value="{{ config.mid_cap.symbols|join(',') if config.mid_cap.symbols else '' }}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Paths Settings -->
+                        <div class="tab-pane fade" id="paths" role="tabpanel">
+                            <h4 class="mb-3">File Paths</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="tradesPath" class="form-label">Trades Path</label>
+                                        <input type="text" class="form-control" id="tradesPath" name="paths.trades" value="{{ config.paths.trades|default('trades') }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="performancePath" class="form-label">Performance Path</label>
+                                        <input type="text" class="form-control" id="performancePath" name="paths.performance" value="{{ config.paths.performance|default('performance') }}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="backtestResultsPath" class="form-label">Backtest Results Path</label>
+                                        <input type="text" class="form-control" id="backtestResultsPath" name="paths.backtest_results" value="{{ config.paths.backtest_results|default('backtest_results') }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="logsPath" class="form-label">Logs Path</label>
+                                        <input type="text" class="form-control" id="logsPath" name="paths.logs" value="{{ config.paths.logs|default('logs') }}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 text-end">
+                        <button type="button" class="btn btn-secondary me-2" id="resetConfigBtn">Reset to Defaults</button>
+                        <button type="submit" class="btn btn-primary">Save Configuration</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Configuration Form
+        document.getElementById('configForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            
+            fetch('/update_config', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Configuration updated successfully');
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while updating configuration');
+            });
+        });
+        
+        // Reset Configuration Button
+        document.getElementById('resetConfigBtn').addEventListener('click', function() {
+            if (confirm('Are you sure you want to reset all configuration settings to their default values?')) {
+                // This would require a backend endpoint to reset config
+                alert('This feature is not yet implemented');
+            }
+        });
+    });
+</script>
+{% endblock %}

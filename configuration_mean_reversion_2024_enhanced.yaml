@@ -1,0 +1,92 @@
+strategies:
+  MeanReversion:
+    # Core parameters - adjusted for more balanced signal generation
+    bb_period: 20
+    bb_std_dev: 1.8  # Slightly increased to reduce short bias
+    rsi_period: 14
+    rsi_overbought: 70  # Increased to reduce short signals
+    rsi_oversold: 30  # Decreased to increase long signals
+    
+    # Signal generation parameters
+    require_reversal: false
+    min_reversal_candles: 1
+    
+    # Risk management parameters - optimized for better risk-reward
+    stop_loss_atr: 2.2  # Wider stop-loss to reduce premature exits
+    take_profit_atr: 4.0  # Increased take-profit for better risk-reward (1.8:1)
+    
+    # Disable dynamic stop-loss features
+    use_support_resistance: false
+    
+    # Enable trailing stops
+    use_trailing_stop: true
+    trailing_stop_activation: 0.015  # Activate trailing stop after 1.5% profit
+    trailing_stop_distance: 0.02  # 2% trailing stop
+    
+    # Add time-based exit
+    max_holding_days: 10  # Maximum holding period of 10 days
+    
+    # Position sizing parameters
+    max_position_size: 0.1
+    
+    # Strategy weight in multi-strategy system
+    base_weight: 0.35
+
+  VolatilityBreakout:
+    # Keep existing parameters
+    base_weight: 0.2
+
+  TrendFollowing:
+    # Keep existing parameters
+    base_weight: 0.25
+
+  GapTrading:
+    # Keep existing parameters
+    base_weight: 0.2
+
+# Global settings
+global:
+  max_open_positions: 5
+  max_positions_per_symbol: 2
+  max_correlated_positions: 3
+  correlation_threshold: 0.7
+  max_portfolio_risk: 0.02  # Maximum 2% portfolio risk per day
+  default_position_size: 0.05  # Default 5% of portfolio per position
+  
+# Stock-specific configurations - optimized based on performance analysis
+stocks:
+  AAPL:
+    position_size: 0.08
+    strategies:
+      MeanReversion:
+        weight_multiplier: 1.3  # Increased based on strong performance
+  MSFT:
+    position_size: 0.08
+    strategies:
+      MeanReversion:
+        weight_multiplier: 1.2
+  GOOGL:
+    position_size: 0.07
+    strategies:
+      MeanReversion:
+        weight_multiplier: 1.1
+  AMZN:
+    position_size: 0.07
+    strategies:
+      MeanReversion:
+        weight_multiplier: 1.1
+  META:
+    position_size: 0.07
+    strategies:
+      MeanReversion:
+        weight_multiplier: 1.4  # Increased based on strong performance
+  NVDA:
+    position_size: 0.08
+    strategies:
+      MeanReversion:
+        weight_multiplier: 1.2  # Added based on potential for mean reversion
+  TSLA:
+    position_size: 0.07
+    strategies:
+      MeanReversion:
+        weight_multiplier: 1.1  # Added based on potential for mean reversion

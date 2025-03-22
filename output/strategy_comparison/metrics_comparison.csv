@@ -1,0 +1,13 @@
+Metric,Seasonal Strategy,Base Strategy
+total_pnl,-127877.92000000001,-138184.58999999997
+win_rate,0.3149171270718232,0.2911392405063291
+profit_factor,0.20926899229129853,0.17391979612314742
+avg_trade_return_pct,-20.360779551064162,-24.835719064742214
+avg_win_pct,12.182822790537633,12.531287632576008
+avg_loss_pct,-35.320338691961766,-40.18288252971221
+max_drawdown_pct,28.091639999999984,28.091639999999984
+sharpe_ratio,1.5372682121843086,1.5048172460629166
+total_trades,181,158
+total_return_pct,-127.87792000000002,-138.18458999999996
+regime_performance,"{'trending': {'trades': 86, 'win_rate': 0.46511627906976744, 'total_return': np.float64(10421.119999999997), 'avg_return_pct': np.float64(1.6180233867268325)}, 'range_bound': {'trades': 95, 'win_rate': 0.17894736842105263, 'total_return': np.float64(-138299.03999999995), 'avg_return_pct': np.float64(-40.25738010527497)}}","{'trending': {'trades': 84, 'win_rate': 0.40476190476190477, 'total_return': np.float64(6313.219999999993), 'avg_return_pct': np.float64(0.7053594253152051)}, 'range_bound': {'trades': 74, 'win_rate': 0.16216216216216217, 'total_return': np.float64(-144497.81), 'avg_return_pct': np.float64(-53.828294648050644)}}"
+strategy_performance,"{'mean_reversion': {'trades': 95, 'win_rate': 0.17894736842105263, 'total_return': np.float64(-138299.03999999995), 'avg_return_pct': np.float64(-40.25738010527497)}, 'trend_following': {'trades': 86, 'win_rate': 0.46511627906976744, 'total_return': np.float64(10421.119999999997), 'avg_return_pct': np.float64(1.6180233867268325)}}","{'mean_reversion': {'trades': 74, 'win_rate': 0.16216216216216217, 'total_return': np.float64(-144497.81), 'avg_return_pct': np.float64(-53.828294648050644)}, 'trend_following': {'trades': 84, 'win_rate': 0.40476190476190477, 'total_return': np.float64(6313.219999999993), 'avg_return_pct': np.float64(0.7053594253152051)}}"

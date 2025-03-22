@@ -1,0 +1,46 @@
+# Trend Following Strategy Optimized Configuration
+
+global:
+  initial_capital: 100000
+  max_positions: 10
+  position_size_pct: 0.05  # 5% of capital per position
+  max_risk_per_trade_pct: 0.01  # 1% max risk per trade
+  max_correlated_positions: 3
+  market_hours_only: true
+  enable_logging: true
+  log_level: INFO
+
+strategies:
+  TrendFollowing:
+    base_weight: 1.0
+    
+    # EMA Parameters
+    fast_ema_period: 8  # Slightly faster than default (9)
+    slow_ema_period: 21
+    
+    # ADX Parameters
+    adx_period: 14
+    adx_threshold: 20  # Lowered for more signals
+    
+    # MACD Parameters
+    macd_fast: 12
+    macd_slow: 26
+    macd_signal: 9
+    
+    # Risk Management
+    atr_period: 14
+    stop_loss_atr: 1.5  # Tighter stop loss
+    risk_reward_ratio: 2.0  # 2:1 reward-to-risk ratio
+    
+    # Symbol-specific weights (based on historical performance)
+    symbol_weights:
+      AAPL: 1.2
+      MSFT: 1.1
+      GOOGL: 1.0
+      AMZN: 1.0
+      META: 0.9
+      SPY: 1.0
+
+  # Empty MeanReversion section for compatibility with combined backtest
+  MeanReversion:
+    base_weight: 0.0

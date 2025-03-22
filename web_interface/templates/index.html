@@ -1,0 +1,474 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - S&P 500 Trading Strategy{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Trading Strategy Dashboard</h1>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Run Paper Trading</h5>
+            </div>
+            <div class="card-body">
+                <form id="paperTradingForm">
+                    <div class="mb-3">
+                        <label for="maxSignals" class="form-label">Max Signals</label>
+                        <input type="number" class="form-control" id="maxSignals" name="max_signals" value="20" min="1" max="100">
+                    </div>
+                    <div class="mb-3">
+                        <label for="duration" class="form-label">Duration (hours)</label>
+                        <input type="number" class="form-control" id="duration" name="duration" value="1" min="1" max="24">
+                    </div>
+                    <div class="mb-3">
+                        <label for="interval" class="form-label">Check Interval (minutes)</label>
+                        <input type="number" class="form-control" id="interval" name="interval" value="5" min="1" max="60">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Start Paper Trading</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">Run Market Simulation</h5>
+            </div>
+            <div class="card-body">
+                <form id="simulationForm">
+                    <div class="mb-3">
+                        <label for="days" class="form-label">Days to Simulate</label>
+                        <input type="number" class="form-control" id="days" name="days" value="30" min="1" max="365">
+                    </div>
+                    <div class="mb-3">
+                        <label for="capital" class="form-label">Initial Capital</label>
+                        <input type="number" class="form-control" id="capital" name="capital" value="100000" min="10000" max="10000000">
+                    </div>
+                    <div class="mb-3">
+                        <label for="simMaxSignals" class="form-label">Max Signals</label>
+                        <input type="number" class="form-control" id="simMaxSignals" name="max_signals" value="20" min="1" max="100">
+                    </div>
+                    <div class="mb-3">
+                        <label for="simInterval" class="form-label">Check Interval (days)</label>
+                        <input type="number" class="form-control" id="simInterval" name="interval" value="5" min="1" max="30">
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Start Simulation</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">Run Backtest</h5>
+            </div>
+            <div class="card-body">
+                <form id="backtestForm">
+                    <div class="mb-3">
+                        <label for="quarters" class="form-label">Quarters to Test</label>
+                        <input type="text" class="form-control" id="quarters" name="quarters" value="2023Q1,2023Q2,2023Q3,2023Q4">
+                        <small class="form-text text-muted">Comma-separated list of quarters (e.g., 2023Q1,2023Q2)</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="runs" class="form-label">Number of Runs</label>
+                        <input type="number" class="form-control" id="runs" name="runs" value="5" min="1" max="20">
+                    </div>
+                    <div class="mb-3">
+                        <label for="randomSeed" class="form-label">Random Seed</label>
+                        <input type="number" class="form-control" id="randomSeed" name="random_seed" value="42" min="1" max="1000">
+                    </div>
+                    <button type="submit" class="btn btn-info w-100">Start Backtest</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <h5 class="card-title mb-0">Active Processes</h5>
+            </div>
+            <div class="card-body">
+                <div id="activeProcesses">
+                    {% if active_processes %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Process Name</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for name, process in active_processes.items() %}
+                                    <tr>
+                                        <td>{{ name }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if process_status[name] == 'running' else 'warning' if process_status[name] == 'starting' else 'danger' }}">
+                                                {{ process_status[name] }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-danger stop-process" data-process="{{ name }}">Stop</button>
+                                            <button class="btn btn-sm btn-secondary view-logs" data-process="{{ name }}">View Logs</button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No active processes</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="card-title mb-0">Open Positions</h5>
+            </div>
+            <div class="card-body">
+                <div id="openPositions">
+                    {% if open_positions %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Symbol</th>
+                                        <th>Quantity</th>
+                                        <th>Entry Price</th>
+                                        <th>Current Price</th>
+                                        <th>P/L</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for position in open_positions %}
+                                    <tr>
+                                        <td>{{ position.symbol }}</td>
+                                        <td>{{ position.qty }}</td>
+                                        <td>${{ position.entry_price }}</td>
+                                        <td>${{ position.current_price }}</td>
+                                        <td class="{{ 'text-success' if position.unrealized_pl|float > 0 else 'text-danger' }}">
+                                            ${{ position.unrealized_pl }} ({{ position.unrealized_plpc }}%)
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No open positions</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="card-title mb-0">Recent Backtest Results</h5>
+            </div>
+            <div class="card-body">
+                <div id="backtestResults">
+                    {% if backtest_results %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>File</th>
+                                        <th>Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for result in backtest_results[:5] %}
+                                    <tr>
+                                        <td>{{ result.name }}</td>
+                                        <td>{{ result.date }}</td>
+                                        <td>
+                                            <a href="{{ result.path }}" class="btn btn-sm btn-primary" target="_blank">View</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No backtest results</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Process Logs Modal -->
+<div class="modal fade" id="logsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Process Logs</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <pre id="logsContent" class="bg-dark text-light p-3" style="max-height: 400px; overflow-y: auto;"></pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Emergency Stop Confirmation Modal -->
+<div class="modal fade" id="emergencyStopModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Emergency Stop</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Warning:</strong> This will stop all running processes and close all open positions.</p>
+                <p>Are you sure you want to proceed?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmEmergencyStop">Confirm Emergency Stop</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Paper Trading Form
+        document.getElementById('paperTradingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            fetch('/run_paper_trading', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while starting paper trading');
+            });
+        });
+
+        // Simulation Form
+        document.getElementById('simulationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            fetch('/run_simulation', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while starting simulation');
+            });
+        });
+
+        // Backtest Form
+        document.getElementById('backtestForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            fetch('/run_backtest', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while starting backtest');
+            });
+        });
+
+        // Stop Process Buttons
+        document.querySelectorAll('.stop-process').forEach(button => {
+            button.addEventListener('click', function() {
+                const processName = this.getAttribute('data-process');
+                if (confirm(`Are you sure you want to stop process ${processName}?`)) {
+                    fetch(`/stop_process/${processName}`, {
+                        method: 'POST'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(data.message);
+                            setTimeout(function() {
+                                window.location.reload();
+                            }, 1000);
+                        } else {
+                            alert('Error: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while stopping the process');
+                    });
+                }
+            });
+        });
+
+        // View Logs Buttons
+        document.querySelectorAll('.view-logs').forEach(button => {
+            button.addEventListener('click', function() {
+                const processName = this.getAttribute('data-process');
+                fetch(`/process_logs/${processName}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const logsContent = document.getElementById('logsContent');
+                        logsContent.textContent = data.logs.join('\n');
+                        const logsModal = new bootstrap.Modal(document.getElementById('logsModal'));
+                        logsModal.show();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while fetching logs');
+                });
+            });
+        });
+
+        // Emergency Stop Button
+        document.getElementById('emergencyStopBtn').addEventListener('click', function() {
+            const emergencyStopModal = new bootstrap.Modal(document.getElementById('emergencyStopModal'));
+            emergencyStopModal.show();
+        });
+
+        // Confirm Emergency Stop Button
+        document.getElementById('confirmEmergencyStop').addEventListener('click', function() {
+            fetch('/emergency_stop', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Emergency stop completed successfully');
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred during emergency stop');
+            });
+        });
+
+        // Auto-refresh data every 30 seconds
+        setInterval(function() {
+            // Refresh open positions
+            fetch('/get_positions')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update positions table
+                    const positionsDiv = document.getElementById('openPositions');
+                    if (data.positions.length > 0) {
+                        let html = `
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Symbol</th>
+                                        <th>Quantity</th>
+                                        <th>Entry Price</th>
+                                        <th>Current Price</th>
+                                        <th>P/L</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+                        
+                        data.positions.forEach(position => {
+                            const plClass = parseFloat(position.unrealized_pl) > 0 ? 'text-success' : 'text-danger';
+                            html += `
+                            <tr>
+                                <td>${position.symbol}</td>
+                                <td>${position.qty}</td>
+                                <td>$${position.entry_price}</td>
+                                <td>$${position.current_price}</td>
+                                <td class="${plClass}">
+                                    $${position.unrealized_pl} (${position.unrealized_plpc}%)
+                                </td>
+                            </tr>`;
+                        });
+                        
+                        html += `
+                                </tbody>
+                            </table>
+                        </div>`;
+                        
+                        positionsDiv.innerHTML = html;
+                    } else {
+                        positionsDiv.innerHTML = '<p class="text-muted">No open positions</p>';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error refreshing positions:', error);
+            });
+
+            // Refresh active processes
+            // This would require additional backend endpoints
+        }, 30000);
+    });
+</script>
+{% endblock %}

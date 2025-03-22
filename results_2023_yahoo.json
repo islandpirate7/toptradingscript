@@ -1,0 +1,132 @@
+{
+  "start_date": "2023-01-01",
+  "end_date": "2023-12-31",
+  "initial_capital": 100000,
+  "final_capital": 115461.72059631348,
+  "total_return_pct": 15.461720596313477,
+  "annualized_return_pct": 15.507333451347716,
+  "sharpe_ratio": 18.467136931811034,
+  "max_drawdown_pct": 3.0343055153114507,
+  "win_rate": 0.675,
+  "profit_factor": 1.4991122158037045,
+  "total_trades": 40,
+  "strategy_performance": {
+    "MeanReversion": {
+      "strategy": "MeanReversion",
+      "win_rate": 67.5,
+      "profit_factor": 1.4991122158037045,
+      "avg_gain": 1720.0061532479745,
+      "avg_loss": -2382.9573493370644,
+      "max_drawdown": 0.0,
+      "sharpe_ratio": 0.0,
+      "total_trades": 40,
+      "winning_trades": 27,
+      "losing_trades": 13,
+      "total_pnl": 15461.720596313477,
+      "performance_by_regime": {
+        "TRENDING_BULLISH": 11931.43856048584,
+        "RANGE_BOUND": 3530.2820358276367
+      }
+    },
+    "TrendFollowing": {
+      "strategy": "TrendFollowing",
+      "win_rate": 0.0,
+      "profit_factor": 0.0,
+      "avg_gain": 0.0,
+      "avg_loss": 0.0,
+      "max_drawdown": 0.0,
+      "sharpe_ratio": 0.0,
+      "total_trades": 0,
+      "winning_trades": 0,
+      "losing_trades": 0,
+      "total_pnl": 0.0,
+      "performance_by_regime": {}
+    },
+    "VolatilityBreakout": {
+      "strategy": "VolatilityBreakout",
+      "win_rate": 0.0,
+      "profit_factor": 0.0,
+      "avg_gain": 0.0,
+      "avg_loss": 0.0,
+      "max_drawdown": 0.0,
+      "sharpe_ratio": 0.0,
+      "total_trades": 0,
+      "winning_trades": 0,
+      "losing_trades": 0,
+      "total_pnl": 0.0,
+      "performance_by_regime": {}
+    },
+    "GapTrading": {
+      "strategy": "GapTrading",
+      "win_rate": 0.0,
+      "profit_factor": 0.0,
+      "avg_gain": 0.0,
+      "avg_loss": 0.0,
+      "max_drawdown": 0.0,
+      "sharpe_ratio": 0.0,
+      "total_trades": 0,
+      "winning_trades": 0,
+      "losing_trades": 0,
+      "total_pnl": 0.0,
+      "performance_by_regime": {}
+    }
+  },
+  "monthly_returns": {
+    "2023-06": 0.0,
+    "2023-10": 6.970814895629873,
+    "2023-11": 3.300229169303881,
+    "2023-12": 1.7105903837072
+  },
+  "equity_curve": [
+    [
+      "2023-01-01T09:30:00",
+      100000
+    ],
+    [
+      "2023-06-02T00:00:00",
+      100000.0
+    ],
+    [
+      "2023-10-26T00:00:00",
+      106970.81489562988
+    ],
+    [
+      "2023-11-14T00:00:00",
+      110501.09693145752
+    ],
+    [
+      "2023-12-13T00:00:00",
+      112391.31806945801
+    ]
+  ],
+  "drawdown_curve": [
+    [
+      "2023-01-01T09:30:00",
+      0.0
+    ],
+    [
+      "2023-06-02T00:00:00",
+      0.0
+    ],
+    [
+      "2023-10-26T00:00:00",
+      0.0
+    ],
+    [
+      "2023-11-14T00:00:00",
+      3.0343055153114507
+    ],
+    [
+      "2023-12-13T00:00:00",
+      1.375619669961462
+    ]
+  ],
+  "trade_history": [
+    {
+      "symbol": "AAPL",
+      "direction": "LONG",
+      "entry_price": 191.38095092773438,
+      "stop_loss": 188.05006959570244,
+      "take_profit": 197.1223794555664,
+      "position_size": 150,
+      "entry_time": 

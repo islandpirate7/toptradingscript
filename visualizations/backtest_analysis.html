@@ -1,0 +1,116 @@
+
+    <html>
+    <head>
+        <title>Backtest Results Analysis</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            h1, h2 { color: #2c3e50; }
+            .container { max-width: 1200px; margin: 0 auto; }
+            .stats { display: flex; flex-wrap: wrap; margin-bottom: 20px; }
+            .stat-box { background-color: #f8f9fa; border-radius: 5px; padding: 15px; margin: 10px; flex: 1; min-width: 200px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+            .stat-value { font-size: 24px; font-weight: bold; color: #3498db; }
+            .stat-label { font-size: 14px; color: #7f8c8d; }
+            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+            th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+            th { background-color: #f2f2f2; }
+            .image-container { display: flex; flex-wrap: wrap; justify-content: center; }
+            .image-box { margin: 10px; }
+            img { max-width: 100%; height: auto; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Backtest Results Analysis</h1>
+            <p>Analysis of backtest_signals_2023-01-01_to_2023-03-31.csv generated on 2025-03-20 03:48:18</p>
+            
+            <h2>Summary Statistics</h2>
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="stat-value">70</div>
+                    <div class="stat-label">Total Signals</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">13 (18.6%)</div>
+                    <div class="stat-label">LONG Signals</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">57 (81.4%)</div>
+                    <div class="stat-label">SHORT Signals</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">$747.04</div>
+                    <div class="stat-label">Avg Position Size</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">$52292.88</div>
+                    <div class="stat-label">Total Position Size</div>
+                </div>
+            </div>
+            
+            <h2>Score Range Distribution</h2>
+            <table>
+                <tr>
+                    <th>Score Range</th>
+                    <th>Count</th>
+                    <th>Percentage</th>
+                </tr>
+    
+                <tr>
+                    <td>0.5-0.6</td>
+                    <td>15</td>
+                    <td>21.4%</td>
+                </tr>
+        
+                <tr>
+                    <td>0.6-0.7</td>
+                    <td>38</td>
+                    <td>54.3%</td>
+                </tr>
+        
+                <tr>
+                    <td>0.7-0.8</td>
+                    <td>15</td>
+                    <td>21.4%</td>
+                </tr>
+        
+                <tr>
+                    <td>0.8-0.9</td>
+                    <td>2</td>
+                    <td>2.9%</td>
+                </tr>
+        
+                <tr>
+                    <td>0.9-1.0</td>
+                    <td>0</td>
+                    <td>0.0%</td>
+                </tr>
+        
+            </table>
+            
+            <h2>Visualizations</h2>
+            <div class="image-container">
+                <div class="image-box">
+                    <img src="score_distribution.png" alt="Score Distribution">
+                    <p>Distribution of Signal Scores</p>
+                </div>
+                <div class="image-box">
+                    <img src="direction_distribution.png" alt="Direction Distribution">
+                    <p>Trade Direction Distribution</p>
+                </div>
+                <div class="image-box">
+                    <img src="position_size_by_direction.png" alt="Position Size by Direction">
+                    <p>Position Sizes by Direction</p>
+                </div>
+                <div class="image-box">
+                    <img src="score_vs_position_size.png" alt="Score vs Position Size">
+                    <p>Score vs Position Size</p>
+                </div>
+                <div class="image-box">
+                    <img src="score_range_distribution.png" alt="Score Range Distribution">
+                    <p>Score Range Distribution</p>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    

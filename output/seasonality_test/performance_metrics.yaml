@@ -1,0 +1,35 @@
+annualized_return: !!python/object/apply:numpy._core.multiarray.scalar
+- &id001 !!python/object/apply:numpy.dtype
+  args:
+  - f8
+  - false
+  - true
+  state: !!python/tuple
+  - 3
+  - <
+  - null
+  - null
+  - null
+  - -1
+  - -1
+  - 0
+- !!binary |
+  v4Ou0mfXEEA=
+max_drawdown: !!python/object/apply:numpy._core.multiarray.scalar
+- *id001
+- !!binary |
+  v2EeBi0BB8A=
+profit_factor: !!python/object/apply:numpy._core.multiarray.scalar
+- *id001
+- !!binary |
+  h6oEhjhI/D8=
+sharpe_ratio: !!python/object/apply:numpy._core.multiarray.scalar
+- *id001
+- !!binary |
+  25Mxt7co9j8=
+total_return: !!python/object/apply:numpy._core.multiarray.scalar
+- *id001
+- !!binary |
+  UmDl0CKbEEA=
+trade_count: 23
+win_rate: 0.21739130434782608

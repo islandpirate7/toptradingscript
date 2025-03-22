@@ -1,0 +1,101 @@
+general:
+  backtest_end_date: '2024-03-01'
+  backtest_start_date: '2023-01-01'
+  initial_capital: 100000
+  log_level: INFO
+  max_positions: 8
+  position_size_pct: 0.1
+  symbols:
+  - AAPL
+  - MSFT
+  - GOOGL
+  - AMZN
+  - META
+  - NVDA
+  - TSLA
+  - JPM
+  - BAC
+  - XLF
+  - XLK
+  - XLE
+  - XLU
+  - XLB
+  timeframe: !!python/object:alpaca.data.timeframe.TimeFrame
+    amount_value: 1
+    unit_value: !!python/object/apply:alpaca.data.timeframe.TimeFrameUnit
+    - Day
+global:
+  correlation_threshold: 0.7
+  default_position_size: 0.05
+  max_correlated_positions: 3
+  max_open_positions: 5
+  max_portfolio_risk: 0.02
+  max_positions_per_symbol: 2
+market_regime_params:
+  adx_period: 14
+  adx_threshold: 25
+  high_volatility_threshold: 0.015
+  long_ma_period: 200
+  low_volatility_threshold: 0.008
+  medium_ma_period: 50
+  regime_change_lookback: 5
+  short_ma_period: 20
+  trend_threshold: 0.02
+  volatility_period: 20
+ml_classifier_params:
+  feature_lookback: 20
+  min_train_samples: 100
+  model_path: models/signal_classifier.pkl
+  model_type: random_forest
+  retrain_frequency: 30
+stocks:
+  AAPL:
+    position_size: 0.08
+    strategies:
+      MeanReversion:
+        weight_multiplier: 1.3
+  AMZN:
+    position_size: 0.07
+    strategies:
+      MeanReversion:
+        weight_multiplier: 1.1
+  GOOGL:
+    position_size: 0.07
+    strategies:
+      MeanReversion:
+        weight_multiplier: 1.1
+  META:
+    position_size: 0.07
+    strategies:
+      MeanReversion:
+        weight_multiplier: 1.4
+  MSFT:
+    position_size: 0.08
+    strategies:
+      MeanReversion:
+        weight_multiplier: 1.2
+strategies:
+  GapTrading:
+    base_weight: 0.2
+  MeanReversion:
+    base_weight: 0.35
+    bb_period: 20
+    bb_std_dev: 1.9
+    max_position_size: 0.1
+    min_quality_score: 0.4
+    min_regime_score: 0.3
+    min_reversal_candles: 1
+    ml_filter_strength: 1.0
+    regime_filter_strength: 1.0
+    require_reversal: true
+    rsi_overbought: 65
+    rsi_oversold: 35
+    rsi_period: 14
+    stop_loss_atr: 1.8
+    take_profit_atr: 3.0
+    use_ml_filter: true
+    use_regime_filter: true
+  TrendFollowing:
+    base_weight: 0.25
+  VolatilityBreakout:
+    base_weight: 0.2

@@ -1,0 +1,9 @@
+symbol,direction,score,sector,price,position_size,shares,capital_pct
+AAPL,LONG,0.95,Technology,200.0,1000.0,5,1.0
+MSFT,LONG,0.85,Technology,300.0,1000.0,3,1.0
+AMZN,LONG,0.75,Consumer Discretionary,150.0,1000.0,6,1.0
+GOOGL,LONG,0.65,Communication Services,120.0,1000.0,8,1.0
+META,SHORT,0.95,Communication Services,400.0,1000.0,2,1.0
+NFLX,SHORT,0.85,Communication Services,500.0,1000.0,2,1.0
+TSLA,SHORT,0.75,Consumer Discretionary,250.0,1000.0,4,1.0
+JPM,SHORT,0.65,Financials,150.0,1000.0,6,1.0

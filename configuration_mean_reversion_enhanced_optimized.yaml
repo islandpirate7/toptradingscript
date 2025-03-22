@@ -1,0 +1,117 @@
+##############################################
+# Enhanced Mean Reversion Strategy Configuration - Optimized
+# Improvements:
+# 1. Optimized Position Sizing
+# 2. Fine-tuned Time-Based Exit Parameters
+# 3. Adjusted Entry Criteria
+##############################################
+
+# Core parameters
+initial_capital: 100000
+max_positions: 10
+
+# Mean Reversion Parameters
+mean_reversion_params:
+  # Extremely Relaxed Entry Criteria to generate more signals
+  bb_period: 20
+  bb_std_dev: 1.0  # Reduced from 1.5 to generate many more signals
+  rsi_period: 14
+  rsi_overbought: 55  # Much less extreme than 60 to generate more signals
+  rsi_oversold: 45  # Much less extreme than 40 to generate more signals
+  require_reversal: false  # Disabled to generate more signals
+  min_reversal_candles: 1  # Only need 1 candle for reversal
+  
+  # Enhanced Risk Management Parameters
+  stop_loss_atr: 1.8  # Increased from 1.8 to allow more breathing room
+  take_profit_atr: 3.0  # Increased from 3.0 for better reward potential
+  
+  # Fine-tuned Time-Based Exit Parameters
+  max_holding_days: 10  # Increased from 10 to allow more time for trades to develop
+  
+  # Dynamic Stop-Loss Parameters
+  use_support_resistance: true
+  support_lookback: 30
+  max_support_levels: 3
+  
+  # New: Partial Profit Taking
+  use_partial_exits: true
+  partial_exit_threshold: 0.5  # Exit 50% of position at 50% of target
+  trailing_stop_activation: 0.75  # Activate trailing stop when 75% to target
+
+# Optimized Position Sizing Configuration
+position_sizing_config:
+  base_risk_per_trade: 0.02  # Increased from 0.01 (1%) to 0.02 (2%) of equity per trade
+  max_position_size: 0.12  # Increased from 0.1 to 0.12 (12% of equity max)
+  min_position_size: 0.008  # Increased from 0.005 to 0.008 (0.8% of equity min)
+  
+  # New: Volatility-based position sizing adjustment
+  volatility_adjustment: true
+  low_volatility_boost: 1.2  # Increase position size by 20% in low volatility
+  high_volatility_reduction: 0.8  # Reduce position size by 20% in high volatility
+
+# Trading Universe
+symbols:
+  # Stocks - Focusing on higher-performing symbols
+  - symbol: AAPL
+    weight: 1.2
+  - symbol: MSFT
+    weight: 1.2
+  - symbol: GOOGL
+    weight: 1.1
+  - symbol: AMZN
+    weight: 1.0
+  - symbol: META
+    weight: 1.1
+  - symbol: NVDA
+    weight: 1.3
+  - symbol: AMD
+    weight: 1.2
+  - symbol: TSLA
+    weight: 0.8
+  - symbol: JPM
+    weight: 1.0
+  - symbol: DIS
+    weight: 0.9
+  - symbol: NFLX
+    weight: 1.1
+  - symbol: INTC
+    weight: 0.8
+  - symbol: CSCO
+    weight: 0.9
+  - symbol: ADBE
+    weight: 1.0
+  - symbol: PYPL
+    weight: 0.8
+  - symbol: CRM
+    weight: 1.0
+  - symbol: COST
+    weight: 1.1
+  - symbol: PEP
+    weight: 1.0
+  - symbol: CMCSA
+    weight: 0.9
+  - symbol: AVGO
+    weight: 1.1
+  - symbol: BTC/USD
+    weight: 0.7
+  - symbol: ETH/USD
+    weight: 0.7
+  - symbol: SOL/USD
+    weight: 0.6
+  - symbol: ADA/USD
+    weight: 0.6
+  - symbol: DOT/USD
+    weight: 0.5
+  - symbol: AVAX/USD
+    weight: 0.6
+  - symbol: LINK/USD
+    weight: 0.6
+  - symbol: MATIC/USD
+    weight: 0.5
+  - symbol: XRP/USD
+    weight: 0.5
+  - symbol: DOGE/USD
+    weight: 0.4
+
+# Visualization and Reporting
+save_equity_curve: true

@@ -1,0 +1,14 @@
+{
+    "total_trades": 0,
+    "winning_trades": 0,
+    "losing_trades": 0,
+    "win_rate": 0,
+    "profit_factor": 0,
+    "total_pnl": 0,
+    "max_drawdown": 0,
+    "sharpe_ratio": 0,
+    "avg_trade_duration_days": 0,
+    "final_equity": 0,
+    "return_pct": 0,
+    "symbol_metrics": {}
+}

@@ -1,0 +1,766 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+Test Optimized Mean Reversion Strategy with Real Alpaca Data
+-----------------------------------------------------------
+This script tests the optimized mean reversion strategy using real market data from Alpaca.
+It uses the configuration from multi_strategy_config.yaml which contains the optimized
+parameters that have been shown to perform well in previous tests.
+"""
+
+import os
+import sys
+import json
+import logging
+import datetime
+import yaml
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from alpaca_trade_api.rest import REST, TimeFrame
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    filename='optimized_mean_reversion_alpaca_test.log',
+    filemode='w'
+)
+logger = logging.getLogger(__name__)
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+logger.addHandler(console_handler)
+
+class CandleData:
+    """Class to store candle data"""
+    
+    def __init__(self, timestamp, open, high, low, close, volume):
+        self.timestamp = timestamp
+        self.open = open
+        self.high = high
+        self.low = low
+        self.close = close
+        self.volume = volume
+    
+    def __str__(self):
+        return f"CandleData(timestamp={self.timestamp}, open={self.open}, high={self.high}, low={self.low}, close={self.close}, volume={self.volume})"
+
+class Position:
+    """Class to represent a trading position"""
+    
+    def __init__(self, symbol, entry_price, entry_time, position_size, direction, stop_loss=None, take_profit=None):
+        self.symbol = symbol
+        self.entry_price = entry_price
+        self.entry_time = entry_time
+        self.position_size = position_size
+        self.direction = direction  # 'long' or 'short'
+        self.stop_loss = stop_loss
+        self.take_profit = take_profit
+        self.exit_price = None
+        self.exit_time = None
+        self.profit_loss = None
+        self.status = "open"
+        self.exit_reason = None
+        self.current_price = entry_price  # Track current price
+    
+    def close_position(self, exit_price, exit_time, reason="manual"):
+        """Close the position and calculate profit/loss"""
+        self.exit_price = exit_price
+        self.exit_time = exit_time
+        
+        if self.direction == "long":
+            self.profit_loss = (exit_price - self.entry_price) * self.position_size
+        else:  # short
+            self.profit_loss = (self.entry_price - exit_price) * self.position_size
+        
+        self.status = "closed"
+        self.exit_reason = reason
+        
+        return self.profit_loss
+
+class Portfolio:
+    """Class to manage trading portfolio and positions"""
+    
+    def __init__(self, initial_capital):
+        self.initial_capital = initial_capital
+        self.cash = initial_capital
+        self.open_positions = {}  # symbol -> Position
+        self.closed_positions = []
+        self.equity_curve = []
+        self.logger = logging.getLogger(__name__)
+    
+    def reset(self):
+        """Reset the portfolio to initial state"""
+        self.cash = self.initial_capital
+        self.open_positions = {}
+        self.closed_positions = []
+        self.equity_curve = []
+    
+    def open_position(self, symbol, entry_price, entry_time, position_size, direction, stop_loss=None, take_profit=None):
+        """Open a new position"""
+        # Check if we already have a position for this symbol
+        if symbol in self.open_positions:
+            self.logger.warning(f"Already have an open position for {symbol}, cannot open another")
+            return False
+        
+        # Calculate cost to open position
+        position_cost = entry_price * position_size
+        
+        # Check if we have enough cash
+        if position_cost > self.cash:
+            self.logger.warning(f"Not enough cash to open position for {symbol}. Need {position_cost:.2f}, have {self.cash:.2f}")
+            return False
+        
+        # Create position
+        position = Position(
+            symbol=symbol,
+            entry_price=entry_price,
+            entry_time=entry_time,
+            position_size=position_size,
+            direction=direction,
+            stop_loss=stop_loss,
+            take_profit=take_profit
+        )
+        
+        # Update cash
+        self.cash -= position_cost
+        
+        # Add to open positions
+        self.open_positions[symbol] = position
+        
+        self.logger.info(f"Opened {direction} position for {symbol}: {position_size} shares at {entry_price:.2f}")
+        
+        return True
+    
+    def close_position(self, symbol, exit_price, exit_time, reason="manual"):
+        """Close an open position"""
+        if symbol not in self.open_positions:
+            self.logger.warning(f"No open position for {symbol} to close")
+            return False
+        
+        position = self.open_positions[symbol]
+        profit_loss = position.close_position(exit_price, exit_time, reason)
+        
+        # Update cash - account for the direction of the trade
+        if position.direction == 'long':
+            # For long positions, we get back the exit value
+            self.cash += (exit_price * position.position_size)
+        else:  # short
+            # For short positions, we get back our initial cash plus/minus the profit/loss
+            self.cash += (position.entry_price * position.position_size) + profit_loss
+        
+        # Move from open to closed positions
+        self.closed_positions.append(position)
+        del self.open_positions[symbol]
+        
+        self.logger.info(f"Closed {position.direction} position for {symbol}: {position.position_size} shares at {exit_price:.2f}, P/L: {profit_loss:.2f}")
+        
+        return True
+    
+    def update_equity_curve(self, timestamp):
+        """Update the equity curve with current portfolio value"""
+        equity = self.get_equity()
+        self.equity_curve.append((timestamp, equity))
+    
+    def get_equity(self):
+        """Calculate total portfolio value (cash + open positions)"""
+        equity = self.cash
+        
+        for symbol, position in self.open_positions.items():
+            # For long positions, add the position value
+            if position.direction == 'long':
+                position_value = position.entry_price * position.position_size
+                equity += position_value
+            else:  # For short positions
+                # Short positions make money when price goes down
+                position_value = position.entry_price * position.position_size
+                equity += position_value
+        
+        return equity
+    
+    def get_win_rate(self):
+        """Calculate win rate from closed positions"""
+        if not self.closed_positions:
+            return 0.0
+        
+        winners = sum(1 for pos in self.closed_positions if pos.profit_loss > 0)
+        return winners / len(self.closed_positions)
+    
+    def get_profit_factor(self):
+        """Calculate profit factor (gross profits / gross losses)"""
+        gross_profit = sum(pos.profit_loss for pos in self.closed_positions if pos.profit_loss > 0)
+        gross_loss = sum(abs(pos.profit_loss) for pos in self.closed_positions if pos.profit_loss < 0)
+        
+        if gross_loss == 0:
+            return float('inf') if gross_profit > 0 else 0.0
+        
+        return gross_profit / gross_loss
+    
+    def get_max_drawdown(self):
+        """Calculate maximum drawdown from equity curve"""
+        if not self.equity_curve:
+            return 0.0
+        
+        equity_values = [e[1] for e in self.equity_curve]
+        max_dd = 0.0
+        peak = equity_values[0]
+        
+        for equity in equity_values:
+            if equity > peak:
+                peak = equity
+            
+            dd = (peak - equity) / peak
+            max_dd = max(max_dd, dd)
+        
+        return max_dd
+
+class MeanReversionStrategy:
+    """Mean reversion trading strategy using Bollinger Bands and RSI"""
+    
+    def __init__(self, config):
+        """Initialize with parameters from config"""
+        mr_config = config.get('strategy_configs', {}).get('MeanReversion', {})
+        
+        self.bb_period = mr_config.get('bb_period', 20)
+        self.bb_std = mr_config.get('bb_std_dev', 2.0)
+        self.rsi_period = mr_config.get('rsi_period', 14)
+        self.rsi_overbought = mr_config.get('rsi_overbought', 70)
+        self.rsi_oversold = mr_config.get('rsi_oversold', 30)
+        self.require_reversal = mr_config.get('require_reversal', False)
+        self.stop_loss_atr = mr_config.get('stop_loss_atr', 2.0)
+        self.take_profit_atr = mr_config.get('take_profit_atr', 3.0)
+        self.atr_period = mr_config.get('atr_period', 14)
+        
+        self.logger = logging.getLogger(__name__)
+        
+        self.logger.info(f"Initialized with parameters: BB period={self.bb_period}, BB std={self.bb_std}, "
+                        f"RSI period={self.rsi_period}, RSI thresholds={self.rsi_oversold}/{self.rsi_overbought}, "
+                        f"Require reversal={self.require_reversal}")
+    
+    def calculate_indicators(self, candles):
+        """Calculate Bollinger Bands, RSI, and ATR for the given candles"""
+        if len(candles) < max(self.bb_period, self.rsi_period, self.atr_period) + 10:
+            return None, None, None, None, None
+        
+        # Extract close prices
+        closes = np.array([candle.close for candle in candles])
+        highs = np.array([candle.high for candle in candles])
+        lows = np.array([candle.low for candle in candles])
+        
+        # Calculate Bollinger Bands
+        sma = self.calculate_sma(closes, self.bb_period)
+        std = self.calculate_std(closes, self.bb_period)
+        
+        upper_band = sma + (self.bb_std * std)
+        lower_band = sma - (self.bb_std * std)
+        
+        # Calculate RSI
+        rsi = self.calculate_rsi(closes, self.rsi_period)
+        
+        # Calculate ATR
+        atr = self.calculate_atr(highs, lows, closes, self.atr_period)
+        
+        return upper_band, sma, lower_band, rsi, atr
+    
+    def calculate_sma(self, data, period):
+        """Calculate Simple Moving Average"""
+        return np.convolve(data, np.ones(period)/period, mode='valid')
+    
+    def calculate_std(self, data, period):
+        """Calculate Standard Deviation"""
+        return np.array([np.std(data[i:i+period]) for i in range(len(data)-period+1)])
+    
+    def calculate_rsi(self, prices, period):
+        """Calculate Relative Strength Index"""
+        deltas = np.diff(prices)
+        seed = deltas[:period+1]
+        up = seed[seed >= 0].sum()/period
+        down = -seed[seed < 0].sum()/period
+        
+        if down == 0:
+            rs = float('inf')
+        else:
+            rs = up/down
+        
+        rsi = np.zeros_like(prices)
+        rsi[:period] = 100. - 100./(1. + rs)
+        
+        for i in range(period, len(prices)):
+            delta = deltas[i-1]
+            
+            if delta > 0:
+                upval = delta
+                downval = 0.
+            else:
+                upval = 0.
+                downval = -delta
+            
+            up = (up * (period - 1) + upval) / period
+            down = (down * (period - 1) + downval) / period
+            
+            if down == 0:
+                rs = float('inf')
+            else:
+                rs = up/down
+            
+            rsi[i] = 100. - 100./(1. + rs)
+        
+        return rsi
+    
+    def calculate_atr(self, high, low, close, period):
+        """Calculate Average True Range"""
+        tr1 = high[1:] - low[1:]
+        tr2 = abs(high[1:] - close[:-1])
+        tr3 = abs(low[1:] - close[:-1])
+        
+        tr = np.vstack([tr1, tr2, tr3]).max(axis=0)
+        atr = np.zeros_like(close)
+        atr[:period] = np.mean(tr[:period])
+        
+        for i in range(period, len(close)):
+            atr[i] = (atr[i-1] * (period - 1) + tr[i-period]) / period
+        
+        return atr
+    
+    def generate_signals(self, candles):
+        """Generate trading signals based on the strategy"""
+        if len(candles) < max(self.bb_period, self.rsi_period, self.atr_period) + 10:
+            return []
+        
+        # Calculate indicators
+        bb_upper, bb_middle, bb_lower, rsi, atr = self.calculate_indicators(candles)
+        
+        if bb_upper is None or bb_lower is None or rsi is None or atr is None:
+            return []
+        
+        signals = []
+        
+        # Adjust for indicator calculation offset
+        offset = max(self.bb_period, self.rsi_period, self.atr_period) - 1
+        
+        # Generate signals
+        for i in range(1, len(bb_upper)):
+            idx = i + offset
+            
+            if idx >= len(candles):
+                break
+            
+            current_candle = candles[idx]
+            prev_candle = candles[idx-1]
+            
+            # Buy signal: price below lower band and RSI oversold
+            if (current_candle.close < bb_lower[i] and 
+                rsi[idx] < self.rsi_oversold):
+                
+                # Check for reversal if required
+                if not self.require_reversal or (
+                    prev_candle.close < current_candle.close):
+                    
+                    # Calculate stop loss and take profit levels
+                    stop_loss = current_candle.close - (atr[idx] * self.stop_loss_atr)
+                    take_profit = current_candle.close + (atr[idx] * self.take_profit_atr)
+                    
+                    signals.append({
+                        'timestamp': current_candle.timestamp,
+                        'signal': 'buy',
+                        'price': current_candle.close,
+                        'stop_loss': stop_loss,
+                        'take_profit': take_profit,
+                        'strength': (self.rsi_oversold - rsi[idx]) / self.rsi_oversold  # Signal strength based on RSI distance
+                    })
+            
+            # Sell signal: price above upper band and RSI overbought
+            elif (current_candle.close > bb_upper[i] and 
+                  rsi[idx] > self.rsi_overbought):
+                
+                # Check for reversal if required
+                if not self.require_reversal or (
+                    prev_candle.close > current_candle.close):
+                    
+                    # Calculate stop loss and take profit levels
+                    stop_loss = current_candle.close + (atr[idx] * self.stop_loss_atr)
+                    take_profit = current_candle.close - (atr[idx] * self.take_profit_atr)
+                    
+                    signals.append({
+                        'timestamp': current_candle.timestamp,
+                        'signal': 'sell',
+                        'price': current_candle.close,
+                        'stop_loss': stop_loss,
+                        'take_profit': take_profit,
+                        'strength': (rsi[idx] - self.rsi_overbought) / (100 - self.rsi_overbought)  # Signal strength based on RSI distance
+                    })
+        
+        return signals
+
+class AlpacaBacktest:
+    """Backtest using real Alpaca data"""
+    
+    def __init__(self, config_path):
+        """Initialize with the given configuration"""
+        self.logger = logging.getLogger(__name__)
+        
+        # Load configuration
+        self.config = self.load_config(config_path)
+        if not self.config:
+            raise ValueError("Failed to load configuration")
+        
+        # Set up configuration
+        self.initial_capital = self.config.get('initial_capital', 100000)
+        
+        # Initialize portfolio
+        self.portfolio = Portfolio(self.initial_capital)
+        
+        # Initialize strategy
+        self.strategy = MeanReversionStrategy(self.config)
+        
+        # Initialize Alpaca API
+        self.api = None
+        
+        # Set up symbols
+        self.symbols = []
+        self.stock_symbols = []
+        self.crypto_symbols = []
+    
+    def load_config(self, config_path):
+        """Load configuration from YAML file"""
+        try:
+            with open(config_path, 'r') as f:
+                config = yaml.safe_load(f)
+            self.logger.info(f"Loaded configuration from {config_path}")
+            return config
+        except Exception as e:
+            self.logger.error(f"Error loading configuration: {str(e)}")
+            return None
+    
+    def initialize_alpaca_api(self):
+        """Initialize the Alpaca API client with credentials from alpaca_credentials.json"""
+        try:
+            # Load credentials from JSON file
+            import json
+            import os
+            
+            credentials_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'alpaca_credentials.json')
+            
+            if os.path.exists(credentials_path):
+                with open(credentials_path, 'r') as f:
+                    credentials = json.load(f)
+                
+                # Use paper trading credentials by default
+                paper_creds = credentials.get('paper', {})
+                api_key = paper_creds.get('api_key')
+                api_secret = paper_creds.get('api_secret')
+                base_url = paper_creds.get('base_url', 'https://paper-api.alpaca.markets/v2')
+                
+                self.logger.info(f"Using paper trading credentials from file")
+            else:
+                # Fallback to environment variables
+                api_key = os.environ.get('ALPACA_API_KEY')
+                api_secret = os.environ.get('ALPACA_API_SECRET')
+                base_url = 'https://paper-api.alpaca.markets/v2'
+                
+                if not api_key or not api_secret:
+                    self.logger.error("Alpaca API credentials not found")
+                    return False
+            
+            # Initialize API
+            self.api = REST(api_key, api_secret, base_url)
+            self.logger.info("Alpaca API initialized successfully")
+            
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Error initializing Alpaca API: {str(e)}")
+            return False
+    
+    def set_symbols(self, symbols):
+        """Set the symbols to backtest"""
+        self.symbols = symbols
+        
+        # Separate symbols by type
+        self.stock_symbols = []
+        self.crypto_symbols = []
+        
+        for symbol in self.symbols:
+            if symbol.endswith('USD'):
+                self.crypto_symbols.append(symbol)
+            else:
+                self.stock_symbols.append(symbol)
+        
+        self.logger.info(f"Set symbols: {len(self.stock_symbols)} stocks, {len(self.crypto_symbols)} cryptos")
+    
+    def fetch_historical_data(self, symbol, start_date, end_date):
+        """Fetch historical price data from Alpaca"""
+        if not self.api:
+            self.logger.error("Alpaca API not initialized")
+            return None
+        
+        try:
+            # Convert string dates to datetime if needed
+            if isinstance(start_date, str):
+                start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
+            if isinstance(end_date, str):
+                end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+            
+            self.logger.info(f"Fetching data for {symbol} from {start_date.date()} to {end_date.date()}")
+            
+            # Determine timeframe based on symbol type
+            timeframe = TimeFrame.Day
+            
+            # Fetch data
+            bars = self.api.get_bars(
+                symbol,
+                timeframe,
+                start=start_date.isoformat(),
+                end=end_date.isoformat(),
+                adjustment='raw'
+            ).df
+            
+            if bars.empty:
+                self.logger.warning(f"No data returned for {symbol}")
+                return None
+            
+            # Convert to CandleData objects
+            candles = []
+            for index, row in bars.iterrows():
+                candle = CandleData(
+                    timestamp=index.to_pydatetime(),
+                    open=row['open'],
+                    high=row['high'],
+                    low=row['low'],
+                    close=row['close'],
+                    volume=row['volume']
+                )
+                candles.append(candle)
+            
+            self.logger.info(f"Fetched {len(candles)} candles for {symbol}")
+            return candles
+            
+        except Exception as e:
+            self.logger.error(f"Error fetching data for {symbol}: {str(e)}")
+            return None
+    
+    def run_backtest(self, start_date, end_date):
+        """Run the backtest from start_date to end_date"""
+        if not self.api:
+            self.logger.error("Alpaca API not initialized")
+            return None
+        
+        # Reset portfolio
+        self.portfolio.reset()
+        
+        # Fetch data for all symbols
+        symbol_data = {}
+        for symbol in self.symbols:
+            candles = self.fetch_historical_data(symbol, start_date, end_date)
+            if candles:
+                symbol_data[symbol] = candles
+        
+        if not symbol_data:
+            self.logger.error("No data fetched for any symbol")
+            return None
+        
+        # Sort all candles by timestamp
+        all_timestamps = set()
+        for symbol, candles in symbol_data.items():
+            all_timestamps.update([candle.timestamp for candle in candles])
+        
+        all_timestamps = sorted(all_timestamps)
+        
+        # Run backtest
+        self.logger.info(f"Running backtest with {len(all_timestamps)} timestamps")
+        
+        # Track performance
+        results = {
+            'initial_capital': self.initial_capital,
+            'trades': [],
+            'equity_curve': []
+        }
+        
+        # Process each timestamp
+        for timestamp in all_timestamps:
+            # Process open positions first
+            for symbol, position in list(self.portfolio.open_positions.items()):
+                if symbol in symbol_data:
+                    # Find the candle for this timestamp
+                    candle = next((c for c in symbol_data[symbol] if c.timestamp == timestamp), None)
+                    
+                    if candle:
+                        # Check for stop loss or take profit
+                        if position.direction == 'long':
+                            if candle.low <= position.stop_loss:
+                                # Stop loss hit
+                                self.portfolio.close_position(symbol, position.stop_loss, timestamp, "stop_loss")
+                                results['trades'].append({
+                                    'symbol': symbol,
+                                    'direction': position.direction,
+                                    'entry_price': position.entry_price,
+                                    'entry_time': position.entry_time,
+                                    'exit_price': position.stop_loss,
+                                    'exit_time': timestamp,
+                                    'profit_loss': position.profit_loss,
+                                    'reason': 'stop_loss'
+                                })
+                            elif candle.high >= position.take_profit:
+                                # Take profit hit
+                                self.portfolio.close_position(symbol, position.take_profit, timestamp, "take_profit")
+                                results['trades'].append({
+                                    'symbol': symbol,
+                                    'direction': position.direction,
+                                    'entry_price': position.entry_price,
+                                    'entry_time': position.entry_time,
+                                    'exit_price': position.take_profit,
+                                    'exit_time': timestamp,
+                                    'profit_loss': position.profit_loss,
+                                    'reason': 'take_profit'
+                                })
+                        elif position.direction == 'short':
+                            if candle.high >= position.stop_loss:
+                                # Stop loss hit
+                                self.portfolio.close_position(symbol, position.stop_loss, timestamp, "stop_loss")
+                                results['trades'].append({
+                                    'symbol': symbol,
+                                    'direction': position.direction,
+                                    'entry_price': position.entry_price,
+                                    'entry_time': position.entry_time,
+                                    'exit_price': position.stop_loss,
+                                    'exit_time': timestamp,
+                                    'profit_loss': position.profit_loss,
+                                    'reason': 'stop_loss'
+                                })
+                            elif candle.low <= position.take_profit:
+                                # Take profit hit
+                                self.portfolio.close_position(symbol, position.take_profit, timestamp, "take_profit")
+                                results['trades'].append({
+                                    'symbol': symbol,
+                                    'direction': position.direction,
+                                    'entry_price': position.entry_price,
+                                    'entry_time': position.entry_time,
+                                    'exit_price': position.take_profit,
+                                    'exit_time': timestamp,
+                                    'profit_loss': position.profit_loss,
+                                    'reason': 'take_profit'
+                                })
+            
+            # Generate signals for each symbol
+            for symbol, candles in symbol_data.items():
+                # Skip if we already have a position for this symbol
+                if symbol in self.portfolio.open_positions:
+                    continue
+                
+                # Find all candles up to this timestamp
+                historical_candles = [c for c in candles if c.timestamp <= timestamp]
+                
+                if len(historical_candles) < 50:  # Need enough data for indicators
+                    continue
+                
+                # Generate signals
+                signals = self.strategy.generate_signals(historical_candles)
+                
+                # Process the most recent signal if any
+                if signals:
+                    latest_signal = signals[-1]
+                    
+                    # Only process signals for the current timestamp
+                    if latest_signal['timestamp'] == timestamp:
+                        # Calculate position size (fixed for now)
+                        position_size = 100  # Fixed position size for simplicity
+                        
+                        if latest_signal['signal'] == 'buy':
+                            # Open long position
+                            success = self.portfolio.open_position(
+                                symbol=symbol,
+                                entry_price=latest_signal['price'],
+                                entry_time=timestamp,
+                                position_size=position_size,
+                                direction='long',
+                                stop_loss=latest_signal['stop_loss'],
+                                take_profit=latest_signal['take_profit']
+                            )
+                            
+                            if success:
+                                self.logger.info(f"Opened long position for {symbol} at {latest_signal['price']:.2f}")
+                        
+                        elif latest_signal['signal'] == 'sell':
+                            # Open short position
+                            success = self.portfolio.open_position(
+                                symbol=symbol,
+                                entry_price=latest_signal['price'],
+                                entry_time=timestamp,
+                                position_size=position_size,
+                                direction='short',
+                                stop_loss=latest_signal['stop_loss'],
+                                take_profit=latest_signal['take_profit']
+                            )
+                            
+                            if success:
+                                self.logger.info(f"Opened short position for {symbol} at {latest_signal['price']:.2f}")
+            
+            # Update equity curve
+            self.portfolio.update_equity_curve(timestamp)
+        
+        # Close any remaining open positions at the last price
+        for symbol, position in list(self.portfolio.open_positions.items()):
+            if symbol in symbol_data:
+                last_candle = symbol_data[symbol][-1]
+                self.portfolio.close_position(symbol, last_candle.close, last_candle.timestamp, "end_of_backtest")
+                results['trades'].append({
+                    'symbol': symbol,
+                    'direction': position.direction,
+                    'entry_price': position.entry_price,
+                    'entry_time': position.entry_time,
+                    'exit_price': last_candle.close,
+                    'exit_time': last_candle.timestamp,
+                    'profit_loss': position.profit_loss,
+                    'reason': 'end_of_backtest'
+                })
+        
+        # Calculate final results
+        results['final_capital'] = self.portfolio.get_equity()
+        results['return'] = (results['final_capital'] - results['initial_capital']) / results['initial_capital']
+        results['win_rate'] = self.portfolio.get_win_rate()
+        results['profit_factor'] = self.portfolio.get_profit_factor()
+        results['max_drawdown'] = self.portfolio.get_max_drawdown()
+        results['total_trades'] = len(self.portfolio.closed_positions)
+        
+        # Save equity curve
+        results['equity_curve'] = [(timestamp.isoformat(), equity) for timestamp, equity in self.portfolio.equity_curve]
+        
+        self.logger.info(f"Backtest completed with {results['total_trades']} trades")
+        self.logger.info(f"Final capital: ${results['final_capital']:.2f} (Return: {results['return']:.2%})")
+        self.logger.info(f"Win rate: {results['win_rate']:.2%}")
+        self.logger.info(f"Profit factor: {results['profit_factor']:.2f}")
+        self.logger.info(f"Max drawdown: {results['max_drawdown']:.2%}")
+        
+        return results
+
+def main():
+    """Main function to run the backtest"""
+    # Parse command line arguments
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='Test optimized mean reversion strategy with real Alpaca data')
+    parser.add_argument('--config', type=str, default='multi_strategy_config.yaml',
+                        help='Path to the configuration file')
+    parser.add_argument('--start', type=str, default='2023-01-01',
+                        help='Start date for backtest (YYYY-MM-DD)')
+    parser.add_argument('--end', type=str, default='2023-03-31',
+                        help='End date for backtest (YYYY-MM-DD)')
+    parser.add_argument('--quarter', type=int, choices=[1, 2, 3, 4],
+                        help='Quarter of 2023 to run backtest for (overrides start/end)')
+    parser.add_argument('--symbols', type=str, nargs='+',
+                        help='List of symbols to include in backtest')
+    
+    args = parser.parse_args()
+    
+    # Set start and end dates based on quarter if specified
+    if args.quarter:
+        if args.quarter == 1:
+            args.start = '2023-01-01'
+            args.end = '2023-03-31'
+        elif args.quarter == 2:
+            args.start = '2023-04-01'
+            args.end = '2023-06-30'
+        elif args.quarter == 3:
+            args.start = '2023-07-01'
+            args

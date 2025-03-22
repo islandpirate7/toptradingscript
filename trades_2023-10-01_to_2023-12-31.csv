@@ -1,0 +1,2 @@
+Symbol,Direction,Entry Price,Entry Time,Exit Price,Exit Time,P/L,Reason
+AMZN,short,153.79,2023-12-19 05:00:00+00:00,151.94,2023-12-29 05:00:00+00:00,60.14695363807772,end_of_backtest

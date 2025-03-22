@@ -1,0 +1,228 @@
+# Configuration for Combined Strategy
+
+# General settings
+general:
+  log_level: INFO
+  initial_capital: 100000
+  max_positions: 10
+  max_portfolio_risk_pct: 0.02
+  max_portfolio_pct: 0.05
+  max_risk_per_trade: 0.01
+  min_capital_per_trade: 1000
+  symbols:
+    - AAPL
+    - MSFT
+    - AMZN
+    - GOOGL
+    - META
+    - NVDA
+    - TSLA
+    - JPM
+    - V
+    - PG
+    - JNJ
+    - UNH
+    - HD
+    - BAC
+    - XOM
+    - CVX
+    - PFE
+    - CSCO
+    - DIS
+    - NFLX
+    - INTC
+    - VZ
+    - KO
+    - PEP
+    - WMT
+    - MRK
+    - CMCSA
+    - T
+    - CRM
+    - ABT
+    - SPY  # Include SPY for market regime detection
+  timeframe: '1D'
+  position_size_pct: 0.05  # Base position size (will be adjusted dynamically)
+  backtest_start_date: '2023-01-01'
+  backtest_end_date: '2024-04-30'
+  min_signal_score: 0.55  # Reduced from 0.58 to allow more signals
+
+# Stock selection configuration
+stock_selection:
+  enable_multi_factor: true
+  top_n_stocks: 10
+  direction: ANY  # LONG, SHORT, or ANY
+  technical_weight: 0.75  # Increased weight for technical factors
+  seasonality_weight: 0.25  # Decreased weight for seasonality
+  technical_factors:
+    momentum_weight: 0.3
+    trend_weight: 0.3
+    volatility_weight: 0.2
+    volume_weight: 0.2
+  position_sizing:
+    base_position_pct: 0.05
+    min_position_pct: 0.02
+    max_position_pct: 0.08
+    score_scaling_factor: 0.5
+    short_size_factor: 0.8
+  regime_adjustments:
+    bullish:
+      long_bias_multiplier: 1.2
+      short_bias_multiplier: 0.8
+    bearish:
+      long_bias_multiplier: 0.8
+      short_bias_multiplier: 1.2
+    mixed:
+      long_bias_multiplier: 1.0
+      short_bias_multiplier: 1.0
+    trending:
+      technical_weight_multiplier: 1.2
+      seasonality_weight_multiplier: 0.7
+      trend_weight_multiplier: 1.5
+      momentum_weight_multiplier: 1.2
+      volatility_weight_multiplier: 0.8
+      volume_weight_multiplier: 1.0
+    ranging:
+      technical_weight_multiplier: 0.9
+      seasonality_weight_multiplier: 1.1
+      trend_weight_multiplier: 0.7
+      momentum_weight_multiplier: 0.8
+      volatility_weight_multiplier: 1.4
+      volume_weight_multiplier: 1.1
+    range_bound:
+      technical_weight_multiplier: 0.9
+      seasonality_weight_multiplier: 1.1
+      trend_weight_multiplier: 0.7
+      momentum_weight_multiplier: 0.8
+      volatility_weight_multiplier: 1.4
+      volume_weight_multiplier: 1.1
+
+# Strategy-specific configurations
+strategy_configs:
+  # Mean Reversion Strategy parameters
+  MeanReversion:
+    weight: 0.50  # Increased from 0.45 to generate more mean reversion signals
+    bb_period: 20
+    bb_std: 1.9  # Increased to reduce false signals
+    rsi_period: 14
+    rsi_lower: 32  # Adjusted from 30 to be less extreme
+    rsi_upper: 68  # Adjusted from 70 to be less extreme
+    require_reversal: true  # Changed to true to improve signal quality
+    min_bb_penetration: 0.12  # Reduced from 0.15 to allow more signals
+    sl_atr_multiplier: 1.6  # Increased from 1.5 to give trades more room
+    tp_atr_multiplier: 3.0  # Increased for better reward-to-risk ratio
+    atr_period: 14
+    use_volume_filter: true
+    volume_threshold: 1.2  # Increased to focus on higher volume signals
+    symbol_weights:
+      SPY: 1.2
+      QQQ: 1.2
+      AAPL: 1.3
+      MSFT: 1.2
+      AMZN: 1.2
+      GOOGL: 1.0
+      TSLA: 1.3
+      NVDA: 1.3
+      AMD: 1.3
+
+  # Trend Following Strategy parameters
+  TrendFollowing:
+    weight: 0.50  # Reduced to balance with mean reversion
+    fast_ma_period: 8  # Decreased for faster response
+    slow_ma_period: 21
+    signal_ma_period: 9
+    adx_period: 14
+    adx_threshold: 20  # Reduced to catch trends earlier
+    macd_fast_period: 12
+    macd_slow_period: 26
+    macd_signal_period: 9
+    rsi_period: 14
+    rsi_lower: 40
+    rsi_upper: 60
+    atr_period: 14
+    stop_loss_atr_multiplier: 1.8  # Increased to give trades more room
+    take_profit_atr_multiplier: 3.5  # Increased for better reward-to-risk ratio
+    volume_filter: true
+    volume_threshold: 1.2
+    symbol_weights:
+      SPY: 1.2
+      QQQ: 1.3
+      AAPL: 1.1
+      MSFT: 1.2
+      AMZN: 1.1
+      GOOGL: 1.1
+      TSLA: 1.4
+      NVDA: 1.4
+      AMD: 1.3
+
+  # Combined Strategy parameters
+  Combined:
+    use_multi_factor: true
+    mean_reversion_weight: 0.50  # Increased to match individual strategy weight
+    trend_following_weight: 0.50  # Reduced to match individual strategy weight
+    trending_regime_weights:
+      mean_reversion: 0.20  # Increased slightly
+      trend_following: 0.80  # Decreased slightly
+    range_bound_regime_weights:
+      mean_reversion: 0.80  # Increased to favor mean reversion more in range-bound markets
+      trend_following: 0.20  # Reduced accordingly
+    mixed_regime_weights:
+      mean_reversion: 0.60  # Increased to favor mean reversion more in mixed markets
+      trend_following: 0.40  # Reduced accordingly
+    regime_lookback: 25  # Increased for more stable regime detection
+    volatility_period: 15  # Increased for more stable volatility measurement
+    adx_threshold: 22  # Reduced to better identify trending vs range-bound markets
+    min_signal_score: 0.55  # Reduced from 0.58 to allow more signals
+    max_signals_per_day: 4  # Increased from 3 to allow more signals per day
+    position_size_pct: 0.05
+    max_risk_per_trade_pct: 0.01
+    max_correlation_threshold: 0.65  # Reduced to improve diversification
+    max_sector_exposure_pct: 0.25  # Reduced to improve diversification
+
+# Seasonality configuration
+seasonality:
+  enabled: true
+  data_file: "output/seasonal_opportunities_converted.yaml"
+  min_score_threshold: 0.60
+  weight_adjustment: true
+  min_confidence: 0.3
+  sector_influence: 0.35
+  stock_specific_influence: 0.65
+  top_n_selection: 15  # Increased from 12 to consider more seasonal opportunities
+  monthly_weights:
+    1: 1.2  # January
+    4: 1.1  # April
+    5: 0.9  # May
+    9: 1.1  # September
+    10: 1.0  # October
+    12: 1.1  # December
+
+# Symbol-specific configurations
+symbol_configs:
+  SPY:
+    weight_multiplier: 1.3  # Increased
+    risk_multiplier: 0.8  # Reduced risk
+  QQQ:
+    weight_multiplier: 1.4  # Increased
+    risk_multiplier: 0.9  # Reduced risk
+  AAPL:
+    weight_multiplier: 1.2
+    risk_multiplier: 0.9
+  MSFT:
+    weight_multiplier: 1.2
+    risk_multiplier: 0.9
+  AMZN:
+    weight_multiplier: 1.1
+    risk_multiplier: 1.0
+  GOOGL:
+    weight_multiplier: 1.0
+    risk_multiplier: 0.9
+  TSLA:
+    weight_multiplier: 1.4
+    risk_multiplier: 1.2
+  NVDA:
+    weight_multiplier: 1.4
+    risk_multiplier: 1.1
+  AMD:
+    weight_multiplier: 1.3
+    risk_multiplier: 1.1

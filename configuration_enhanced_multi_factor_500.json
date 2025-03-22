@@ -1,0 +1,50 @@
+{
+    "general": {
+        "lookback_days": 100,
+        "holding_period": 5,
+        "top_n": 25,
+        "position_size": 0.04
+    },
+    "market_regime": "mixed",
+    "technical_analysis": {
+        "weight": 0.925,
+        "indicators": {
+            "rsi": {
+                "enabled": true,
+                "period": 14,
+                "weight": 0.2,
+                "overbought": 70,
+                "oversold": 30
+            },
+            "macd": {
+                "enabled": true,
+                "fast_period": 12,
+                "slow_period": 26,
+                "signal_period": 9,
+                "weight": 0.2
+            },
+            "bollinger_bands": {
+                "enabled": true,
+                "period": 20,
+                "std_dev": 2,
+                "weight": 0.2
+            },
+            "stochastic": {
+                "enabled": true,
+                "k_period": 14,
+                "d_period": 3,
+                "weight": 0.2
+            },
+            "adx": {
+                "enabled": true,
+                "period": 14,
+                "weight": 0.2
+            }
+        }
+    },
+    "seasonality": {
+        "weight": 0.075,
+        "min_confidence": 0.3,
+        "lookback_years": 5
+    }
+}

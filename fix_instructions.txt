@@ -1,0 +1,42 @@
+To fix the "'NoneType' object is not iterable" error in your multi-strategy trading system, you need to modify the code in multi_strategy_system.py around line 2500.
+
+Find this code section:
+
+```python
+# Generate signals
+new_signals = strategy.generate_signals(
+    symbol=symbol,
+    candles=stock_data[:current_idx],
+    stock_config=stock_config,
+    market_state=self.market_state
+)
+
+# Add strategy weight to signal metadata
+for signal in new_signals:
+    signal.metadata["strategy_weight"] = self.strategy_weights.get(name, 0.25)
+
+# Add to signals list
+self.signals.extend(new_signals)
+```
+
+And replace it with:
+
+```python
+# Generate signals
+new_signals = strategy.generate_signals(
+    symbol=symbol,
+    candles=stock_data[:current_idx],
+    stock_config=stock_config,
+    market_state=self.market_state
+)
+
+# Add strategy weight to signal metadata
+if new_signals is not None:
+    for signal in new_signals:
+        signal.metadata["strategy_weight"] = self.strategy_weights.get(name, 0.25)
+    
+    # Add to signals list
+    self.signals.extend(new_signals)
+```
+
+This change adds a check to ensure that new_signals is not None before trying to iterate over it, which will prevent the error.

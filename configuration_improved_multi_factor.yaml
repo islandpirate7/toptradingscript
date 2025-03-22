@@ -1,0 +1,168 @@
+# Configuration for Improved Multi-Factor Strategy
+
+# General settings
+general:
+  log_level: INFO
+  initial_capital: 100000
+  max_positions: 15
+  max_portfolio_risk_pct: 0.02
+  max_portfolio_pct: 0.05
+  max_risk_per_trade: 0.01
+  min_capital_per_trade: 1000
+  symbols:
+    - SPY
+    - QQQ
+    - AAPL
+    - MSFT
+    - AMZN
+    - GOOGL
+    - TSLA
+    - NVDA
+    - AMD
+    - META
+    - NFLX
+    - INTC
+    - JPM
+    - V
+    - DIS
+    - HD
+    - RBLX
+    - SNAP
+    - COIN
+  timeframe: '1D'
+  position_size_pct: 0.05  # Base position size (will be adjusted dynamically)
+  backtest_start_date: '2023-01-01'
+  backtest_end_date: '2024-04-30'
+  min_signal_score: 0.55  # Minimum score for a valid signal
+
+# Stock selection configuration
+stock_selection:
+  enable_multi_factor: true
+  technical_weight: 0.6  # Weight for technical factors
+  seasonality_weight: 0.4  # Weight for seasonality factors
+  technical_factors:
+    momentum_weight: 0.25  # Weight for momentum indicators
+    trend_weight: 0.25     # Weight for trend indicators
+    volatility_weight: 0.25  # Weight for volatility indicators
+    volume_weight: 0.25    # Weight for volume indicators
+  position_sizing:
+    base_position_pct: 0.05  # Base position size
+    min_position_pct: 0.02   # Minimum position size
+    max_position_pct: 0.08   # Maximum position size
+    score_scaling_factor: 0.5  # How much to scale position size based on score
+    short_size_factor: 0.8    # Reduce short position sizes by this factor
+  regime_adjustments:
+    trending:
+      long_bias_multiplier: 1.2  # Increase long bias in trending markets
+      short_bias_multiplier: 0.8  # Decrease short bias in trending markets
+    range_bound:
+      long_bias_multiplier: 1.0  # Neutral long bias in range-bound markets
+      short_bias_multiplier: 1.0  # Neutral short bias in range-bound markets
+  top_n_stocks: 5  # Number of top stocks to select
+
+# Strategy-specific configurations
+strategy_configs:
+  # Mean Reversion Strategy parameters
+  MeanReversion:
+    weight: 0.50
+    bb_period: 20
+    bb_std: 1.9
+    rsi_period: 14
+    rsi_lower: 32
+    rsi_upper: 68
+    require_reversal: true
+    min_bb_penetration: 0.12
+    sl_atr_multiplier: 1.6
+    tp_atr_multiplier: 3.0
+    atr_period: 14
+    use_volume_filter: true
+    volume_threshold: 1.2
+
+  # Trend Following Strategy parameters
+  TrendFollowing:
+    weight: 0.50
+    fast_ma_period: 8
+    slow_ma_period: 21
+    signal_ma_period: 9
+    adx_period: 14
+    adx_threshold: 20
+    macd_fast_period: 12
+    macd_slow_period: 26
+    macd_signal_period: 9
+    rsi_period: 14
+    rsi_lower: 40
+    rsi_upper: 60
+    atr_period: 14
+    stop_loss_atr_multiplier: 1.8
+    take_profit_atr_multiplier: 3.5
+    volume_filter: true
+    volume_threshold: 1.2
+
+  # Combined Strategy parameters
+  Combined:
+    mean_reversion_weight: 0.50
+    trend_following_weight: 0.50
+    trending_regime_weights:
+      mean_reversion: 0.20
+      trend_following: 0.80
+    range_bound_regime_weights:
+      mean_reversion: 0.80
+      trend_following: 0.20
+    mixed_regime_weights:
+      mean_reversion: 0.60
+      trend_following: 0.40
+    regime_lookback: 25
+    volatility_period: 15
+    adx_threshold: 22
+    min_signal_score: 0.55
+    max_signals_per_day: 4
+    position_size_pct: 0.05
+    max_risk_per_trade_pct: 0.01
+    max_correlation_threshold: 0.65
+    max_sector_exposure_pct: 0.25
+
+# Seasonality configuration
+seasonality:
+  enabled: true
+  data_file: "output/seasonal_opportunities_converted.yaml"
+  min_score_threshold: 0.60
+  weight_adjustment: true
+  sector_influence: 0.35
+  stock_specific_influence: 0.65
+  top_n_selection: 15
+  boost_factor: 0.2  # How much to boost scores for strong seasonal opportunities
+  penalty_factor: 0.2  # How much to penalize scores for weak seasonal opportunities
+
+# Market regime detection
+market_regime:
+  lookback_period: 50
+  volatility_period: 20
+  adx_period: 14
+  adx_threshold: 25
+  ma_short_period: 20
+  ma_long_period: 50
+  rsi_period: 14
+  rsi_threshold: 50
+  regime_types:
+    - TRENDING_BULLISH
+    - TRENDING_BEARISH
+    - RANGE_BOUND
+    - VOLATILE
+    - MIXED
+
+# Risk management
+risk_management:
+  max_portfolio_risk: 0.03  # Maximum portfolio risk (3%)
+  max_position_risk: 0.01   # Maximum risk per position (1%)
+  max_sector_exposure: 0.25  # Maximum exposure to any sector (25%)
+  max_correlation: 0.70     # Maximum correlation between positions
+  stop_loss:
+    enable: true
+    atr_multiplier: 1.8
+  take_profit:
+    enable: true
+    atr_multiplier: 3.0
+  trailing_stop:
+    enable: true
+    activation_threshold: 0.02  # Activate trailing stop after 2% profit
+    atr_multiplier: 2.0

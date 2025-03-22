@@ -1,0 +1,16 @@
+{
+    "total_trades": 104,
+    "win_rate": 0.3173076923076923,
+    "profit_factor": 0.6208024623049624,
+    "average_profit": -35.42024038461539,
+    "total_return": -0.03683704999999929,
+    "max_drawdown": 0.0,
+    "sharpe_ratio": 0.0,
+    "sortino_ratio": 0.0,
+    "max_consecutive_losses": 14,
+    "average_win": 182.75060606060606,
+    "average_loss": 136.82359154929577,
+    "win_loss_ratio": 1.3356659037470404,
+    "expectancy": -35.42024038461538,
+    "annualized_return": -0.026250139311609355
+}

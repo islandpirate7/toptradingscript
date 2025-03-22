@@ -1,0 +1,518 @@
+opportunities:
+- avg_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - &id001 !!python/object/apply:numpy.dtype
+    args:
+    - f8
+    - false
+    - true
+    state: !!python/tuple
+    - 3
+    - <
+    - null
+    - null
+    - null
+    - -1
+    - -1
+    - 0
+  - !!binary |
+    4j0VgkQT5D8=
+  correlation: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    emFikiSE7j8=
+  current_price: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    H4XrUbgeR0A=
+  direction: LONG
+  expected_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    g47M6NlDR0A=
+  season: March
+  symbol: NEM
+  trade_count: 110
+  win_rate: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    yFOCPCXI4z8=
+- avg_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    +Jcm1LDv4j8=
+  correlation: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    mr4OR1nF7D8=
+  current_price: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    ZmZmZmZGbkA=
+  direction: LONG
+  expected_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    MXzIgUN0bkA=
+  season: March
+  symbol: FDX
+  trade_count: 110
+  win_rate: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    nhLkKUGe4j8=
+- avg_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    dsO4R5L14j8=
+  correlation: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    p6dD05z77T8=
+  current_price: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    exSuR+FqXkA=
+  direction: LONG
+  expected_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    zOnt9QOZXkA=
+  season: March
+  symbol: NVDA
+  trade_count: 110
+  win_rate: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    v2HtG9a+4T8=
+- avg_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    aqzwrmgw4T8=
+  correlation: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    eRdv+Toq7T8=
+  current_price: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    FK5H4XokYEA=
+  direction: LONG
+  expected_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    Xpdtka06YEA=
+  season: March
+  symbol: VLO
+  trade_count: 110
+  win_rate: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    VII8JchT4j8=
+- avg_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    Bl3dXW1+3T8=
+  correlation: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    VFlzITL57D8=
+  current_price: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    MzMzMzNjUkA=
+  direction: LONG
+  expected_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    jAcKiuR4UkA=
+  season: March
+  symbol: NEE
+  trade_count: 110
+  win_rate: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    VII8JchT4j8=
+- avg_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    XqKCHEab2j8=
+  correlation: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    0M6LXQdJ7T8=
+  current_price: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    AAAAAADYfUA=
+  direction: LONG
+  expected_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    WKJL9cL3fUA=
+  season: March
+  symbol: DE
+  trade_count: 110
+  win_rate: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    fsPaN6x94z8=
+- avg_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    xMbZztPj2j8=
+  correlation: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    dC9YYiVT6j8=
+  current_price: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    CtejcD06dUA=
+  direction: LONG
+  expected_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    QGdxfxJRdUA=
+  season: March
+  symbol: CAT
+  trade_count: 110
+  win_rate: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    6aKLLrro4j8=
+- avg_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    P4mwJ33i2z8=
+  correlation: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    L/geh4BN7j8=
+  current_price: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    exSuR+H6XkA=
+  direction: LONG
+  expected_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    fjWhS28dX0A=
+  season: March
+  symbol: EOG
+  trade_count: 110
+  win_rate: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    CfKUIE8J4j8=
+- avg_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    nXQguLWr1D8=
+  correlation: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    qPKiSy8d7T8=
+  current_price: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    AAAAAAB4fEA=
+  direction: LONG
+  expected_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    4LZA74mPfEA=
+  season: March
+  symbol: LIN
+  trade_count: 110
+  win_rate: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    nhLkKUGe4j8=
+- avg_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    giXmhXZ01T8=
+  correlation: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    zI6t1RxA7j8=
+  current_price: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    uB6F61GYVkA=
+  direction: LONG
+  expected_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    rwgPArarVkA=
+  season: March
+  symbol: SO
+  trade_count: 110
+  win_rate: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    v2HtG9a+4T8=
+- avg_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    Tr/5WrwS1T8=
+  correlation: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    oDbRBjGY7T8=
+  current_price: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    rkfhehTOWUA=
+  direction: LONG
+  expected_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    Cggf7dTjWUA=
+  season: March
+  symbol: CCI
+  trade_count: 110
+  win_rate: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    v2HtG9a+4T8=
+- avg_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    UTiFPfWB0z8=
+  correlation: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    c7Cx5Q1T7j8=
+  current_price: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    H4XrUbgifUA=
+  direction: LONG
+  expected_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    sp9JZ3Q5fUA=
+  season: March
+  symbol: LMT
+  trade_count: 110
+  win_rate: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    VII8JchT4j8=
+- avg_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    rzUkCUiK0j8=
+  correlation: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    2net1DkK7z8=
+  current_price: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    cT0K16NwVkA=
+  direction: LONG
+  expected_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    dycoGkiBVkA=
+  season: March
+  symbol: XLE
+  trade_count: 110
+  win_rate: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    MzMzMzMz4z8=
+- avg_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    zlW6H/rD0j8=
+  correlation: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    LVO/kRBN7z8=
+  current_price: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    cT0K16OgY0A=
+  direction: LONG
+  expected_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    N8U/cV+vY0A=
+  season: March
+  symbol: CVX
+  trade_count: 110
+  win_rate: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    6aKLLrro4j8=
+- avg_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    MBpxaoAo0T8=
+  correlation: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    P1ANtDcD7z8=
+  current_price: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    SOF6FK4HXkA=
+  direction: LONG
+  expected_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    cP5aWkocXkA=
+  season: March
+  symbol: DUK
+  trade_count: 110
+  win_rate: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    qAR5SpCn5D8=
+- avg_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    bO0bxYuU0T8=
+  correlation: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    pBVzZG2p7T8=
+  current_price: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    SOF6FK63U0A=
+  direction: LONG
+  expected_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    O9cdqYvFU0A=
+  season: March
+  symbol: XLU
+  trade_count: 110
+  win_rate: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    yFOCPCXI4z8=
+- avg_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    jQZtR5Cz0T8=
+  correlation: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    0P+U4yDF7T8=
+  current_price: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    H4XrUbiuX0A=
+  direction: LONG
+  expected_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    j1eoKyfFX0A=
+  season: March
+  symbol: PSX
+  trade_count: 110
+  win_rate: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    nhLkKUGe4j8=
+- avg_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    fPdnk3Jg0D8=
+  correlation: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    YOWO+Uv37D8=
+  current_price: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    ZmZmZmaKfkA=
+  direction: LONG
+  expected_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    QkCu/2eefkA=
+  season: March
+  symbol: UNH
+  trade_count: 110
+  win_rate: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    6aKLLrro4j8=
+- avg_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    xA5dC0cbzj8=
+  correlation: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    AF/XXesD7j8=
+  current_price: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    j8L1KFybc0A=
+  direction: LONG
+  expected_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    rDX4eCqnc0A=
+  season: March
+  symbol: AMGN
+  trade_count: 110
+  win_rate: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    E+QpQZ4S5D8=
+- avg_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    U7i6b8/mzz8=
+  correlation: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    ukbqD/6/7j8=
+  current_price: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    FK5H4XqkV0A=
+  direction: LONG
+  expected_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    SWFmjpCzV0A=
+  season: March
+  symbol: MRK
+  trade_count: 110
+  win_rate: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    v2HtG9a+4T8=
+- avg_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    3mBC6sTSyz8=
+  correlation: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    z3RvMrBg7j8=
+  current_price: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    cT0K16N4akA=
+  direction: LONG
+  expected_return: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    frPkz16HakA=
+  season: March
+  symbol: ABBV
+  trade_count: 110
+  win_rate: !!python/object/apply:numpy._core.multiarray.scalar
+  - *id001
+  - !!binary |
+    fsPaN6x94z8=

@@ -1,0 +1,10 @@
+Backtest Summary: 2023-01-01 to 2023-03-31
+Symbols: ['AAPL', 'MSFT', 'AMZN']
+
+Initial Capital: $100000.00
+Final Capital: $100000.00
+Return: 0.00%
+Win Rate: 0.00%
+Profit Factor: 0.00
+Max Drawdown: 0.00%
+Total Trades: 0

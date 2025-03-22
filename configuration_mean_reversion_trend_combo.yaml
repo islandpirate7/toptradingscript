@@ -1,0 +1,109 @@
+strategies:
+  MeanReversion:
+    # Core parameters - optimized from previous testing
+    bb_period: 20
+    bb_std_dev: 1.9
+    rsi_period: 14
+    rsi_overbought: 65
+    rsi_oversold: 35
+    
+    # Signal generation parameters
+    require_reversal: true
+    min_reversal_candles: 1
+    
+    # Risk management parameters
+    stop_loss_atr: 1.8
+    take_profit_atr: 3.0
+    
+    # Position sizing parameters
+    max_position_size: 0.1
+    
+    # Strategy weight in multi-strategy system
+    base_weight: 0.6  # Increased weight for mean reversion
+    
+    # Market regime detection parameters
+    use_regime_filter: true
+    min_regime_score: 0.3
+    regime_filter_strength: 1.0
+    
+    # ML signal quality parameters
+    use_ml_filter: true
+    min_quality_score: 0.4
+    ml_filter_strength: 1.0
+
+  TrendFollowing:
+    # Core parameters
+    fast_ema_period: 9
+    slow_ema_period: 21
+    adx_period: 14
+    adx_threshold: 25
+    macd_fast: 12
+    macd_slow: 26
+    macd_signal: 9
+    
+    # Risk management parameters
+    max_stop_distance_pct: 3.0  # Maximum stop loss distance as % of price
+    risk_reward_ratio: 2.0      # Default risk-reward ratio
+    
+    # Position sizing parameters
+    max_position_size: 0.1
+    
+    # Strategy weight in multi-strategy system
+    base_weight: 0.4  # Complementary weight to mean reversion
+    
+    # Market regime detection parameters
+    use_regime_filter: true
+    min_regime_score: 0.3
+    regime_filter_strength: 1.0
+
+# Global settings
+global:
+  initial_capital: 100000
+  max_open_positions: 5
+  max_positions_per_symbol: 2
+  max_correlated_positions: 3
+  correlation_threshold: 0.7
+  max_portfolio_risk_daily_pct: 2.0
+  rebalance_interval: 1d
+  data_lookback_days: 30
+  market_hours_start: '09:30'
+  market_hours_end: '16:00'
+  debug_mode: true
+
+# Symbol-specific configurations
+stocks:
+  AAPL:
+    weight_multiplier: 1.2
+    max_position_size: 500
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.5
+    
+  MSFT:
+    weight_multiplier: 1.1
+    max_position_size: 500
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.5
+    
+  GOOGL:
+    weight_multiplier: 1.0
+    max_position_size: 500
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.5
+    
+  AMZN:
+    weight_multiplier: 1.1
+    max_position_size: 500
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.5
+    
+  META:
+    weight_multiplier: 1.3
+    max_position_size: 500
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.5
+    
+  SPY:
+    weight_multiplier: 1.0
+    max_position_size: 500
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.4

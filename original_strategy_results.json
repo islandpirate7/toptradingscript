@@ -1,0 +1,14 @@
+{
+    "strategy_name": "Original Mean Reversion",
+    "quarters": {},
+    "overall": {
+        "initial_capital": 100000,
+        "final_capital": 100000,
+        "return_pct": 0,
+        "win_rate": 0,
+        "profit_factor": 0,
+        "max_drawdown": 0,
+        "total_trades": 0
+    },
+    "trades": []
+}

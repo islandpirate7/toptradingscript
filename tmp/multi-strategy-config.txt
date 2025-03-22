@@ -1,0 +1,241 @@
+# Multi-Strategy Trading System Configuration
+# ------------------------------------------
+
+# Overall System Configuration
+initial_capital: 100000.0         # Starting capital
+max_open_positions: 10           # Maximum positions across all symbols
+max_positions_per_symbol: 2      # Maximum positions per symbol
+max_correlated_positions: 5      # Maximum correlated positions
+max_sector_exposure_pct: 30.0    # Maximum exposure to any sector (%)
+max_portfolio_risk_daily_pct: 2.0  # Maximum portfolio risk per day (%)
+rebalance_interval: 1d           # Rebalance interval (d=days, h=hours)
+data_lookback_days: 30           # Days of historical data to maintain
+market_hours_start: '09:30'      # Market open time (EST)
+market_hours_end: '16:00'        # Market close time (EST)
+
+# Data Source Configuration
+data_source: YAHOO             # Data source (YAHOO, ALPACA, IB)
+api_key: null                  # API key (if required)
+api_secret: null               # API secret (if required)
+
+# Strategy Weights (initial weights, will adapt based on performance)
+strategy_weights:
+  MeanReversion: 0.25          # Mean reversion strategy weight
+  TrendFollowing: 0.25         # Trend following strategy weight
+  VolatilityBreakout: 0.25     # Volatility breakout strategy weight
+  GapTrading: 0.25             # Gap trading strategy weight
+
+# Trading Configuration
+enable_auto_trading: false     # Enable automated trading
+backtesting_mode: true         # Enable backtesting mode
+
+# Stocks Configuration
+stocks:
+  - symbol: AAPL
+    max_position_size: 500
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.5
+    min_volume: 10000
+    beta: 1.2
+    sector: Technology
+    industry: Consumer Electronics
+    mean_reversion_params:
+      bb_std_dev: 2.0
+      rsi_overbought: 70
+      rsi_oversold: 30
+    trend_following_params:
+      adx_threshold: 25
+    volatility_breakout_params:
+      min_squeeze_periods: 8
+    gap_trading_params:
+      min_gap_pct: 1.5
+  
+  - symbol: MSFT
+    max_position_size: 500
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.5
+    min_volume: 10000
+    beta: 1.1
+    sector: Technology
+    industry: Software
+    mean_reversion_params:
+      bb_std_dev: 2.0
+      rsi_overbought: 70
+      rsi_oversold: 30
+    trend_following_params:
+      adx_threshold: 25
+    volatility_breakout_params:
+      min_squeeze_periods: 8
+    gap_trading_params:
+      min_gap_pct: 1.5
+  
+  - symbol: GOOGL
+    max_position_size: 300
+    min_position_size: 5
+    max_risk_per_trade_pct: 0.5
+    min_volume: 10000
+    beta: 1.25
+    sector: Technology
+    industry: Internet Content
+    mean_reversion_params:
+      bb_std_dev: 2.0
+      rsi_overbought: 70
+      rsi_oversold: 30
+    trend_following_params:
+      adx_threshold: 25
+    volatility_breakout_params:
+      min_squeeze_periods: 8
+    gap_trading_params:
+      min_gap_pct: 1.5
+  
+  - symbol: AMZN
+    max_position_size: 200
+    min_position_size: 5
+    max_risk_per_trade_pct: 0.8
+    min_volume: 15000
+    beta: 2.0
+    sector: Consumer Cyclical
+    industry: Auto Manufacturers
+    mean_reversion_params:
+      bb_std_dev: 3.0
+      rsi_overbought: 80
+      rsi_oversold: 20
+    trend_following_params:
+      adx_threshold: 22
+    volatility_breakout_params:
+      min_squeeze_periods: 5
+    gap_trading_params:
+      min_gap_pct: 2.5
+  
+  - symbol: JPM
+    max_position_size: 400
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.4
+    min_volume: 8000
+    beta: 1.1
+    sector: Financial Services
+    industry: Banks
+    mean_reversion_params:
+      bb_std_dev: 1.8
+      rsi_overbought: 70
+      rsi_oversold: 30
+    trend_following_params:
+      adx_threshold: 25
+    volatility_breakout_params:
+      min_squeeze_periods: 10
+    gap_trading_params:
+      min_gap_pct: 1.5
+  
+  - symbol: DIS
+    max_position_size: 400
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.5
+    min_volume: 8000
+    beta: 1.0
+    sector: Communication Services
+    industry: Entertainment
+    mean_reversion_params:
+      bb_std_dev: 2.0
+      rsi_overbought: 70
+      rsi_oversold: 30
+    trend_following_params:
+      adx_threshold: 25
+    volatility_breakout_params:
+      min_squeeze_periods: 8
+    gap_trading_params:
+      min_gap_pct: 1.5
+      
+  - symbol: SPY
+    max_position_size: 500
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.3
+    min_volume: 20000
+    beta: 1.0
+    sector: ETF
+    industry: Index
+    mean_reversion_params:
+      bb_std_dev: 1.8
+      rsi_overbought: 70
+      rsi_oversold: 30
+    trend_following_params:
+      adx_threshold: 20
+    volatility_breakout_params:
+      min_squeeze_periods: 10
+    gap_trading_params:
+      min_gap_pct: 1.0per_trade_pct: 0.5
+    min_volume: 10000
+    beta: 1.3
+    sector: Consumer Cyclical
+    industry: Internet Retail
+    mean_reversion_params:
+      bb_std_dev: 2.0
+      rsi_overbought: 70
+      rsi_oversold: 30
+    trend_following_params:
+      adx_threshold: 25
+    volatility_breakout_params:
+      min_squeeze_periods: 8
+    gap_trading_params:
+      min_gap_pct: 1.5
+  
+  - symbol: META
+    max_position_size: 300
+    min_position_size: 5
+    max_risk_per_trade_pct: 0.5
+    min_volume: 10000
+    beta: 1.4
+    sector: Technology
+    industry: Internet Content
+    mean_reversion_params:
+      bb_std_dev: 2.0
+      rsi_overbought: 70
+      rsi_oversold: 30
+    trend_following_params:
+      adx_threshold: 25
+    volatility_breakout_params:
+      min_squeeze_periods: 8
+    gap_trading_params:
+      min_gap_pct: 1.5
+  
+  - symbol: NVDA
+    max_position_size: 300
+    min_position_size: 5
+    max_risk_per_trade_pct: 0.7
+    min_volume: 10000
+    beta: 1.7
+    sector: Technology
+    industry: Semiconductors
+    mean_reversion_params:
+      bb_std_dev: 2.5
+      rsi_overbought: 75
+      rsi_oversold: 25
+    trend_following_params:
+      adx_threshold: 20
+    volatility_breakout_params:
+      min_squeeze_periods: 6
+    gap_trading_params:
+      min_gap_pct: 2.0
+  
+  - symbol: AMD
+    max_position_size: 400
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.7
+    min_volume: 10000
+    beta: 1.6
+    sector: Technology
+    industry: Semiconductors
+    mean_reversion_params:
+      bb_std_dev: 2.5
+      rsi_overbought: 75
+      rsi_oversold: 25
+    trend_following_params:
+      adx_threshold: 20
+    volatility_breakout_params:
+      min_squeeze_periods: 6
+    gap_trading_params:
+      min_gap_pct: 2.0
+  
+  - symbol: TSLA
+    max_position_size: 200
+    min_position_size: 5
+    max_risk_

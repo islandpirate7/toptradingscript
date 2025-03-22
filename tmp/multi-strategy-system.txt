@@ -1,0 +1,2839 @@
+            self.logger.error(f"Error fetching market data: {str(e)}")
+    
+    def _fetch_stock_data(self, symbol: str):
+        """Fetch historical and real-time data for a stock"""
+        try:
+            # In a real implementation, would fetch data from API
+            # Here, we'll create synthetic data for demonstration
+            
+            # If we have existing data, just update with new candle
+            if len(self.candle_data[symbol]) > 0:
+                last_candle = self.candle_data[symbol][-1]
+                new_time = last_candle.timestamp + dt.timedelta(minutes=1)
+                
+                # Generate random walk price movement
+                # Correlate somewhat with market movement
+                if len(self.market_data) > 1:
+                    market_change = (self.market_data[-1].close / self.market_data[-2].close - 1) * 100
+                    stock_beta = next((s.beta for s in self.config.stocks if s.symbol == symbol), 1.0)
+                    market_component = market_change * stock_beta
+                else:
+                    market_component = 0
+                
+                # Add random component
+                random_component = np.random.normal(0, 0.1)  # 0.1% std dev
+                price_change_pct = market_component + random_component
+                
+                new_close = last_candle.close * (1 + price_change_pct / 100)
+                
+                # Create new candle
+                stock_candle = CandleData(
+                    timestamp=new_time,
+                    open=last_candle.close,
+                    high=max(last_candle.close, new_close) * (1 + abs(np.random.normal(0, 0.03) / 100)),
+                    low=min(last_candle.close, new_close) * (1 - abs(np.random.normal(0, 0.03) / 100)),
+                    close=new_close,
+                    volume=int(np.random.normal(500000, 100000))
+                )
+                
+                # Add to data
+                self.candle_data[symbol].append(stock_candle)
+                
+                # Keep only recent data
+                if len(self.candle_data[symbol]) > 10000:
+                    self.candle_data[symbol] = self.candle_data[symbol][-10000:]
+            else:
+                # Initialize with starting data
+                base_price = 100.0 + np.random.normal(0, 20)  # Random starting price around $100
+                self.candle_data[symbol] = [
+                    CandleData(
+                        timestamp=dt.datetime.now() - dt.timedelta(minutes=1),
+                        open=base_price,
+                        high=base_price * 1.002,
+                        low=base_price * 0.998,
+                        close=base_price,
+                        volume=500000
+                    )
+                ]
+                
+        except Exception as e:
+            self.logger.error(f"Error fetching data for {symbol}: {str(e)}")
+    
+    def _update_strategy_weights(self):
+        """Update strategy weights based on market regime and performance"""
+        if not self.market_state:
+            return
+        
+        # Calculate base weights from market regime
+        base_weights = {}
+        total_base_weight = 0
+        
+        for name, strategy in self.strategies.items():
+            # Get regime-based weight
+            weight = strategy.calculate_regime_weight(self.market_state)
+            
+            # Adjust by performance if we have sufficient history
+            if strategy.performance.total_trades >= 10:
+                performance_factor = max(0.5, min(1.5, strategy.performance.profit_factor))
+                weight *= performance_factor
+            
+            base_weights[name] = weight
+            total_base_weight += weight
+        
+        # Normalize weights
+        if total_base_weight > 0:
+            normalized_weights = {name: weight / total_base_weight 
+                                 for name, weight in base_weights.items()}
+            
+            # Update weights with smoothing
+            smoothing_factor = 0.2  # 20% update, 80% previous weight
+            for name in self.strategies.keys():
+                self.strategy_weights[name] = (smoothing_factor * normalized_weights[name] + 
+                                              (1 - smoothing_factor) * self.strategy_weights.get(name, 0.25))
+            
+            # Log updated weights
+            weights_str = ", ".join([f"{name}: {weight:.2f}" for name, weight in self.strategy_weights.items()])
+            self.logger.info(f"Updated strategy weights: {weights_str}")
+    
+    def _generate_signals(self):
+        """Generate trading signals from all strategies"""
+        if not self.market_state:
+            return
+        
+        # Clear expired signals
+        now = dt.datetime.now()
+        self.signals = [signal for signal in self.signals if signal.expiration > now]
+        
+        # Generate new signals for each stock
+        for stock_config in self.config.stocks:
+            symbol = stock_config.symbol
+            
+            # Skip if not enough data
+            if len(self.candle_data[symbol]) < 30:
+                continue
+            
+            # Run each strategy
+            for name, strategy in self.strategies.items():
+                # Generate signals
+                new_signals = strategy.generate_signals(
+                    symbol=symbol,
+                    candles=self.candle_data[symbol],
+                    stock_config=stock_config,
+                    market_state=self.market_state
+                )
+                
+                # Add strategy weight to signal metadata
+                for signal in new_signals:
+                    signal.metadata["strategy_weight"] = self.strategy_weights.get(name, 0.25)
+                
+                # Add to signals list
+                self.signals.extend(new_signals)
+                
+                # Log any new signals
+                for signal in new_signals:
+                    self.logger.info(f"New {signal.direction.value} signal from {signal.strategy} for {signal.symbol} at {signal.entry_price}")
+    
+    def _manage_positions(self):
+        """Manage all active positions"""
+        if not self.market_state:
+            return
+        
+        # Iterate through all active positions
+        for symbol, positions in self.positions.items():
+            # Skip if no positions or not enough data
+            if not positions or len(self.candle_data[symbol]) < 5:
+                continue
+            
+            for position in positions:
+                if not position.is_active:
+                    continue
+                
+                # Update current price and unrealized P&L
+                current_price = self.candle_data[symbol][-1].close
+                position.current_price = current_price
+                
+                # Calculate unrealized P&L
+                if position.direction == TradeDirection.LONG:
+                    position.unrealized_pnl = (current_price - position.entry_price) * position.position_size
+                else:  # SHORT
+                    position.unrealized_pnl = (position.entry_price - current_price) * position.position_size
+                
+                # Get strategy that generated this position
+                strategy = self.strategies.get(position.strategy)
+                if not strategy:
+                    continue
+                
+                # Check if position should be exited
+                should_exit, reason = strategy.should_exit_position(
+                    position=position,
+                    candles=self.candle_data[symbol],
+                    market_state=self.market_state
+                )
+                
+                if should_exit:
+                    # Exit position
+                    self._exit_position(position, current_price, reason)
+    
+    def _check_entries(self):
+        """Check for new entry opportunities"""
+        if not self.market_state:
+            return
+        
+        # Skip if max positions reached
+        active_positions = sum(len([p for p in positions if p.is_active]) 
+                              for positions in self.positions.values())
+        if active_positions >= self.config.max_open_positions:
+            return
+        
+        # Sort signals by strength and strategy weight
+        scored_signals = []
+        for signal in self.signals:
+            # Skip expired signals
+            if signal.expiration < dt.datetime.now():
+                continue
+            
+            # Skip signals where we already have max positions for that symbol
+            symbol_positions = len([p for p in self.positions[signal.symbol] if p.is_active])
+            if symbol_positions >= self.config.max_positions_per_symbol:
+                continue
+            
+            # Score based on signal strength and strategy weight
+            strength_value = signal.strength.value
+            strategy_weight = signal.metadata.get("strategy_weight", 0.25)
+            score = strength_value * strategy_weight
+            
+            scored_signals.append((signal, score))
+        
+        # Sort signals by score (descending)
+        scored_signals.sort(key=lambda x: x[1], reverse=True)
+        
+        # Try to enter positions for top signals
+        for signal, score in scored_signals:
+            # Check if we've reached max positions
+            active_positions = sum(len([p for p in positions if p.is_active]) 
+                                  for positions in self.positions.values())
+            if active_positions >= self.config.max_open_positions:
+                break
+            
+            # Check if we can enter this position
+            if self._can_enter_position(signal):
+                self._enter_position(signal)
+    
+    def _can_enter_position(self, signal: Signal) -> bool:
+        """Check if we can enter a position based on risk management rules"""
+        # Get stock configuration
+        stock_config = next((s for s in self.config.stocks if s.symbol == signal.symbol), None)
+        if not stock_config:
+            return False
+        
+        # Check symbol limits
+        symbol_positions = len([p for p in self.positions[signal.symbol] if p.is_active])
+        if symbol_positions >= self.config.max_positions_per_symbol:
+            return False
+        
+        # Calculate required position size
+        risk_amount = self.current_equity * stock_config.max_risk_per_trade_pct / 100
+        price_risk = abs(signal.entry_price - signal.stop_loss)
+        
+        if price_risk <= 0:
+            return False  # Invalid stop loss
+        
+        # Calculate position size based on risk
+        position_size = int(risk_amount / price_risk)
+        
+        # Constrain to min/max position size
+        position_size = max(stock_config.min_position_size, 
+                           min(stock_config.max_position_size, position_size))
+        
+        # Check if we have enough capital
+        required_capital = signal.entry_price * position_size
+        available_capital = self.current_equity * 0.9  # Use only 90% of equity
+        
+        if required_capital > available_capital:
+            return False
+        
+        # TODO: Add checks for sector exposure, correlation, etc.
+        
+        return True
+    
+    def _enter_position(self, signal: Signal):
+        """Enter a new position based on a signal"""
+        # Get stock configuration
+        stock_config = next((s for s in self.config.stocks if s.symbol == signal.symbol), None)
+        if not stock_config:
+            return
+        
+        # Calculate position size
+        risk_amount = self.current_equity * stock_config.max_risk_per_trade_pct / 100
+        price_risk = abs(signal.entry_price - signal.stop_loss)
+        
+        if price_risk <= 0:
+            return  # Invalid stop loss
+        
+        # Calculate position size based on risk
+        position_size = int(risk_amount / price_risk)
+        
+        # Constrain to min/max position size
+        position_size = max(stock_config.min_position_size, 
+                           min(stock_config.max_position_size, position_size))
+        
+        # Create position
+        position = PositionState(
+            symbol=signal.symbol,
+            direction=signal.direction,
+            entry_price=signal.entry_price,
+            stop_loss=signal.stop_loss,
+            take_profit=signal.take_profit,
+            position_size=position_size,
+            entry_time=dt.datetime.now(),
+            is_active=True,
+            strategy=signal.strategy,
+            current_price=signal.entry_price,
+            metadata=signal.metadata
+        )
+        
+        # Add to positions
+        self.positions[signal.symbol].append(position)
+        
+        # Generate alert
+        alert = {
+            "type": "ENTRY",
+            "symbol": signal.symbol,
+            "direction": signal.direction.value,
+            "entry_price": signal.entry_price,
+            "stop_loss": signal.stop_loss,
+            "take_profit": signal.take_profit,
+            "position_size": position_size,
+            "strategy": signal.strategy,
+            "timestamp": dt.datetime.now()
+        }
+        
+        # Add to alert queue
+        self.alert_queue.put(alert)
+        
+        self.logger.info(f"Entered {signal.direction.value} position for {signal.symbol} at {signal.entry_price}, size={position_size}")
+    
+    def _exit_position(self, position: PositionState, exit_price: float, reason: str):
+        """Exit an active position"""
+        if not position.is_active:
+            return
+        
+        # Mark position as inactive
+        position.is_active = False
+        position.exit_price = exit_price
+        position.exit_time = dt.datetime.now()
+        
+        # Calculate realized P&L
+        if position.direction == TradeDirection.LONG:
+            position.realized_pnl = (exit_price - position.entry_price) * position.position_size
+        else:  # SHORT
+            position.realized_pnl = (position.entry_price - exit_price) * position.position_size
+        
+        # Generate alert
+        alert = {
+            "type": "EXIT",
+            "symbol": position.symbol,
+            "direction": position.direction.value,
+            "entry_price": position.entry_price,
+            "exit_price": exit_price,
+            "position_size": position.position_size,
+            "realized_pnl": position.realized_pnl,
+            "reason": reason,
+            "strategy": position.strategy,
+            "timestamp": dt.datetime.now()
+        }
+        
+        # Add to alert queue
+        self.alert_queue.put(alert)
+        
+        # Update strategy performance
+        strategy = self.strategies.get(position.strategy)
+        if strategy:
+            strategy.update_performance({
+                "symbol": position.symbol,
+                "direction": position.direction.value,
+                "entry_price": position.entry_price,
+                "exit_price": exit_price,
+                "position_size": position.position_size,
+                "realized_pnl": position.realized_pnl,
+                "market_regime": self.market_state.regime.value if self.market_state else "UNKNOWN"
+            })
+        
+        # Add to historical positions
+        self.historical_positions.append(position)
+        
+        self.logger.info(f"Exited {position.direction.value} position for {position.symbol} at {exit_price}, PnL=${position.realized_pnl:.2f}, Reason: {reason}")
+    
+    def _update_equity(self):
+        """Update equity curve with current portfolio value"""
+        # Calculate total value of portfolio
+        portfolio_value = self.current_equity
+        
+        # Add unrealized P&L from open positions
+        for symbol, positions in self.positions.items():
+            for position in positions:
+                if position.is_active:
+                    portfolio_value += position.unrealized_pnl
+        
+        # Update current equity and peak equity
+        self.current_equity = portfolio_value
+        self.peak_equity = max(self.peak_equity, portfolio_value)
+        
+        # Add to equity curve
+        self.equity_curve.append((dt.datetime.now(), portfolio_value))
+        
+        # Keep only recent equity curve points
+        if len(self.equity_curve) > 10000:
+            self.equity_curve = self.equity_curve[-10000:]
+    
+    def _rebalance_portfolio(self):
+        """Rebalance portfolio based on strategy performance"""
+        # This would implement more sophisticated portfolio management
+        # such as adjusting position sizes based on strategy performance
+        self.logger.info("Rebalancing portfolio")
+        
+        # For now, just log current state
+        active_positions = sum(len([p for p in positions if p.is_active]) 
+                              for positions in self.positions.values())
+        self.logger.info(f"Active positions: {active_positions}")
+        self.logger.info(f"Current equity: ${self.current_equity:.2f}")
+        
+        # Log strategy performance
+        for name, strategy in self.strategies.items():
+            if strategy.performance.total_trades > 0:
+                self.logger.info(f"{name} performance: Win rate={strategy.performance.win_rate:.2%}, "
+                                f"Profit factor={strategy.performance.profit_factor:.2f}, "
+                                f"Trades={strategy.performance.total_trades}")
+    
+    def _execute_entry(self, alert: Dict):
+        """Execute an entry order through broker API"""
+        # In a real implementation, would connect to broker API to place order
+        # Here we'll just log it
+        self.logger.info(f"EXECUTE ENTRY: {alert['symbol']} {alert['direction']} x {alert['position_size']} @ {alert['entry_price']}")
+    
+    def _execute_exit(self, alert: Dict):
+        """Execute an exit order through broker API"""
+        # In a real implementation, would connect to broker API to place order
+        # Here we'll just log it
+        self.logger.info(f"EXECUTE EXIT: {alert['symbol']} {alert['direction']} x {alert['position_size']} @ {alert['exit_price']}")
+    
+    def run_backtest(self, start_date: dt.date, end_date: dt.date) -> BacktestResult:
+        """Run a backtest of the strategy over a specified date range"""
+        self.logger.info(f"Starting backtest from {start_date} to {end_date}")
+        
+        # Initialize backtest state
+        initial_capital = self.config.initial_capital
+        current_capital = initial_capital
+        peak_capital = initial_capital
+        equity_curve = [(dt.datetime.combine(start_date, dt.time(9, 30)), initial_capital)]
+        drawdown_curve = [(dt.datetime.combine(start_date, dt.time(9, 30)), 0.0)]
+        trade_history = []
+        monthly_returns = {}
+        
+        # Reset positions and data
+        self.positions = {symbol: [] for symbol in self.candle_data.keys()}
+        self.historical_positions = []
+        
+        # Generate synthetic data for backtesting
+        self._generate_backtest_data(start_date, end_date)
+        
+        # Process each day in the backtest period
+        current_date = start_date
+        while current_date <= end_date:
+            # Skip weekends
+            if current_date.weekday() >= 5:  # 5 = Saturday, 6 = Sunday
+                current_date += dt.timedelta(days=1)
+                continue
+            
+            self.logger.info(f"Backtesting {current_date}")
+            
+            # Get data for this day
+            market_data = [c for c in self.market_data if c.timestamp.date() == current_date]
+            vix_data = [c for c in self.vix_data if c.timestamp.date() == current_date]
+            
+            if not market_data or not vix_data:
+                current_date += dt.timedelta(days=1)
+                continue
+            
+            # For each time step in the day
+            for i in range(len(market_data)):
+                # Update market state
+                self.market_state = self.market_analyzer.analyze_market(
+                    self.market_data[:self._find_index_before(self.market_data, market_data[i].timestamp)],
+                    self.vix_data[:self._find_index_before(self.vix_data, vix_data[i].timestamp)]
+                )
+                
+                # Update strategy weights
+                self._update_strategy_weights()
+                
+                # Clear old signals
+                self.signals = []
+                
+                # Generate signals for each stock
+                for stock_config in self.config.stocks:
+                    symbol = stock_config.symbol
+                    
+                    # Get data up to current time
+                    stock_data = self.candle_data[symbol]
+                    current_idx = self._find_index_before(stock_data, market_data[i].timestamp)
+                    
+                    if current_idx <= 30:  # Need at least 30 candles of history
+                        continue
+                    
+                    # Run each strategy
+                    for name, strategy in self.strategies.items():
+                        # Generate signals
+                        new_signals = strategy.generate_signals(
+                            symbol=symbol,
+                            candles=stock_data[:current_idx],
+                            stock_config=stock_config,
+                            market_state=self.market_state
+                        )
+                        
+                        # Add strategy weight to signal metadata
+                        for signal in new_signals:
+                            signal.metadata["strategy_weight"] = self.strategy_weights.get(name, 0.25)
+                        
+                        # Add to signals list
+                        self.signals.extend(new_signals)
+                
+                # Manage existing positions
+                for symbol, positions in self.positions.items():
+                    for position in positions:
+                        if not position.is_active:
+                            continue
+                        
+                        # Get current data
+                        stock_data = self.candle_data[symbol]
+                        current_idx = self._find_index_before(stock_data, market_data[i].timestamp)
+                        
+                        if current_idx < 0:
+                            continue
+                        
+                        # Update current price and unrealized P&L
+                        current_price = stock_data[current_idx].close
+                        position.current_price = current_price
+                        
+                        # Calculate unrealized P&L
+                        if position.direction == TradeDirection.LONG:
+                            position.unrealized_pnl = (current_price - position.entry_price) * position.position_size
+                        else:  # SHORT
+                            position.unrealized_pnl = (position.entry_price - current_price) * position.position_size
+                        
+                        # Get strategy that generated this position
+                        strategy = self.strategies.get(position.strategy)
+                        if not strategy:
+                            continue
+                        
+                        # Check if position should be exited
+                        should_exit, reason = strategy.should_exit_position(
+                            position=position,
+                            candles=stock_data[:current_idx],
+                            market_state=self.market_state
+                        )
+                        
+                        if should_exit:
+                            # Exit position
+                            self._exit_position(position, current_price, reason)
+                            
+                            # Update capital
+                            current_capital += position.realized_pnl
+                            peak_capital = max(peak_capital, current_capital)
+                            
+                            # Add to trade history
+                            trade_history.append(position.to_dict())
+                
+                # Check for new entries
+                self._check_entries()
+                
+                # Update equity curve
+                portfolio_value = current_capital
+                for symbol, positions in self.positions.items():
+                    for position in positions:
+                        if position.is_active:
+                            portfolio_value += position.unrealized_pnl
+                
+                equity_curve.append((market_data[i].timestamp, portfolio_value))
+                drawdown = (peak_capital - portfolio_value) / peak_capital * 100 if peak_capital > 0 else 0
+                drawdown_curve.append((market_data[i].timestamp, drawdown))
+                
+                # Update monthly returns
+                month_key = market_data[i].timestamp.strftime("%Y-%m")
+                if month_key not in monthly_returns:
+                    monthly_returns[month_key] = 0
+                
+                if len(equity_curve) >= 2:
+                    daily_return = (portfolio_value / equity_curve[-2][1] - 1) * 100
+                    monthly_returns[month_key] += daily_return
+            
+            # Close any open positions at end of day
+            for symbol, positions in self.positions.items():
+                for position in positions:
+                    if position.is_active:
+                        # Get last price of the day
+                        stock_data = [c for c in self.candle_data[symbol] if c.timestamp.date() == current_date]
+                        if not stock_data:
+                            continue
+                            
+                        last_price = stock_data[-1].close
+                        
+                        # Exit position
+                        self._exit_position(position, last_price, "End of day")
+                        
+                        # Update capital
+                        current_capital += position.realized_pnl
+                        peak_capital = max(peak_capital, current_capital)
+                        
+                        # Add to trade history
+                        trade_history.append(position.to_dict())
+            
+            # Move to next day
+            current_date += dt.timedelta(days=1)
+        
+        # Calculate overall performance metrics
+        total_trades = len(trade_history)
+        winning_trades = len([t for t in trade_history if t["realized_pnl"] > 0])
+        losing_trades = total_trades - winning_trades
+        
+        win_rate = winning_trades / total_trades if total_trades > 0 else 0
+        
+        total_profits = sum([t["realized_pnl"] for t in trade_history if t["realized_pnl"] > 0])
+        total_losses = sum([abs(t["realized_pnl"]) for t in trade_history if t["realized_pnl"] < 0])
+        
+        profit_factor = total_profits / total_losses if total_losses > 0 else float('inf')
+        
+        # Calculate max drawdown
+        max_drawdown = max([dd[1] for dd in drawdown_curve]) if drawdown_curve else 0
+        
+        # Calculate annualized return
+        days = (end_date - start_date).days
+        if days > 0:
+            total_return = (current_capital / initial_capital - 1) * 100
+            annualized_return = ((1 + total_return / 100) ** (365 / days) - 1) * 100
+        else:
+            total_return = 0
+            annualized_return = 0
+        
+        # Calculate Sharpe ratio (assuming 0% risk-free rate)
+        if len(equity_curve) > 1:
+            daily_returns = [(equity_curve[i][1] / equity_curve[i-1][1] - 1) * 100 
+                            for i in range(1, len(equity_curve))
+                            if equity_curve[i][0].date() != equity_curve[i-1][0].date()]
+            
+            avg_daily_return = sum(daily_returns) / len(daily_returns) if daily_returns else 0
+            std_daily_return = np.std(daily_returns) if len(daily_returns) > 1 else 1
+            
+            sharpe_ratio = (avg_daily_return / std_daily_return) * np.sqrt(252) if std_daily_return > 0 else 0
+        else:
+            sharpe_ratio = 0
+        
+        # Gather strategy performance
+        strategy_performance = {name: strategy.performance.to_dict() 
+                              for name, strategy in self.strategies.items()}
+        
+        # Create backtest result
+        result = BacktestResult(
+            start_date=start_date,
+            end_date=end_date,
+            initial_capital=initial_capital,
+            final_capital=current_capital,
+            total_return_pct=total_return,
+            annualized_return_pct=annualized_return,
+            sharpe_ratio=sharpe_ratio,
+            max_drawdown_pct=max_drawdown,
+            win_rate=win_rate,
+            profit_factor=profit_factor,
+            total_trades=total_trades,
+            strategy_performance=strategy_performance,
+            monthly_returns=monthly_returns,
+            equity_curve=equity_curve,
+            drawdown_curve=drawdown_curve,
+            trade_history=trade_history
+        )
+        
+        return result
+    
+    def _generate_backtest_data(self, start_date: dt.date, end_date: dt.date):
+        """Generate synthetic data for backtesting"""
+        self.logger.info("Generating synthetic data for backtesting")
+        
+        # Clear existing data
+        self.market_data = []
+        self.vix_data = []
+        for symbol in self.candle_data.keys():
+            self.candle_data[symbol] = []
+        
+        # Generate data for each day
+        current_date = start_date
+        
+        # Initialize starting prices
+        market_price = 4500.0
+        vix_price = 18.0
+        stock_prices = {symbol: 100.0 + np.random.normal(0, 20) for symbol in self.candle_data.keys()}
+        
+        while current_date <= end_date:
+            # Skip weekends
+            if current_date.weekday() >= 5:  # 5 = Saturday, 6 = Sunday
+                current_date += dt.timedelta(days=1)
+                continue
+            
+            # Generate market regime for this day
+            # Randomly choose a regime with some persistence
+            if not self.market_data:
+                # Start with random regime
+                regime_choice = np.random.choice([
+                    MarketRegime.TRENDING_BULLISH,
+                    MarketRegime.TRENDING_BEARISH,
+                    MarketRegime.RANGE_BOUND,
+                    MarketRegime.HIGH_VOLATILITY,
+                    MarketRegime.LOW_VOLATILITY
+                ])
+            else:
+                # 80% chance to keep the same regime
+                if np.random.random() < 0.8:
+                    regime_choice = self.market_state.regime
+                else:
+                    regime_choice = np.random.choice([
+                        MarketRegime.TRENDING_BULLISH,
+                        MarketRegime.TRENDING_BEARISH,
+                        MarketRegime.RANGE_BOUND,
+                        MarketRegime.HIGH_VOLATILITY,
+                        MarketRegime.LOW_VOLATILITY
+                    ])
+            
+            # Set drift and volatility based on regime
+            if regime_choice == MarketRegime.TRENDING_BULLISH:
+                market_drift = 0.0003  # Positive drift
+                market_vol = 0.0005
+                vix_target = 15.0
+            elif regime_choice == MarketRegime.TRENDING_BEARISH:
+                market_drift = -0.0003  # Negative drift
+                market_vol = 0.0006
+                vix_target = 20.0
+            elif regime_choice == MarketRegime.RANGE_BOUND:
+                market_drift = 0.0
+                market_vol = 0.0004
+                vix_target = 16.0
+            elif regime_choice == MarketRegime.HIGH_VOLATILITY:
+                market_drift = 0.0
+                market_vol = 0.0012
+                vix_target = 30.0
+            else:  # LOW_VOLATILITY
+                market_drift = 0.0001
+                market_vol = 0.0003
+                vix_target = 12.0
+            
+            # Generate data for market hours (9:30 AM to 4:00 PM)
+            market_open = dt.datetime.combine(current_date, dt.time(9, 30))
+            market_close = dt.datetime.combine(current_date, dt.time(16, 0))
+            
+            current_time = market_open
+            while current_time < market_close:
+                # Generate market data (S&P 500)
+                market_return = np.random.normal(market_drift, market_vol)
+                market_price *= (1 + market_return)
+                
+                market_open_price = market_price * (1 - 0.0001)  # Slightly lower open
+                market_high_price = market_price * (1 + 0.0001 + np.random.random() * 0.001)
+                market_low_price = market_price * (1 - 0.0001 - np.random.random() * 0.001)
+                
+                market_candle = CandleData(
+                    timestamp=current_time,
+                    open=market_open_price,
+                    high=market_high_price,
+                    low=market_low_price,
+                    close=market_price,
+                    volume=int(np.random.normal(10000000, 2000000))
+                )
+                
+                self.market_data.append(market_candle)
+                
+                # Generate VIX data
+                vix_mean_reversion = 0.05  # 5% reversion to target per period
+                vix_vol = 0.01
+                
+                vix_change = (vix_target - vix_price) * vix_mean_reversion + np.random.normal(0, vix_vol)
+                vix_price += vix_change
+                vix_price = max(9.0, vix_price)  # VIX floor
+                
+                vix_candle = CandleData(
+                    timestamp=current_time,
+                    open=vix_price * (1 - 0.001),
+                    high=vix_price * (1 + 0.002),
+                    low=vix_price * (1 - 0.002),
+                    close=vix_price,
+                    volume=0
+                )
+                
+                self.vix_data.append(vix_candle)
+                
+                # Generate stock data
+                for symbol in self.candle_data.keys():
+                    # Get stock beta
+                    stock_beta = next((s.beta for s in self.config.stocks if s.symbol == symbol), 1.0)
+                    
+                    # Generate correlated returns
+                    stock_specific_return = np.random.normal(0, 0.001)
+                    stock_market_return = market_return * stock_beta
+                    stock_return = stock_market_return + stock_specific_return
+                    
+                    # Update price
+                    stock_prices[symbol] *= (1 + stock_return)
+                    
+                    # Create candle
+                    stock_price = stock_prices[symbol]
+                    stock_open_price = stock_price * (1 - 0.0002)
+                    stock_high_price = stock_price * (1 + 0.0002 + np.random.random() * 0.002)
+                    stock_low_price = stock_price * (1 - 0.0002 - np.random.random() * 0.002)
+                    
+                    stock_candle = CandleData(
+                        timestamp=current_time,
+                        open=stock_open_price,
+                        high=stock_high_price,
+                        low=stock_low_price,
+                        close=stock_price,
+                        volume=int(np.random.normal(500000, 100000))
+                    )
+                    
+                    self.candle_data[symbol].append(stock_candle)
+                
+                # Move to next minute
+                current_time += dt.timedelta(minutes=1)
+            
+            # Update market state for this day
+            self.market_state = MarketState(
+                timestamp=market_close,
+                regime=regime_choice,
+                vix=vix_price,
+                market_adx=25 if regime_choice in [MarketRegime.TRENDING_BULLISH, MarketRegime.TRENDING_BEARISH] else 15,
+                trending_strength=0.8 if regime_choice in [MarketRegime.TRENDING_BULLISH, MarketRegime.TRENDING_BEARISH] else 0.2,
+                range_bound_strength=0.8 if regime_choice == MarketRegime.RANGE_BOUND else 0.2,
+                volatility_strength=0.8 if regime_choice == MarketRegime.HIGH_VOLATILITY else 0.2,
+                market_trend=TradeDirection.LONG if regime_choice == MarketRegime.TRENDING_BULLISH else 
+                             TradeDirection.SHORT if regime_choice == MarketRegime.TRENDING_BEARISH else
+                             TradeDirection.NEUTRAL,
+                sector_performance={}
+            )
+            
+            # Move to next day
+            current_date += dt.timedelta(days=1)
+        
+        self.logger.info(f"Generated {len(self.market_data)} market candles, {len(self.vix_data)} VIX candles")
+        for symbol, candles in self.candle_data.items():
+            self.logger.info(f"Generated {len(candles)} candles for {symbol}")
+    
+    def _find_index_before(self, candles: List[CandleData], timestamp: dt.datetime) -> int:
+        """Find the index of the candle just before the given timestamp"""
+        for i in range(len(candles) - 1, -1, -1):
+            if candles[i].timestamp <= timestamp:
+                return i
+        return -1# ===== Multi-Strategy Trading System =====
+
+class MultiStrategySystem:
+    """Integrated multi-strategy trading system that adapts to market conditions"""
+    
+    def __init__(self, config: SystemConfig):
+        """Initialize the trading system with configuration"""
+        self.config = config
+        self.logger = logging.getLogger("MultiStrategySystem")
+        self.positions = {}  # Active positions by symbol
+        self.historical_positions = []  # Closed positions history
+        self.candle_data = {}  # Historical candle data by symbol
+        self.market_data = []  # Market index data
+        self.vix_data = []  # VIX data
+        self.market_state = None  # Current market state
+        self.strategy_weights = config.strategy_weights.copy()  # Strategy weights
+        self.signals = []  # Current active signals
+        self.equity_curve = []  # Historical equity values
+        self.current_equity = config.initial_capital
+        self.peak_equity = config.initial_capital
+        self.last_rebalance_time = None
+        self.is_running = False
+        self.data_thread = None
+        self.strategy_thread = None
+        self.alert_queue = queue.Queue()
+        
+        # Initialize market analyzer
+        self.market_analyzer = MarketAnalyzer({
+            "adx_period": 14,
+            "vix_threshold_high": 20,
+            "vix_threshold_low": 15,
+            "adx_threshold_trending": 25,
+            "adx_threshold_range": 20,
+            "lookback_period": 20
+        })
+        
+        # Initialize strategies
+        self.strategies = {
+            "MeanReversion": MeanReversionStrategy({
+                "bb_period": 20,
+                "bb_std_dev": 2.0,
+                "rsi_period": 14,
+                "rsi_overbought": 70,
+                "rsi_oversold": 30,
+                "min_reversal_candles": 2
+            }),
+            "TrendFollowing": TrendFollowingStrategy({
+                "fast_ema_period": 9,
+                "slow_ema_period": 21,
+                "adx_period": 14,
+                "adx_threshold": 25,
+                "macd_fast": 12,
+                "macd_slow": 26,
+                "macd_signal": 9
+            }),
+            "VolatilityBreakout": VolatilityBreakoutStrategy({
+                "bb_period": 20,
+                "bb_std_dev": 2.0,
+                "keltner_period": 20,
+                "keltner_factor": 1.5,
+                "min_squeeze_periods": 10,
+                "volume_threshold": 1.5
+            }),
+            "GapTrading": GapTradingStrategy({
+                "min_gap_pct": 2.0,
+                "min_volume_pct": 150,
+                "consolidation_periods": 3,
+                "trade_direction": "both"
+            })
+        }
+        
+        # Initialize stock data
+        for stock in config.stocks:
+            self.candle_data[stock.symbol] = []
+            self.positions[stock.symbol] = []
+        
+        self.logger.info(f"Multi-Strategy System initialized with {len(config.stocks)} stocks and {len(self.strategies)} strategies")
+    
+    def start(self):
+        """Start the trading system"""
+        if self.is_running:
+            self.logger.warning("Trading system is already running")
+            return
+        
+        self.is_running = True
+        self.logger.info("Starting multi-strategy trading system")
+        
+        # Start data fetching thread
+        self.data_thread = threading.Thread(target=self._data_worker)
+        self.data_thread.daemon = True
+        self.data_thread.start()
+        
+        # Start strategy execution thread
+        self.strategy_thread = threading.Thread(target=self._strategy_worker)
+        self.strategy_thread.daemon = True
+        self.strategy_thread.start()
+        
+        # Start alert handling thread
+        self.alert_thread = threading.Thread(target=self._alert_worker)
+        self.alert_thread.daemon = True
+        self.alert_thread.start()
+        
+        self.logger.info("Trading system started")
+    
+    def stop(self):
+        """Stop the trading system"""
+        if not self.is_running:
+            self.logger.warning("Trading system is not running")
+            return
+        
+        self.is_running = False
+        self.logger.info("Stopping trading system")
+        
+        # Wait for threads to finish
+        if self.data_thread:
+            self.data_thread.join(timeout=5)
+        if self.strategy_thread:
+            self.strategy_thread.join(timeout=5)
+        if self.alert_thread:
+            self.alert_thread.join(timeout=5)
+        
+        self.logger.info("Trading system stopped")
+    
+    def _data_worker(self):
+        """Worker function to fetch and process data"""
+        self.logger.info("Data worker started")
+        
+        while self.is_running:
+            try:
+                # Fetch market data (S&P 500 and VIX)
+                self._fetch_market_data()
+                
+                # Update market state
+                if len(self.market_data) > 0 and len(self.vix_data) > 0:
+                    self.market_state = self.market_analyzer.analyze_market(self.market_data, self.vix_data)
+                    self.logger.info(f"Market regime: {self.market_state.regime.value}, ADX: {self.market_state.market_adx:.1f}, VIX: {self.market_state.vix:.1f}")
+                
+                # Fetch stock data for all symbols
+                for symbol in self.candle_data.keys():
+                    self._fetch_stock_data(symbol)
+                
+                # Sleep to avoid overwhelming data sources
+                time.sleep(60)  # Update data every minute
+                
+            except Exception as e:
+                self.logger.error(f"Error in data worker: {str(e)}")
+                time.sleep(120)  # Wait longer on error
+    
+    def _strategy_worker(self):
+        """Worker function to execute trading strategies"""
+        self.logger.info("Strategy worker started")
+        
+        while self.is_running:
+            try:
+                # Skip if market state is unknown
+                if not self.market_state or self.market_state.regime == MarketRegime.UNKNOWN:
+                    time.sleep(5)
+                    continue
+                
+                # Update strategy weights based on market regime
+                self._update_strategy_weights()
+                
+                # Generate signals for each stock
+                self._generate_signals()
+                
+                # Manage active positions
+                self._manage_positions()
+                
+                # Check for new entry opportunities
+                self._check_entries()
+                
+                # Update equity curve
+                self._update_equity()
+                
+                # Rebalance if needed
+                now = dt.datetime.now()
+                if (not self.last_rebalance_time or 
+                    now - self.last_rebalance_time > self.config.rebalance_interval):
+                    self._rebalance_portfolio()
+                    self.last_rebalance_time = now
+                
+                # Sleep to avoid excessive CPU usage
+                time.sleep(5)
+                
+            except Exception as e:
+                self.logger.error(f"Error in strategy worker: {str(e)}")
+                time.sleep(30)  # Wait longer on error
+    
+    def _alert_worker(self):
+        """Worker function to handle alerts"""
+        self.logger.info("Alert worker started")
+        
+        while self.is_running:
+            try:
+                # Get alert from queue with timeout
+                try:
+                    alert = self.alert_queue.get(timeout=1)
+                except queue.Empty:
+                    continue
+                
+                # Process the alert
+                alert_type = alert.get("type")
+                symbol = alert.get("symbol")
+                
+                if alert_type == "ENTRY":
+                    self.logger.info(f"ENTRY ALERT - {symbol}: {alert['direction']} at {alert['entry_price']}")
+                    
+                    # Execute trade if auto-trading is enabled
+                    if self.config.enable_auto_trading and not self.config.backtesting_mode:
+                        self._execute_entry(alert)
+                
+                elif alert_type == "EXIT":
+                    self.logger.info(f"EXIT ALERT - {symbol}: {alert['direction']} at {alert['exit_price']} ({alert['reason']})")
+                    
+                    # Execute exit if auto-trading is enabled
+                    if self.config.enable_auto_trading and not self.config.backtesting_mode:
+                        self._execute_exit(alert)
+                
+                # Mark alert as processed
+                self.alert_queue.task_done()
+                
+            except Exception as e:
+                self.logger.error(f"Error in alert worker: {str(e)}")
+    
+    def _fetch_market_data(self):
+        """Fetch market index and VIX data"""
+        try:
+            # In a real implementation, would fetch S&P 500 and VIX data from API
+            # Here, we'll create synthetic data for demonstration
+            
+            # If we have existing data, just update with new candle
+            if len(self.market_data) > 0:
+                last_candle = self.market_data[-1]
+                new_time = last_candle.timestamp + dt.timedelta(minutes=1)
+                
+                # Generate random walk price movement
+                price_change_pct = np.random.normal(0, 0.05)  # 0.05% std dev
+                new_close = last_candle.close * (1 + price_change_pct / 100)
+                
+                # Create new candle
+                market_candle = CandleData(
+                    timestamp=new_time,
+                    open=last_candle.close,
+                    high=max(last_candle.close, new_close) * (1 + abs(np.random.normal(0, 0.02) / 100)),
+                    low=min(last_candle.close, new_close) * (1 - abs(np.random.normal(0, 0.02) / 100)),
+                    close=new_close,
+                    volume=int(np.random.normal(10000000, 2000000))
+                )
+                
+                # Add to data
+                self.market_data.append(market_candle)
+                
+                # Keep only recent data
+                if len(self.market_data) > 10000:
+                    self.market_data = self.market_data[-10000:]
+            else:
+                # Initialize with starting data
+                self.market_data = [
+                    CandleData(
+                        timestamp=dt.datetime.now() - dt.timedelta(minutes=1),
+                        open=4500.0,
+                        high=4505.0,
+                        low=4495.0,
+                        close=4500.0,
+                        volume=10000000
+                    )
+                ]
+            
+            # Similarly for VIX data
+            if len(self.vix_data) > 0:
+                last_candle = self.vix_data[-1]
+                new_time = last_candle.timestamp + dt.timedelta(minutes=1)
+                
+                # Generate mean-reverting movement for VIX
+                mean_vix = 18.0
+                mean_reversion = 0.05  # 5% reversion to mean per period
+                random_change = np.random.normal(0, 0.3)  # Random noise
+                
+                new_close = last_candle.close + (mean_vix - last_candle.close) * mean_reversion + random_change
+                new_close = max(9.0, new_close)  # VIX floor
+                
+                # Create new candle
+                vix_candle = CandleData(
+                    timestamp=new_time,
+                    open=last_candle.close,
+                    high=max(last_candle.close, new_close) + abs(np.random.normal(0, 0.1)),
+                    low=min(last_candle.close, new_close) - abs(np.random.normal(0, 0.1)),
+                    close=new_close,
+                    volume=0  # VIX doesn't have volume
+                )
+                
+                # Add to data
+                self.vix_data.append(vix_candle)
+                
+                # Keep only recent data
+                if len(self.vix_data) > 10000:
+                    self.vix_data = self.vix_data[-10000:]
+            else:
+                # Initialize with starting data
+                self.vix_data = [
+                    CandleData(
+                        timestamp=dt.datetime.now() - dt.timedelta(minutes=1),
+                        open=18.0,
+                        high=18.2,
+                        low=17.8,
+                        close=18.0,
+                        volume=0
+                    )
+                ]
+                
+        except Exception as e:
+            self.logger.error(f"Error fetching market data:# ===== Market Analysis =====
+
+class MarketAnalyzer:
+    """Analyzes market conditions to determine the current regime"""
+    
+    def __init__(self, config: Dict):
+        """Initialize with configuration"""
+        self.adx_period = config.get("adx_period", 14)
+        self.vix_threshold_high = config.get("vix_threshold_high", 20)
+        self.vix_threshold_low = config.get("vix_threshold_low", 15)
+        self.adx_threshold_trending = config.get("adx_threshold_trending", 25)
+        self.adx_threshold_range = config.get("adx_threshold_range", 20)
+        self.lookback_period = config.get("lookback_period", 20)
+        self.logger = logging.getLogger("MarketAnalyzer")
+    
+    def analyze_market(self, market_data: List[CandleData], vix_data: List[CandleData]) -> MarketState:
+        """Analyze market data to determine current regime"""
+        if len(market_data) < self.lookback_period or len(vix_data) < 5:
+            # Not enough data, return unknown regime
+            return MarketState(
+                timestamp=dt.datetime.now(),
+                regime=MarketRegime.UNKNOWN,
+                vix=0.0,
+                market_adx=0.0,
+                trending_strength=0.0,
+                range_bound_strength=0.0,
+                volatility_strength=0.0,
+                market_trend=TradeDirection.NEUTRAL,
+                sector_performance={}
+            )
+        
+        # Convert market data to DataFrame
+        market_df = pd.DataFrame([candle.to_dict() for candle in market_data])
+        market_df.set_index('timestamp', inplace=True)
+        
+        # Get current VIX value
+        current_vix = vix_data[-1].close
+        
+        # Calculate ADX for trend strength
+        adx, plus_di, minus_di = self._calculate_adx(market_df)
+        
+        # Determine trend direction
+        if plus_di > minus_di:
+            trend_direction = TradeDirection.LONG
+        elif minus_di > plus_di:
+            trend_direction = TradeDirection.SHORT
+        else:
+            trend_direction = TradeDirection.NEUTRAL
+        
+        # Calculate regime strengths
+        trending_strength = min(adx / 40, 1.0)  # Normalize to 0-1
+        range_bound_strength = max(0, 1.0 - trending_strength)
+        volatility_strength = min(current_vix / 30, 1.0)  # Normalize to 0-1
+        
+        # Determine primary regime
+        if adx > self.adx_threshold_trending:
+            if trend_direction == TradeDirection.LONG:
+                regime = MarketRegime.TRENDING_BULLISH
+            else:
+                regime = MarketRegime.TRENDING_BEARISH
+        elif adx < self.adx_threshold_range:
+            regime = MarketRegime.RANGE_BOUND
+        elif current_vix > self.vix_threshold_high:
+            regime = MarketRegime.HIGH_VOLATILITY
+        elif current_vix < self.vix_threshold_low:
+            regime = MarketRegime.LOW_VOLATILITY
+        else:
+            regime = MarketRegime.UNKNOWN
+        
+        # Create and return market state
+        return MarketState(
+            timestamp=market_data[-1].timestamp,
+            regime=regime,
+            vix=current_vix,
+            market_adx=adx,
+            trending_strength=trending_strength,
+            range_bound_strength=range_bound_strength,
+            volatility_strength=volatility_strength,
+            market_trend=trend_direction,
+            sector_performance={}  # Would be populated with sector data in a real implementation
+        )
+    
+    def _calculate_adx(self, df: pd.DataFrame) -> Tuple[float, float, float]:
+        """Calculate Average Directional Index (ADX)"""
+        # Calculate True Range
+        df['high_low'] = df['high'] - df['low']
+        df['high_close'] = abs(df['high'] - df['close'].shift())
+        df['low_close'] = abs(df['low'] - df['close'].shift())
+        df['tr'] = df[['high_low', 'high_close', 'low_close']].max(axis=1)
+        df['atr'] = df['tr'].rolling(window=self.adx_period).mean()
+        
+        # Calculate Directional Movement
+        df['up_move'] = df['high'] - df['high'].shift()
+        df['down_move'] = df['low'].shift() - df['low']
+        
+        df['plus_dm'] = np.where((df['up_move'] > df['down_move']) & (df['up_move'] > 0), df['up_move'], 0)
+        df['minus_dm'] = np.where((df['down_move'] > df['up_move']) & (df['down_move'] > 0), df['down_move'], 0)
+        
+        # Calculate Directional Indicators
+        df['plus_di'] = 100 * (df['plus_dm'].rolling(window=self.adx_period).mean() / df['atr'])
+        df['minus_di'] = 100 * (df['minus_dm'].rolling(window=self.adx_period).mean() / df['atr'])
+        
+        # Calculate Directional Index
+        df['dx'] = 100 * abs(df['plus_di'] - df['minus_di']) / (df['plus_di'] + df['minus_di'])
+        df['adx'] = df['dx'].rolling(window=self.adx_period).mean()
+        
+        # Get latest values
+        latest_adx = df['adx'].iloc[-1]
+        latest_plus_di = df['plus_di'].iloc[-1]
+        latest_minus_di = df['minus_di'].iloc[-1]
+        
+        return latest_adx, latest_plus_di, latest_minus_diimport pandas as pd
+import numpy as np
+import datetime as dt
+import logging
+import time
+import json
+import os
+from typing import Dict, List, Tuple, Optional, Union, Any
+import matplotlib.pyplot as plt
+import mplfinance as mpf
+from dataclasses import dataclass, field
+import threading
+import queue
+from concurrent.futures import ThreadPoolExecutor
+from enum import Enum
+from abc import ABC, abstractmethod
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler("multi_strategy_system.log"),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger("MultiStrategy")
+
+# ===== Enums and Constants =====
+
+class MarketRegime(Enum):
+    """Market regime classification"""
+    TRENDING_BULLISH = "TRENDING_BULLISH"
+    TRENDING_BEARISH = "TRENDING_BEARISH"
+    RANGE_BOUND = "RANGE_BOUND"
+    HIGH_VOLATILITY = "HIGH_VOLATILITY"
+    LOW_VOLATILITY = "LOW_VOLATILITY"
+    UNKNOWN = "UNKNOWN"
+
+class TradeDirection(Enum):
+    """Trade direction"""
+    LONG = "LONG"
+    SHORT = "SHORT"
+    NEUTRAL = "NEUTRAL"
+
+class TimeFrame(Enum):
+    """Timeframes for data analysis"""
+    M1 = "1min"
+    M5 = "5min"
+    M15 = "15min"
+    M30 = "30min"
+    H1 = "1hour"
+    H4 = "4hour"
+    D1 = "1day"
+
+class SignalStrength(Enum):
+    """Signal strength classification"""
+    STRONG_BUY = 3
+    MODERATE_BUY = 2
+    WEAK_BUY = 1
+    NEUTRAL = 0
+    WEAK_SELL = -1
+    MODERATE_SELL = -2
+    STRONG_SELL = -3
+
+# ===== Data Structures =====
+
+@dataclass
+class CandleData:
+    """Represents a single OHLCV candle"""
+    timestamp: dt.datetime
+    open: float
+    high: float
+    low: float
+    close: float
+    volume: int
+    
+    def to_dict(self) -> Dict:
+        """Convert to dictionary"""
+        return {
+            "timestamp": self.timestamp,
+            "open": self.open,
+            "high": self.high,
+            "low": self.low,
+            "close": self.close,
+            "volume": self.volume
+        }
+
+@dataclass
+class StockConfig:
+    """Configuration for individual stocks"""
+    symbol: str
+    max_position_size: int            # Maximum position size
+    min_position_size: int            # Minimum position size
+    max_risk_per_trade_pct: float     # Maximum risk per trade as percentage of account
+    min_volume: int                   # Minimum volume to consider valid
+    avg_daily_volume: int = 0         # Average daily volume (calculated dynamically)
+    beta: float = 1.0                 # Stock beta (volatility relative to market)
+    sector: str = ""                  # Stock sector
+    industry: str = ""                # Stock industry
+    
+    # Strategy-specific parameters
+    mean_reversion_params: Dict = field(default_factory=dict)
+    trend_following_params: Dict = field(default_factory=dict)
+    volatility_breakout_params: Dict = field(default_factory=dict)
+    gap_trading_params: Dict = field(default_factory=dict)
+
+@dataclass
+class Signal:
+    """Trading signal generated by a strategy"""
+    timestamp: dt.datetime
+    symbol: str
+    strategy: str
+    direction: TradeDirection
+    strength: SignalStrength
+    entry_price: float
+    stop_loss: float
+    take_profit: Optional[float] = None
+    expiration: Optional[dt.datetime] = None
+    metadata: Dict = field(default_factory=dict)
+    
+    def to_dict(self) -> Dict:
+        """Convert to dictionary"""
+        return {
+            "timestamp": self.timestamp,
+            "symbol": self.symbol,
+            "strategy": self.strategy,
+            "direction": self.direction.value,
+            "strength": self.strength.value,
+            "entry_price": self.entry_price,
+            "stop_loss": self.stop_loss,
+            "take_profit": self.take_profit,
+            "expiration": self.expiration,
+            "metadata": self.metadata
+        }
+
+@dataclass
+class PositionState:
+    """Current state of a position"""
+    symbol: str
+    direction: TradeDirection
+    entry_price: float
+    stop_loss: float
+    take_profit: Optional[float]
+    position_size: int
+    entry_time: dt.datetime
+    exit_price: Optional[float] = None
+    exit_time: Optional[dt.datetime] = None
+    is_active: bool = True
+    strategy: str = ""
+    current_price: Optional[float] = None
+    unrealized_pnl: float = 0.0
+    realized_pnl: float = 0.0
+    metadata: Dict = field(default_factory=dict)
+    
+    def to_dict(self) -> Dict:
+        """Convert to dictionary"""
+        return {
+            "symbol": self.symbol,
+            "direction": self.direction.value,
+            "entry_price": self.entry_price,
+            "stop_loss": self.stop_loss,
+            "take_profit": self.take_profit,
+            "position_size": self.position_size,
+            "entry_time": self.entry_time,
+            "exit_price": self.exit_price,
+            "exit_time": self.exit_time,
+            "is_active": self.is_active,
+            "strategy": self.strategy,
+            "current_price": self.current_price,
+            "unrealized_pnl": self.unrealized_pnl,
+            "realized_pnl": self.realized_pnl
+        }
+
+@dataclass
+class MarketState:
+    """Current state of the market"""
+    timestamp: dt.datetime
+    regime: MarketRegime
+    vix: float
+    market_adx: float
+    trending_strength: float  # 0-1 scale
+    range_bound_strength: float  # 0-1 scale
+    volatility_strength: float  # 0-1 scale
+    market_trend: TradeDirection
+    sector_performance: Dict[str, float] = field(default_factory=dict)
+    
+    def to_dict(self) -> Dict:
+        """Convert to dictionary"""
+        return {
+            "timestamp": self.timestamp,
+            "regime": self.regime.value,
+            "vix": self.vix,
+            "market_adx": self.market_adx,
+            "trending_strength": self.trending_strength,
+            "range_bound_strength": self.range_bound_strength,
+            "volatility_strength": self.volatility_strength,
+            "market_trend": self.market_trend.value,
+            "sector_performance": self.sector_performance
+        }
+
+@dataclass
+class StrategyPerformance:
+    """Performance metrics for a strategy"""
+    strategy: str
+    win_rate: float = 0.0
+    profit_factor: float = 0.0
+    avg_gain: float = 0.0
+    avg_loss: float = 0.0
+    max_drawdown: float = 0.0
+    sharpe_ratio: float = 0.0
+    total_trades: int = 0
+    winning_trades: int = 0
+    losing_trades: int = 0
+    total_pnl: float = 0.0
+    performance_by_regime: Dict[str, float] = field(default_factory=dict)
+    
+    def to_dict(self) -> Dict:
+        """Convert to dictionary"""
+        return {
+            "strategy": self.strategy,
+            "win_rate": self.win_rate,
+            "profit_factor": self.profit_factor,
+            "avg_gain": self.avg_gain,
+            "avg_loss": self.avg_loss,
+            "max_drawdown": self.max_drawdown,
+            "sharpe_ratio": self.sharpe_ratio,
+            "total_trades": self.total_trades,
+            "winning_trades": self.winning_trades,
+            "losing_trades": self.losing_trades,
+            "total_pnl": self.total_pnl,
+            "performance_by_regime": self.performance_by_regime
+        }
+
+@dataclass
+class SystemConfig:
+    """System configuration"""
+    stocks: List[StockConfig]
+    initial_capital: float
+    max_open_positions: int
+    max_positions_per_symbol: int
+    max_correlated_positions: int
+    max_sector_exposure_pct: float
+    max_portfolio_risk_daily_pct: float
+    strategy_weights: Dict[str, float]  # Initial weights for strategies
+    rebalance_interval: dt.timedelta
+    data_lookback_days: int
+    market_hours_start: dt.time
+    market_hours_end: dt.time
+    enable_auto_trading: bool
+    backtesting_mode: bool
+    data_source: str
+    api_key: Optional[str] = None
+    api_secret: Optional[str] = None
+
+@dataclass
+class BacktestResult:
+    """Results from backtesting"""
+    start_date: dt.date
+    end_date: dt.date
+    initial_capital: float
+    final_capital: float
+    total_return_pct: float
+    annualized_return_pct: float
+    sharpe_ratio: float
+    max_drawdown_pct: float
+    win_rate: float
+    profit_factor: float
+    total_trades: int
+    strategy_performance: Dict[str, StrategyPerformance]
+    monthly_returns: Dict[str, float]
+    equity_curve: List[Tuple[dt.datetime, float]]
+    drawdown_curve: List[Tuple[dt.datetime, float]]
+    trade_history: List[Dict]
+    
+    def to_dict(self) -> Dict:
+        """Convert to dictionary"""
+        return {
+            "start_date": self.start_date.isoformat(),
+            "end_date": self.end_date.isoformat(),
+            "initial_capital": self.initial_capital,
+            "final_capital": self.final_capital,
+            "total_return_pct": self.total_return_pct,
+            "annualized_return_pct": self.annualized_return_pct,
+            "sharpe_ratio": self.sharpe_ratio,
+            "max_drawdown_pct": self.max_drawdown_pct,
+            "win_rate": self.win_rate,
+            "profit_factor": self.profit_factor,
+            "total_trades": self.total_trades,
+            "strategy_performance": {k: v.to_dict() for k, v in self.strategy_performance.items()},
+            "monthly_returns": self.monthly_returns,
+            "equity_curve": [(t.isoformat(), v) for t, v in self.equity_curve],
+            "drawdown_curve": [(t.isoformat(), v) for t, v in self.drawdown_curve],
+            "trade_history": self.trade_history
+        }
+
+# ===== Strategy Abstract Base Class =====
+
+class Strategy(ABC):
+    """Abstract base class for trading strategies"""
+    
+    def __init__(self, name: str, config: Dict):
+        """Initialize strategy with configuration"""
+        self.name = name
+        self.config = config
+        self.logger = logging.getLogger(f"Strategy.{name}")
+        self.performance = StrategyPerformance(strategy=name)
+    
+    @abstractmethod
+    def generate_signals(self, 
+                         symbol: str, 
+                         candles: List[CandleData],
+                         stock_config: StockConfig,
+                         market_state: MarketState) -> List[Signal]:
+        """Generate trading signals for a symbol"""
+        pass
+    
+    @abstractmethod
+    def calculate_stop_loss(self, 
+                           direction: TradeDirection, 
+                           candles: List[CandleData],
+                           stock_config: StockConfig) -> float:
+        """Calculate stop loss price based on strategy logic"""
+        pass
+    
+    @abstractmethod
+    def calculate_take_profit(self, 
+                             direction: TradeDirection,
+                             entry_price: float,
+                             stop_loss: float,
+                             candles: List[CandleData],
+                             stock_config: StockConfig) -> float:
+        """Calculate take profit price based on strategy logic"""
+        pass
+    
+    @abstractmethod
+    def should_exit_position(self, 
+                            position: PositionState,
+                            candles: List[CandleData],
+                            market_state: MarketState) -> Tuple[bool, str]:
+        """Check if a position should be exited"""
+        pass
+    
+    def calculate_regime_weight(self, market_state: MarketState) -> float:
+        """Calculate weight of this strategy based on market regime"""
+        # Implement in derived classes for specific regime weighting
+        return 1.0
+    
+    def update_performance(self, trade: Dict):
+        """Update strategy performance based on completed trade"""
+        self.performance.total_trades += 1
+        
+        pnl = trade.get("realized_pnl", 0)
+        self.performance.total_pnl += pnl
+        
+        if pnl > 0:
+            self.performance.winning_trades += 1
+            # Update average gain calculation
+            if self.performance.winning_trades > 1:
+                self.performance.avg_gain = ((self.performance.avg_gain * (self.performance.winning_trades - 1)) + pnl) / self.performance.winning_trades
+            else:
+                self.performance.avg_gain = pnl
+        else:
+            self.performance.losing_trades += 1
+            # Update average loss calculation
+            if self.performance.losing_trades > 1:
+                self.performance.avg_loss = ((self.performance.avg_loss * (self.performance.losing_trades - 1)) + abs(pnl)) / self.performance.losing_trades
+            else:
+                self.performance.avg_loss = abs(pnl)
+        
+        # Update win rate
+        self.performance.win_rate = self.performance.winning_trades / self.performance.total_trades if self.performance.total_trades > 0 else 0
+        
+        # Update profit factor
+        total_gains = self.performance.avg_gain * self.performance.winning_trades
+        total_losses = self.performance.avg_loss * self.performance.losing_trades
+        self.performance.profit_factor = total_gains / total_losses if total_losses > 0 else float('inf')
+        
+        # Update performance by market regime
+        regime = trade.get("market_regime", "UNKNOWN")
+        if regime not in self.performance.performance_by_regime:
+            self.performance.performance_by_regime[regime] = 0
+        self.performance.performance_by_regime[regime] += pnl
+
+# ===== Specific Strategy Implementations =====
+
+class MeanReversionStrategy(Strategy):
+    """Mean reversion strategy using Bollinger Bands and RSI"""
+    
+    def __init__(self, config: Dict):
+        super().__init__("MeanReversion", config)
+        # Extract strategy-specific parameters with defaults
+        self.bb_period = config.get("bb_period", 20)
+        self.bb_std_dev = config.get("bb_std_dev", 2.0)
+        self.rsi_period = config.get("rsi_period", 14)
+        self.rsi_overbought = config.get("rsi_overbought", 70)
+        self.rsi_oversold = config.get("rsi_oversold", 30)
+        self.min_reversal_candles = config.get("min_reversal_candles", 2)
+    
+    def generate_signals(self, 
+                         symbol: str, 
+                         candles: List[CandleData],
+                         stock_config: StockConfig,
+                         market_state: MarketState) -> List[Signal]:
+        """Generate mean reversion signals"""
+        signals = []
+        
+        if len(candles) < max(self.bb_period, self.rsi_period) + 10:
+            # Not enough data for calculation
+            return signals
+        
+        # Convert candles to DataFrame for easier calculation
+        df = pd.DataFrame([candle.to_dict() for candle in candles])
+        df.set_index('timestamp', inplace=True)
+        
+        # Calculate Bollinger Bands
+        df['sma'] = df['close'].rolling(window=self.bb_period).mean()
+        df['std'] = df['close'].rolling(window=self.bb_period).std()
+        df['upper_band'] = df['sma'] + (df['std'] * self.bb_std_dev)
+        df['lower_band'] = df['sma'] - (df['std'] * self.bb_std_dev)
+        
+        # Calculate RSI
+        delta = df['close'].diff()
+        gain = delta.where(delta > 0, 0)
+        loss = -delta.where(delta < 0, 0)
+        avg_gain = gain.rolling(window=self.rsi_period).mean()
+        avg_loss = loss.rolling(window=self.rsi_period).mean()
+        rs = avg_gain / avg_loss
+        df['rsi'] = 100 - (100 / (1 + rs))
+        
+        # Fill NaN values
+        df.dropna(inplace=True)
+        
+        if len(df) < 5:
+            return signals
+        
+        # Get the latest data
+        latest = df.iloc[-1]
+        prev = df.iloc[-2]
+        
+        # Check for mean reversion conditions
+        
+        # Oversold condition (potential long signal)
+        if (latest['close'] < latest['lower_band'] and 
+            latest['rsi'] < self.rsi_oversold):
+            
+            # Check for reversal confirmation (candle closing higher than open)
+            if latest['close'] > latest['open']:
+                # Calculate signal strength based on distance from bands and RSI extremity
+                band_distance = (latest['lower_band'] - latest['close']) / latest['std']
+                rsi_extremity = (self.rsi_oversold - latest['rsi']) / 10
+                
+                # Determine signal strength
+                strength = SignalStrength.WEAK_BUY
+                if band_distance > 0.5 and rsi_extremity > 1.0:
+                    strength = SignalStrength.STRONG_BUY
+                elif band_distance > 0.3 or rsi_extremity > 0.5:
+                    strength = SignalStrength.MODERATE_BUY
+                
+                # Calculate stop loss and take profit
+                stop_loss = self.calculate_stop_loss(TradeDirection.LONG, candles, stock_config)
+                take_profit = self.calculate_take_profit(TradeDirection.LONG, latest['close'], stop_loss, candles, stock_config)
+                
+                # Create signal
+                signal = Signal(
+                    timestamp=candles[-1].timestamp,
+                    symbol=symbol,
+                    strategy=self.name,
+                    direction=TradeDirection.LONG,
+                    strength=strength,
+                    entry_price=latest['close'],
+                    stop_loss=stop_loss,
+                    take_profit=take_profit,
+                    expiration=candles[-1].timestamp + dt.timedelta(days=1),
+                    metadata={
+                        "rsi": latest['rsi'],
+                        "lower_band": latest['lower_band'],
+                        "band_distance": band_distance,
+                        "sma": latest['sma']
+                    }
+                )
+                
+                signals.append(signal)
+        
+        return signals
+    
+    def calculate_stop_loss(self, 
+                           direction: TradeDirection, 
+                           candles: List[CandleData],
+                           stock_config: StockConfig) -> float:
+        """Calculate stop loss based on recent swing lows/highs and ATR"""
+        if len(candles) < self.slow_ema_period + 5:
+            # Not enough data, use a default percentage
+            if direction == TradeDirection.LONG:
+                return candles[-1].close * 0.97
+            else:
+                return candles[-1].close * 1.03
+        
+        # Calculate ATR
+        high = np.array([c.high for c in candles[-14:]])
+        low = np.array([c.low for c in candles[-14:]])
+        close = np.array([c.close for c in candles[-14:]])
+        
+        tr1 = high[1:] - low[1:]
+        tr2 = abs(high[1:] - close[:-1])
+        tr3 = abs(low[1:] - close[:-1])
+        
+        tr = np.vstack([tr1, tr2, tr3])
+        atr = np.max(tr, axis=0).mean()
+        
+        # For long positions, find recent swing low
+        if direction == TradeDirection.LONG:
+            # Look for swing lows in the last N candles
+            lookback = min(20, len(candles) - 1)
+            lows = [c.low for c in candles[-lookback:]]
+            swing_low = min(lows)
+            
+            # Set stop loss at swing low minus 1 ATR, but not more than 3 ATR from entry
+            stop_loss = max(swing_low - atr, candles[-1].close - (3 * atr))
+            return stop_loss
+        
+        # For short positions, find recent swing high
+        else:
+            # Look for swing highs in the last N candles
+            lookback = min(20, len(candles) - 1)
+            highs = [c.high for c in candles[-lookback:]]
+            swing_high = max(highs)
+            
+            # Set stop loss at swing high plus 1 ATR, but not more than 3 ATR from entry
+            stop_loss = min(swing_high + atr, candles[-1].close + (3 * atr))
+            return stop_loss
+    
+    def calculate_take_profit(self, 
+                             direction: TradeDirection,
+                             entry_price: float,
+                             stop_loss: float,
+                             candles: List[CandleData],
+                             stock_config: StockConfig) -> float:
+        """Calculate take profit based on risk-reward ratio and support/resistance levels"""
+        # Calculate risk
+        risk = abs(entry_price - stop_loss)
+        
+        # Set default risk-reward ratio
+        risk_reward = 2.0
+        
+        # Check if we can identify a clear target based on support/resistance
+        if len(candles) >= 50:
+            df = pd.DataFrame([candle.to_dict() for candle in candles[-50:]])
+            
+            if direction == TradeDirection.LONG:
+                # Look for resistance levels above current price
+                resistance_levels = []
+                
+                # Identify significant highs
+                for i in range(2, len(df) - 2):
+                    if (df.iloc[i].high > df.iloc[i-1].high and 
+                        df.iloc[i].high > df.iloc[i-2].high and
+                        df.iloc[i].high > df.iloc[i+1].high and
+                        df.iloc[i].high > df.iloc[i+2].high):
+                        resistance_levels.append(df.iloc[i].high)
+                
+                # Find the nearest resistance level above entry
+                valid_levels = [level for level in resistance_levels if level > entry_price]
+                if valid_levels:
+                    nearest_resistance = min(valid_levels)
+                    potential_reward = nearest_resistance - entry_price
+                    
+                    # If the nearest resistance offers at least 1.5x risk, use it
+                    if potential_reward >= risk * 1.5:
+                        return nearest_resistance
+            
+            else:  # SHORT
+                # Look for support levels below current price
+                support_levels = []
+                
+                # Identify significant lows
+                for i in range(2, len(df) - 2):
+                    if (df.iloc[i].low < df.iloc[i-1].low and 
+                        df.iloc[i].low < df.iloc[i-2].low and
+                        df.iloc[i].low < df.iloc[i+1].low and
+                        df.iloc[i].low < df.iloc[i+2].low):
+                        support_levels.append(df.iloc[i].low)
+                
+                # Find the nearest support level below entry
+                valid_levels = [level for level in support_levels if level < entry_price]
+                if valid_levels:
+                    nearest_support = max(valid_levels)
+                    potential_reward = entry_price - nearest_support
+                    
+                    # If the nearest support offers at least 1.5x risk, use it
+                    if potential_reward >= risk * 1.5:
+                        return nearest_support
+        
+        # If we couldn't find a good support/resistance level, use risk-reward ratio
+        if direction == TradeDirection.LONG:
+            return entry_price + (risk * risk_reward)
+        else:
+            return entry_price - (risk * risk_reward)
+    
+    def should_exit_position(self, 
+                            position: PositionState,
+                            candles: List[CandleData],
+                            market_state: MarketState) -> Tuple[bool, str]:
+        """Check if a position should be exited"""
+        if len(candles) < self.slow_ema_period + 5:
+            return False, ""
+        
+        current_price = candles[-1].close
+        
+        # Check stop loss
+        if position.direction == TradeDirection.LONG and current_price <= position.stop_loss:
+            return True, "Stop loss triggered"
+        if position.direction == TradeDirection.SHORT and current_price >= position.stop_loss:
+            return True, "Stop loss triggered"
+        
+        # Check take profit
+        if position.take_profit is not None:
+            if position.direction == TradeDirection.LONG and current_price >= position.take_profit:
+                return True, "Take profit reached"
+            if position.direction == TradeDirection.SHORT and current_price <= position.take_profit:
+                return True, "Take profit reached"
+        
+        # Convert candles to DataFrame for calculations
+        df = pd.DataFrame([candle.to_dict() for candle in candles])
+        df.set_index('timestamp', inplace=True)
+        
+        # Calculate EMAs
+        df['fast_ema'] = df['close'].ewm(span=self.fast_ema_period, adjust=False).mean()
+        df['slow_ema'] = df['close'].ewm(span=self.slow_ema_period, adjust=False).mean()
+        
+        # Calculate MACD
+        df['macd'] = df['close'].ewm(span=self.macd_fast, adjust=False).mean() - df['close'].ewm(span=self.macd_slow, adjust=False).mean()
+        df['macd_signal'] = df['macd'].ewm(span=self.macd_signal, adjust=False).mean()
+        df['macd_hist'] = df['macd'] - df['macd_signal']
+        
+        # Check for trend reversal signals
+        latest = df.iloc[-1]
+        prev = df.iloc[-2]
+        
+        # For long positions, exit on bearish reversal signals
+        if position.direction == TradeDirection.LONG:
+            # EMA cross down
+            if prev.fast_ema >= prev.slow_ema and latest.fast_ema < latest.slow_ema:
+                return True, "EMA crossover (bearish)"
+            
+            # MACD cross down
+            if prev.macd >= prev.macd_signal and latest.macd < latest.macd_signal:
+                return True, "MACD crossover (bearish)"
+        
+        # For short positions, exit on bullish reversal signals
+        if position.direction == TradeDirection.SHORT:
+            # EMA cross up
+            if prev.fast_ema <= prev.slow_ema and latest.fast_ema > latest.slow_ema:
+                return True, "EMA crossover (bullish)"
+            
+            # MACD cross up
+            if prev.macd <= prev.macd_signal and latest.macd > latest.macd_signal:
+                return True, "MACD crossover (bullish)"
+        
+        return False, ""
+    
+    def calculate_regime_weight(self, market_state: MarketState) -> float:
+        """Calculate weight based on market regime"""
+        # Trend following works best in trending markets
+        if market_state.regime in [MarketRegime.TRENDING_BULLISH, MarketRegime.TRENDING_BEARISH]:
+            return 2.0
+        elif market_state.regime == MarketRegime.HIGH_VOLATILITY:
+            return 1.2
+        elif market_state.regime == MarketRegime.RANGE_BOUND:
+            return 0.5
+        elif market_state.regime == MarketRegime.LOW_VOLATILITY:
+            return 0.8
+        else:
+            return 1.0
+
+class GapTradingStrategy(Strategy):
+    """Gap and Go strategy that trades significant gaps at market open"""
+    
+    def __init__(self, config: Dict):
+        super().__init__("GapTrading", config)
+        # Extract strategy-specific parameters with defaults
+        self.min_gap_pct = config.get("min_gap_pct", 2.0)  # Minimum gap size in percent
+        self.min_volume_pct = config.get("min_volume_pct", 150)  # Minimum pre-market volume in percent of average
+        self.consolidation_periods = config.get("consolidation_periods", 3)  # Number of periods to wait for consolidation
+        self.trade_direction = config.get("trade_direction", "both")  # "up", "down", or "both"
+    
+    def generate_signals(self, 
+                         symbol: str, 
+                         candles: List[CandleData],
+                         stock_config: StockConfig,
+                         market_state: MarketState) -> List[Signal]:
+        """Generate gap trading signals"""
+        signals = []
+        
+        # Need at least one day of data plus today's first few candles
+        if len(candles) < 390 + self.consolidation_periods:  # 390 minutes in a trading day
+            return signals
+        
+        # Convert candles to DataFrame for easier calculation
+        df = pd.DataFrame([candle.to_dict() for candle in candles])
+        df.set_index('timestamp', inplace=True)
+        
+        # Identify the current day
+        current_day = df.index[-1].date()
+        
+        # Get previous day's close
+        prev_day_data = df[df.index.date < current_day]
+        if len(prev_day_data) == 0:
+            return signals
+        
+        prev_close = prev_day_data.iloc[-1]['close']
+        
+        # Get today's open
+        today_data = df[df.index.date == current_day]
+        if len(today_data) < self.consolidation_periods + 1:
+            return signals
+        
+        today_open = today_data.iloc[0]['open']
+        
+        # Calculate gap percentage
+        gap_pct = (today_open - prev_close) / prev_close * 100
+        
+        # Only consider significant gaps
+        if abs(gap_pct) < self.min_gap_pct:
+            return signals
+        
+        # Calculate today's volume compared to average
+        avg_volume = prev_day_data.iloc[-20:]['volume'].mean() if len(prev_day_data) >= 20 else prev_day_data['volume'].mean()
+        today_volume = today_data.iloc[0:self.consolidation_periods]['volume'].sum()
+        volume_pct = (today_volume / avg_volume) * 100
+        
+        # Ensure sufficient volume
+        if volume_pct < self.min_volume_pct:
+            return signals
+        
+        # Check for gap direction
+        gap_direction = "up" if gap_pct > 0 else "down"
+        
+        # Only proceed if we're trading this gap direction
+        if self.trade_direction != "both" and gap_direction != self.trade_direction:
+            return signals
+        
+        # Check for consolidation pattern after the gap
+        consolidation_candles = today_data.iloc[:self.consolidation_periods]
+        
+        # For gap up, look for a tight consolidation near the highs
+        if gap_direction == "up":
+            high = consolidation_candles['high'].max()
+            low = consolidation_candles['low'].min()
+            latest = today_data.iloc[self.consolidation_periods]
+            
+            # Calculate consolidation tightness
+            range_pct = (high - low) / low * 100
+            
+            # Only trade tight consolidations (less than half the gap size)
+            if range_pct > abs(gap_pct) / 2:
+                return signals
+            
+            # Generate long signal if price breaks above consolidation
+            if latest['close'] > high and latest['close'] > latest['open']:
+                # Calculate signal strength based on gap size and volume
+                gap_strength = min(gap_pct / 2, 2.0)
+                volume_strength = min((volume_pct - 100) / 50, 2.0)
+                
+                # Determine overall signal strength
+                if gap_strength > 1.0 and volume_strength > 1.0:
+                    strength = SignalStrength.STRONG_BUY
+                elif gap_strength > 0.5 or volume_strength > 0.5:
+                    strength = SignalStrength.MODERATE_BUY
+                else:
+                    strength = SignalStrength.WEAK_BUY
+                
+                # Calculate stop loss and take profit
+                entry_price = latest['close']
+                stop_loss = low  # Place stop below the consolidation
+                take_profit = self.calculate_take_profit(TradeDirection.LONG, entry_price, stop_loss, candles, stock_config)
+                
+                # Create signal
+                signal = Signal(
+                    timestamp=latest.name,
+                    symbol=symbol,
+                    strategy=self.name,
+                    direction=TradeDirection.LONG,
+                    strength=strength,
+                    entry_price=entry_price,
+                    stop_loss=stop_loss,
+                    take_profit=take_profit,
+                    expiration=latest.name + dt.timedelta(hours=4),  # Expire in 4 hours
+                    metadata={
+                        "gap_pct": gap_pct,
+                        "volume_pct": volume_pct,
+                        "consolidation_range_pct": range_pct
+                    }
+                )
+                
+                signals.append(signal)
+        
+        # For gap down, look for a tight consolidation near the lows
+        elif gap_direction == "down":
+            high = consolidation_candles['high'].max()
+            low = consolidation_candles['low'].min()
+            latest = today_data.iloc[self.consolidation_periods]
+            
+            # Calculate consolidation tightness
+            range_pct = (high - low) / low * 100
+            
+            # Only trade tight consolidations (less than half the gap size)
+            if range_pct > abs(gap_pct) / 2:
+                return signals
+            
+            # Generate short signal if price breaks below consolidation
+            if latest['close'] < low and latest['close'] < latest['open']:
+                # Calculate signal strength based on gap size and volume
+                gap_strength = min(abs(gap_pct) / 2, 2.0)
+                volume_strength = min((volume_pct - 100) / 50, 2.0)
+                
+                # Determine overall signal strength
+                if gap_strength > 1.0 and volume_strength > 1.0:
+                    strength = SignalStrength.STRONG_SELL
+                elif gap_strength > 0.5 or volume_strength > 0.5:
+                    strength = SignalStrength.MODERATE_SELL
+                else:
+                    strength = SignalStrength.WEAK_SELL
+                
+                # Calculate stop loss and take profit
+                entry_price = latest['close']
+                stop_loss = high  # Place stop above the consolidation
+                take_profit = self.calculate_take_profit(TradeDirection.SHORT, entry_price, stop_loss, candles, stock_config)
+                
+                # Create signal
+                signal = Signal(
+                    timestamp=latest.name,
+                    symbol=symbol,
+                    strategy=self.name,
+                    direction=TradeDirection.SHORT,
+                    strength=strength,
+                    entry_price=entry_price,
+                    stop_loss=stop_loss,
+                    take_profit=take_profit,
+                    expiration=latest.name + dt.timedelta(hours=4),  # Expire in 4 hours
+                    metadata={
+                        "gap_pct": gap_pct,
+                        "volume_pct": volume_pct,
+                        "consolidation_range_pct": range_pct
+                    }
+                )
+                
+                signals.append(signal)
+        
+        return signals
+    
+    def calculate_stop_loss(self, 
+                           direction: TradeDirection, 
+                           candles: List[CandleData],
+                           stock_config: StockConfig) -> float:
+        """Calculate stop loss based on consolidation range"""
+        # For gap trades, the stop is calculated at signal generation time
+        # based on the consolidation range
+        return 0.0
+    
+    def calculate_take_profit(self, 
+                             direction: TradeDirection,
+                             entry_price: float,
+                             stop_loss: float,
+                             candles: List[CandleData],
+                             stock_config: StockConfig) -> float:
+        """Calculate take profit based on gap fill and risk-reward ratio"""
+        # Convert candles to DataFrame
+        df = pd.DataFrame([candle.to_dict() for candle in candles])
+        df.set_index('timestamp', inplace=True)
+        
+        # Identify the current day
+        current_day = df.index[-1].date()
+        
+        # Get previous day's data
+        prev_day_data = df[df.index.date < current_day]
+        
+        if len(prev_day_data) == 0:
+            # If no previous day's data, use a standard risk-reward ratio
+            risk = abs(entry_price - stop_loss)
+            if direction == TradeDirection.LONG:
+                return entry_price + (risk * 2)
+            else:
+                return entry_price - (risk * 2)
+        
+        prev_close = prev_day_data.iloc[-1]['close']
+        prev_high = prev_day_data['high'].max()
+        prev_low = prev_day_data['low'].min()
+        
+        # For gap trades, the target is often the gap fill
+        if direction == TradeDirection.LONG:
+            # For gap up, target the previous day's high or a 2:1 risk/reward
+            risk = entry_price - stop_loss
+            min_target = entry_price + (risk * 2)
+            gap_fill_target = prev_high
+            
+            # Use the closer target
+            return min(min_target, gap_fill_target) if gap_fill_target > entry_price else min_target
+        else:
+            # For gap down, target the previous day's low or a 2:1 risk/reward
+            risk = stop_loss - entry_price
+            min_target = entry_price - (risk * 2)
+            gap_fill_target = prev_low
+            
+            # Use the closer target
+            return max(min_target, gap_fill_target) if gap_fill_target < entry_price else min_target
+    
+    def should_exit_position(self, 
+                            position: PositionState,
+                            candles: List[CandleData],
+                            market_state: MarketState) -> Tuple[bool, str]:
+        """Check if a position should be exited"""
+        if len(candles) < 2:
+            return False, ""
+        
+        current_price = candles[-1].close
+        
+        # Check stop loss
+        if position.direction == TradeDirection.LONG and current_price <= position.stop_loss:
+            return True, "Stop loss triggered"
+        if position.direction == TradeDirection.SHORT and current_price >= position.stop_loss:
+            return True, "Stop loss triggered"
+        
+        # Check take profit
+        if position.take_profit is not None:
+            if position.direction == TradeDirection.LONG and current_price >= position.take_profit:
+                return True, "Take profit reached"
+            if position.direction == TradeDirection.SHORT and current_price <= position.take_profit:
+                return True, "Take profit reached"
+        
+        # For gap trades, also check time-based exits (e.g. end of first hour)
+        trade_duration = (candles[-1].timestamp - position.entry_time).total_seconds() / 3600  # in hours
+        
+        # If trade has been open for more than 2 hours and is profitable, exit
+        if trade_duration > 2 and position.unrealized_pnl > 0:
+            return True, "Time-based exit (profitable)"
+        
+        # If trade has been open for more than 4 hours, exit regardless
+        if trade_duration > 4:
+            return True, "Time-based exit (max duration)"
+        
+        # Check for momentum loss
+        if len(candles) > 15:
+            # Calculate short-term momentum
+            recent_candles = candles[-15:]
+            price_change = (recent_candles[-1].close - recent_candles[0].close) / recent_candles[0].close * 100
+            
+            if position.direction == TradeDirection.LONG and price_change < -0.5:
+                return True, "Momentum loss"
+            if position.direction == TradeDirection.SHORT and price_change > 0.5:
+                return True, "Momentum loss"
+        
+        return False, ""
+    
+    def calculate_regime_weight(self, market_state: MarketState) -> float:
+        """Calculate weight based on market regime"""
+        # Gap trading works independently of market regime but
+        # performs better in high volatility environments
+        if market_state.regime == MarketRegime.HIGH_VOLATILITY:
+            return 1.5
+        elif market_state.regime in [MarketRegime.TRENDING_BULLISH, MarketRegime.TRENDING_BEARISH]:
+            return 1.2
+        else:
+            return 1.0
+
+class VolatilityBreakoutStrategy(Strategy):
+    """Volatility breakout strategy using Bollinger Band squeeze"""
+    
+    def __init__(self, config: Dict):
+        super().__init__("VolatilityBreakout", config)
+        # Extract strategy-specific parameters with defaults
+        self.bb_period = config.get("bb_period", 20)
+        self.bb_std_dev = config.get("bb_std_dev", 2.0)
+        self.keltner_period = config.get("keltner_period", 20)
+        self.keltner_factor = config.get("keltner_factor", 1.5)
+        self.min_squeeze_periods = config.get("min_squeeze_periods", 10)
+        self.volume_threshold = config.get("volume_threshold", 1.5)  # Volume surge threshold
+    
+    def generate_signals(self, 
+                         symbol: str, 
+                         candles: List[CandleData],
+                         stock_config: StockConfig,
+                         market_state: MarketState) -> List[Signal]:
+        """Generate volatility breakout signals based on Bollinger Band squeeze"""
+        signals = []
+        
+        if len(candles) < self.bb_period + self.min_squeeze_periods + 5:
+            # Not enough data for calculation
+            return signals
+        
+        # Convert candles to DataFrame for easier calculation
+        df = pd.DataFrame([candle.to_dict() for candle in candles])
+        df.set_index('timestamp', inplace=True)
+        
+        # Calculate Bollinger Bands
+        df['sma'] = df['close'].rolling(window=self.bb_period).mean()
+        df['std'] = df['close'].rolling(window=self.bb_period).std()
+        df['bb_upper'] = df['sma'] + (df['std'] * self.bb_std_dev)
+        df['bb_lower'] = df['sma'] - (df['std'] * self.bb_std_dev)
+        df['bb_width'] = (df['bb_upper'] - df['bb_lower']) / df['sma']
+        
+        # Calculate Keltner Channels
+        df['ema'] = df['close'].ewm(span=self.keltner_period, adjust=False).mean()
+        df['atr'] = self._calculate_atr(df, self.keltner_period)
+        df['kc_upper'] = df['ema'] + (df['atr'] * self.keltner_factor)
+        df['kc_lower'] = df['ema'] - (df['atr'] * self.keltner_factor)
+        
+        # Identify squeeze (Bollinger Bands inside Keltner Channels)
+        df['squeeze'] = (df['bb_lower'] > df['kc_lower']) & (df['bb_upper'] < df['kc_upper'])
+        
+        # Identify when a squeeze is ending (transitioning from squeeze to non-squeeze)
+        df['squeeze_ending'] = df['squeeze'].shift(1) & ~df['squeeze']
+        
+        # Calculate momentum (rate of change)
+        df['momentum'] = df['close'].pct_change(5) * 100
+        
+        # Calculate volume surge
+        df['volume_sma'] = df['volume'].rolling(window=20).mean()
+        df['volume_ratio'] = df['volume'] / df['volume_sma']
+        
+        # Fill NaN values
+        df.dropna(inplace=True)
+        
+        if len(df) < 5:
+            return signals
+        
+        # Look for squeeze setups followed by breakouts
+        for i in range(len(df) - 1, max(0, len(df) - 5), -1):
+            # Check if we have a squeeze ending
+            if df.iloc[i]['squeeze_ending']:
+                # Check if we had a sustained squeeze before this
+                squeeze_duration = 0
+                for j in range(i-1, max(0, i-self.min_squeeze_periods), -1):
+                    if df.iloc[j]['squeeze']:
+                        squeeze_duration += 1
+                    else:
+                        break
+                
+                # Only proceed if we had a sufficiently long squeeze
+                if squeeze_duration >= self.min_squeeze_periods:
+                    # Check for a breakout with volume confirmation
+                    current = df.iloc[i]
+                    prev = df.iloc[i-1]
+                    
+                    # Bullish breakout
+                    if (current.close > current.sma and
+                        current.close > prev.close and
+                        current.volume_ratio > self.volume_threshold and
+                        current.momentum > 0):
+                        
+                        # Calculate signal strength based on momentum and volume
+                        momentum_strength = min(current.momentum / 2, 2.0)
+                        volume_strength = min((current.volume_ratio - 1) / 0.5, 2.0)
+                        
+                        # Determine overall signal strength
+                        if momentum_strength > 1.0 and volume_strength > 1.0:
+                            strength = SignalStrength.STRONG_BUY
+                        elif momentum_strength > 0.5 or volume_strength > 0.5:
+                            strength = SignalStrength.MODERATE_BUY
+                        else:
+                            strength = SignalStrength.WEAK_BUY
+                        
+                        # Calculate stop loss and take profit
+                        entry_price = current.close
+                        stop_loss = self.calculate_stop_loss(TradeDirection.LONG, candles[-i-1:], stock_config)
+                        take_profit = self.calculate_take_profit(TradeDirection.LONG, entry_price, stop_loss, candles[-i-1:], stock_config)
+                        
+                        # Create signal
+                        signal = Signal(
+                            timestamp=df.index[i],
+                            symbol=symbol,
+                            strategy=self.name,
+                            direction=TradeDirection.LONG,
+                            strength=strength,
+                            entry_price=entry_price,
+                            stop_loss=stop_loss,
+                            take_profit=take_profit,
+                            expiration=df.index[i] + dt.timedelta(days=3),
+                            metadata={
+                                "squeeze_duration": squeeze_duration,
+                                "momentum": current.momentum,
+                                "volume_ratio": current.volume_ratio,
+                                "bb_width": current.bb_width
+                            }
+                        )
+                        
+                        signals.append(signal)
+                    
+                    # Bearish breakout
+                    elif (current.close < current.sma and
+                          current.close < prev.close and
+                          current.volume_ratio > self.volume_threshold and
+                          current.momentum < 0):
+                        
+                        # Calculate signal strength based on momentum and volume
+                        momentum_strength = min(abs(current.momentum) / 2, 2.0)
+                        volume_strength = min((current.volume_ratio - 1) / 0.5, 2.0)
+                        
+                        # Determine overall signal strength
+                        if momentum_strength > 1.0 and volume_strength > 1.0:
+                            strength = SignalStrength.STRONG_SELL
+                        elif momentum_strength > 0.5 or volume_strength > 0.5:
+                            strength = SignalStrength.MODERATE_SELL
+                        else:
+                            strength = SignalStrength.WEAK_SELL
+                        
+                        # Calculate stop loss and take profit
+                        entry_price = current.close
+                        stop_loss = self.calculate_stop_loss(TradeDirection.SHORT, candles[-i-1:], stock_config)
+                        take_profit = self.calculate_take_profit(TradeDirection.SHORT, entry_price, stop_loss, candles[-i-1:], stock_config)
+                        
+                        # Create signal
+                        signal = Signal(
+                            timestamp=df.index[i],
+                            symbol=symbol,
+                            strategy=self.name,
+                            direction=TradeDirection.SHORT,
+                            strength=strength,
+                            entry_price=entry_price,
+                            stop_loss=stop_loss,
+                            take_profit=take_profit,
+                            expiration=df.index[i] + dt.timedelta(days=3),
+                            metadata={
+                                "squeeze_duration": squeeze_duration,
+                                "momentum": current.momentum,
+                                "volume_ratio": current.volume_ratio,
+                                "bb_width": current.bb_width
+                            }
+                        )
+                        
+                        signals.append(signal)
+        
+        return signals
+    
+    def _calculate_atr(self, df: pd.DataFrame, period: int) -> pd.Series:
+        """Calculate Average True Range"""
+        high = df['high']
+        low = df['low']
+        close = df['close'].shift(1)
+        
+        tr1 = high - low
+        tr2 = (high - close).abs()
+        tr3 = (low - close).abs()
+        
+        tr = pd.concat([tr1, tr2, tr3], axis=1).max(axis=1)
+        atr = tr.rolling(window=period).mean()
+        
+        return atr
+    
+    def calculate_stop_loss(self, 
+                           direction: TradeDirection, 
+                           candles: List[CandleData],
+                           stock_config: StockConfig) -> float:
+        """Calculate stop loss based on volatility"""
+        if len(candles) < 20:
+            # Not enough data, use a default percentage
+            if direction == TradeDirection.LONG:
+                return candles[-1].close * 0.97
+            else:
+                return candles[-1].close * 1.03
+        
+        # Convert candles to DataFrame
+        df = pd.DataFrame([candle.to_dict() for candle in candles])
+        df.set_index('timestamp', inplace=True)
+        
+        # Calculate ATR
+        atr = self._calculate_atr(df, 14).iloc[-1]
+        
+        # For breakout strategies, use a wider stop to avoid noise
+        if direction == TradeDirection.LONG:
+            return candles[-1].close - (atr * 2.5)
+        else:
+            return candles[-1].close + (atr * 2.5)
+    
+    def calculate_take_profit(self, 
+                             direction: TradeDirection,
+                             entry_price: float,
+                             stop_loss: float,
+                             candles: List[CandleData],
+                             stock_config: StockConfig) -> float:
+        """Calculate take profit based on ATR and recent volatility"""
+        risk = abs(entry_price - stop_loss)
+        
+        # Target at least 2:1 risk-reward, but adjust based on volatility
+        if len(candles) >= 20:
+            df = pd.DataFrame([candle.to_dict() for candle in candles])
+            df.set_index('timestamp', inplace=True)
+            
+            # Calculate ATR
+            atr = self._calculate_atr(df, 14).iloc[-1]
+            
+            # More aggressive target during volatility breakouts
+            if direction == TradeDirection.LONG:
+                return entry_price + (risk * 2.5)
+            else:
+                return entry_price - (risk * 2.5)
+        else:
+            # Default 2:1 risk-reward if not enough data
+            if direction == TradeDirection.LONG:
+                return entry_price + (risk * 2)
+            else:
+                return entry_price - (risk * 2)
+    
+    def should_exit_position(self, 
+                            position: PositionState,
+                            candles: List[CandleData],
+                            market_state: MarketState) -> Tuple[bool, str]:
+        """Check if a position should be exited"""
+        if len(candles) < 5:
+            return False, ""
+        
+        current_price = candles[-1].close
+        
+        # Check stop loss
+        if position.direction == TradeDirection.LONG and current_price <= position.stop_loss:
+            return True, "Stop loss triggered"
+        if position.direction == TradeDirection.SHORT and current_price >= position.stop_loss:
+            return True, "Stop loss triggered"
+        
+        # Check take profit
+        if position.take_profit is not None:
+            if position.direction == TradeDirection.LONG and current_price >= position.take_profit:
+                return True, "Take profit reached"
+            if position.direction == TradeDirection.SHORT and current_price <= position.take_profit:
+                return True, "Take profit reached"
+        
+        # Convert candles to DataFrame
+        df = pd.DataFrame([candle.to_dict() for candle in candles[-20:]])
+        df.set_index('timestamp', inplace=True)
+        
+        # Calculate momentum (rate of change)
+        df['momentum'] = df['close'].pct_change(5) * 100
+        
+        # Check for momentum reversal
+        if position.direction == TradeDirection.LONG:
+            # Exit if momentum turns significantly negative
+            if df['momentum'].iloc[-1] < -1.0 and df['momentum'].iloc[-2] < df['momentum'].iloc[-3]:
+                return True, "Momentum reversal"
+        else:
+            # Exit if momentum turns significantly positive
+            if df['momentum'].iloc[-1] > 1.0 and df['momentum'].iloc[-2] > df['momentum'].iloc[-3]:
+                return True, "Momentum reversal"
+        
+        # Check for potential exhaustion (price moving too fast)
+        daily_range = (candles[-1].high - candles[-1].low) / candles[-1].low * 100
+        if daily_range > 5:  # More than 5% range in a day
+            if position.direction == TradeDirection.LONG and current_price < candles[-1].high * 0.98:
+                return True, "Exhaustion/reversal"
+            if position.direction == TradeDirection.SHORT and current_price > candles[-1].low * 1.02:
+                return True, "Exhaustion/reversal"
+        
+        return False, ""
+    
+    def calculate_regime_weight(self, market_state: MarketState) -> float:
+        """Calculate weight based on market regime"""
+        # Volatility breakout works best when volatility is expanding
+        if market_state.regime == MarketRegime.HIGH_VOLATILITY:
+            return 2.0
+        elif market_state.regime in [MarketRegime.TRENDING_BULLISH, MarketRegime.TRENDING_BEARISH]:
+            return 1.3
+        elif market_state.regime == MarketRegime.RANGE_BOUND:
+            return 0.8
+        elif market_state.regime == MarketRegime.LOW_VOLATILITY:
+            return 1.5  # Good for catching the transition from low to high volatility
+        else:
+            return 1.0
+        
+        # Overbought condition (potential short signal)
+        elif (latest['close'] > latest['upper_band'] and 
+              latest['rsi'] > self.rsi_overbought):
+            
+            # Check for reversal confirmation (candle closing lower than open)
+            if latest['close'] < latest['open']:
+                # Calculate signal strength based on distance from bands and RSI extremity
+                band_distance = (latest['close'] - latest['upper_band']) / latest['std']
+                rsi_extremity = (latest['rsi'] - self.rsi_overbought) / 10
+                
+                # Determine signal strength
+                strength = SignalStrength.WEAK_SELL
+                if band_distance > 0.5 and rsi_extremity > 1.0:
+                    strength = SignalStrength.STRONG_SELL
+                elif band_distance > 0.3 or rsi_extremity > 0.5:
+                    strength = SignalStrength.MODERATE_SELL
+                
+                # Calculate stop loss and take profit
+                stop_loss = self.calculate_stop_loss(TradeDirection.SHORT, candles, stock_config)
+                take_profit = self.calculate_take_profit(TradeDirection.SHORT, latest['close'], stop_loss, candles, stock_config)
+                
+                # Create signal
+                signal = Signal(
+                    timestamp=candles[-1].timestamp,
+                    symbol=symbol,
+                    strategy=self.name,
+                    direction=TradeDirection.SHORT,
+                    strength=strength,
+                    entry_price=latest['close'],
+                    stop_loss=stop_loss,
+                    take_profit=take_profit,
+                    expiration=candles[-1].timestamp + dt.timedelta(days=1),
+                    metadata={
+                        "rsi": latest['rsi'],
+                        "upper_band": latest['upper_band'],
+                        "band_distance": band_distance,
+                        "sma": latest['sma']
+                    }
+                )
+                
+                signals.append(signal)
+        
+        return signals
+    
+    def calculate_stop_loss(self, 
+                           direction: TradeDirection, 
+                           candles: List[CandleData],
+                           stock_config: StockConfig) -> float:
+        """Calculate stop loss based on recent volatility (ATR)"""
+        if len(candles) < 14:
+            # Not enough data, use a default percentage
+            if direction == TradeDirection.LONG:
+                return candles[-1].close * 0.98
+            else:
+                return candles[-1].close * 1.02
+        
+        # Calculate ATR
+        high = np.array([c.high for c in candles[-14:]])
+        low = np.array([c.low for c in candles[-14:]])
+        close = np.array([c.close for c in candles[-14:]])
+        
+        tr1 = high[1:] - low[1:]
+        tr2 = abs(high[1:] - close[:-1])
+        tr3 = abs(low[1:] - close[:-1])
+        
+        tr = np.vstack([tr1, tr2, tr3])
+        atr = np.max(tr, axis=0).mean()
+        
+        # Set stop loss at 2 ATR from entry
+        if direction == TradeDirection.LONG:
+            return candles[-1].close - (atr * 2)
+        else:
+            return candles[-1].close + (atr * 2)
+    
+    def calculate_take_profit(self, 
+                             direction: TradeDirection,
+                             entry_price: float,
+                             stop_loss: float,
+                             candles: List[CandleData],
+                             stock_config: StockConfig) -> float:
+        """Calculate take profit based on mean reversion to SMA"""
+        # Convert candles to DataFrame
+        df = pd.DataFrame([candle.to_dict() for candle in candles])
+        df.set_index('timestamp', inplace=True)
+        
+        # Calculate SMA
+        sma = df['close'].rolling(window=self.bb_period).mean().iloc[-1]
+        
+        # For mean reversion, target is the mean (SMA)
+        return sma
+    
+    def should_exit_position(self, 
+                            position: PositionState,
+                            candles: List[CandleData],
+                            market_state: MarketState) -> Tuple[bool, str]:
+        """Check if a position should be exited"""
+        if len(candles) < 2:
+            return False, ""
+        
+        current_price = candles[-1].close
+        
+        # Check stop loss
+        if position.direction == TradeDirection.LONG and current_price <= position.stop_loss:
+            return True, "Stop loss triggered"
+        if position.direction == TradeDirection.SHORT and current_price >= position.stop_loss:
+            return True, "Stop loss triggered"
+        
+        # Check take profit
+        if position.take_profit is not None:
+            if position.direction == TradeDirection.LONG and current_price >= position.take_profit:
+                return True, "Take profit reached"
+            if position.direction == TradeDirection.SHORT and current_price <= position.take_profit:
+                return True, "Take profit reached"
+        
+        # Check if price has reverted to mean (SMA)
+        df = pd.DataFrame([candle.to_dict() for candle in candles])
+        df.set_index('timestamp', inplace=True)
+        sma = df['close'].rolling(window=self.bb_period).mean().iloc[-1]
+        
+        # Exit if price crosses back over the mean in favorable direction
+        if position.direction == TradeDirection.LONG and current_price > sma:
+            return True, "Price reverted to mean"
+        if position.direction == TradeDirection.SHORT and current_price < sma:
+            return True, "Price reverted to mean"
+        
+        # Check for RSI reversal
+        delta = df['close'].diff()
+        gain = delta.where(delta > 0, 0)
+        loss = -delta.where(delta < 0, 0)
+        avg_gain = gain.rolling(window=self.rsi_period).mean()
+        avg_loss = loss.rolling(window=self.rsi_period).mean()
+        rs = avg_gain / avg_loss
+        rsi = 100 - (100 / (1 + rs)).iloc[-1]
+        
+        if position.direction == TradeDirection.LONG and rsi > 60:
+            return True, "RSI overbought"
+        if position.direction == TradeDirection.SHORT and rsi < 40:
+            return True, "RSI oversold"
+        
+        return False, ""
+    
+    def calculate_regime_weight(self, market_state: MarketState) -> float:
+        """Calculate weight based on market regime"""
+        # Mean reversion works best in range-bound markets
+        if market_state.regime == MarketRegime.RANGE_BOUND:
+            return 2.0
+        elif market_state.regime == MarketRegime.LOW_VOLATILITY:
+            return 1.5
+        elif market_state.regime in [MarketRegime.TRENDING_BULLISH, MarketRegime.TRENDING_BEARISH]:
+            return 0.5
+        elif market_state.regime == MarketRegime.HIGH_VOLATILITY:
+            return 0.7
+        else:
+            return 1.0
+
+class TrendFollowingStrategy(Strategy):
+    """Trend following strategy using moving average crossovers"""
+    
+    def __init__(self, config: Dict):
+        super().__init__("TrendFollowing", config)
+        # Extract strategy-specific parameters with defaults
+        self.fast_ema_period = config.get("fast_ema_period", 9)
+        self.slow_ema_period = config.get("slow_ema_period", 21)
+        self.adx_period = config.get("adx_period", 14)
+        self.adx_threshold = config.get("adx_threshold", 25)
+        self.macd_fast = config.get("macd_fast", 12)
+        self.macd_slow = config.get("macd_slow", 26)
+        self.macd_signal = config.get("macd_signal", 9)
+    
+    def generate_signals(self, 
+                         symbol: str, 
+                         candles: List[CandleData],
+                         stock_config: StockConfig,
+                         market_state: MarketState) -> List[Signal]:
+        """Generate trend following signals"""
+        signals = []
+        
+        if len(candles) < max(self.slow_ema_period, self.adx_period, self.macd_slow + self.macd_signal) + 10:
+            # Not enough data for calculation
+            return signals
+        
+        # Convert candles to DataFrame for easier calculation
+        df = pd.DataFrame([candle.to_dict() for candle in candles])
+        df.set_index('timestamp', inplace=True)
+        
+        # Calculate EMAs
+        df['fast_ema'] = df['close'].ewm(span=self.fast_ema_period, adjust=False).mean()
+        df['slow_ema'] = df['close'].ewm(span=self.slow_ema_period, adjust=False).mean()
+        
+        # Calculate MACD
+        df['macd'] = df['close'].ewm(span=self.macd_fast, adjust=False).mean() - df['close'].ewm(span=self.macd_slow, adjust=False).mean()
+        df['macd_signal'] = df['macd'].ewm(span=self.macd_signal, adjust=False).mean()
+        df['macd_hist'] = df['macd'] - df['macd_signal']
+        
+        # Calculate ADX
+        # True Range
+        df['high_low'] = df['high'] - df['low']
+        df['high_close'] = np.abs(df['high'] - df['close'].shift())
+        df['low_close'] = np.abs(df['low'] - df['close'].shift())
+        df['tr'] = df[['high_low', 'high_close', 'low_close']].max(axis=1)
+        df['atr'] = df['tr'].rolling(window=self.adx_period).mean()
+        
+        # Directional Movement
+        df['up_move'] = df['high'] - df['high'].shift()
+        df['down_move'] = df['low'].shift() - df['low']
+        
+        df['plus_dm'] = np.where((df['up_move'] > df['down_move']) & (df['up_move'] > 0), df['up_move'], 0)
+        df['minus_dm'] = np.where((df['down_move'] > df['up_move']) & (df['down_move'] > 0), df['down_move'], 0)
+        
+        # Directional Indicators
+        df['plus_di'] = 100 * (df['plus_dm'].rolling(window=self.adx_period).mean() / df['atr'])
+        df['minus_di'] = 100 * (df['minus_dm'].rolling(window=self.adx_period).mean() / df['atr'])
+        
+        # Directional Index
+        df['dx'] = 100 * np.abs(df['plus_di'] - df['minus_di']) / (df['plus_di'] + df['minus_di'])
+        df['adx'] = df['dx'].rolling(window=self.adx_period).mean()
+        
+        # Fill NaN values
+        df.dropna(inplace=True)
+        
+        if len(df) < 5:
+            return signals
+        
+        # Get the latest data
+        latest = df.iloc[-1]
+        prev = df.iloc[-2]
+        prev2 = df.iloc[-3]
+        
+        # Check for trend following conditions
+        
+        # Bullish signal: Fast EMA crosses above Slow EMA with ADX > threshold and MACD confirmation
+        if (prev.fast_ema <= prev.slow_ema and latest.fast_ema > latest.slow_ema and
+            latest.adx > self.adx_threshold and
+            latest.macd > latest.macd_signal and latest.macd_hist > prev.macd_hist):
+            
+            # Calculate signal strength
+            adx_strength = min((latest.adx - self.adx_threshold) / 10, 2.0)
+            macd_strength = min(latest.macd_hist / 0.5, 2.0)
+            
+            # Determine overall signal strength
+            if adx_strength > 1.0 and macd_strength > 1.0:
+                strength = SignalStrength.STRONG_BUY
+            elif adx_strength > 0.5 or macd_strength > 0.5:
+                strength = SignalStrength.MODERATE_BUY
+            else:
+                strength = SignalStrength.WEAK_BUY
+            
+            # Calculate stop loss and take profit
+            stop_loss = self.calculate_stop_loss(TradeDirection.LONG, candles, stock_config)
+            take_profit = self.calculate_take_profit(TradeDirection.LONG, latest.close, stop_loss, candles, stock_config)
+            
+            # Create signal
+            signal = Signal(
+                timestamp=candles[-1].timestamp,
+                symbol=symbol,
+                strategy=self.name,
+                direction=TradeDirection.LONG,
+                strength=strength,
+                entry_price=latest.close,
+                stop_loss=stop_loss,
+                take_profit=take_profit,
+                expiration=candles[-1].timestamp + dt.timedelta(days=2),
+                metadata={
+                    "adx": latest.adx,
+                    "plus_di": latest.plus_di,
+                    "minus_di": latest.minus_di,
+                    "fast_ema": latest.fast_ema,
+                    "slow_ema": latest.slow_ema,
+                    "macd": latest.macd,
+                    "macd_signal": latest.macd_signal,
+                    "macd_hist": latest.macd_hist
+                }
+            )
+            
+            signals.append(signal)
+        
+        # Bearish signal: Fast EMA crosses below Slow EMA with ADX > threshold and MACD confirmation
+        elif (prev.fast_ema >= prev.slow_ema and latest.fast_ema < latest.slow_ema and
+              latest.adx > self.adx_threshold and
+              latest.macd < latest.macd_signal and latest.macd_hist < prev.macd_hist):
+            
+            # Calculate signal strength
+            adx_strength = min((latest.adx - self.adx_threshold) / 10, 2.0)
+            macd_strength = min(abs(latest.macd_hist) / 0.5, 2.0)
+            
+            # Determine overall signal strength
+            if adx_strength > 1.0 and macd_strength > 1.0:
+                strength = SignalStrength.STRONG_SELL
+            elif adx_strength > 0.5 or macd_strength > 0.5:
+                strength = SignalStrength.MODERATE_SELL
+            else:
+                strength = SignalStrength.WEAK_SELL
+            
+            # Calculate stop loss and take profit
+            stop_loss = self.calculate_stop_loss(TradeDirection.SHORT, candles, stock_config)
+            take_profit = self.calculate_take_profit(TradeDirection.SHORT, latest.close, stop_loss, candles, stock_config)
+            
+            # Create signal
+            signal = Signal(
+                timestamp=candles[-1].timestamp,
+                symbol=symbol,
+                strategy=self.name,
+                direction=TradeDirection.SHORT,
+                strength=strength,
+                entry_price=latest.close,
+                stop_loss=stop_loss,
+                take_profit=take_profit,
+                expiration=candles[-1].timestamp + dt.timedelta(days=2),
+                metadata={
+                    "adx": latest.adx,
+                    "plus_di": latest.plus_di,
+                    "minus_di": latest.minus_di,
+                    "fast_ema": latest.fast_ema,
+                    "slow_ema": latest.slow_ema,
+                    "macd": latest.macd,
+                    "macd_signal": latest.macd_signal,
+                    "macd_hist": latest.macd_hist
+                }
+            )
+            
+            signals.append(signal)

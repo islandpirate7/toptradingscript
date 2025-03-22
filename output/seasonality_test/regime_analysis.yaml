@@ -1,0 +1,46 @@
+regime_counts:
+  MarketRegime.MIXED: 85
+  MarketRegime.RANGE_BOUND: 107
+  MarketRegime.TRENDING: 84
+  MarketRegime.UNKNOWN: 20
+regime_metrics:
+  MarketRegime.MIXED:
+    avg_return: !!python/object/apply:numpy._core.multiarray.scalar
+    - &id001 !!python/object/apply:numpy.dtype
+      args:
+      - f8
+      - false
+      - true
+      state: !!python/tuple
+      - 3
+      - <
+      - null
+      - null
+      - null
+      - -1
+      - -1
+      - 0
+    - !!binary |
+      p07jx7r7rz8=
+    profit_factor: 6.588122472559218
+    total_return: 2418.2600000000016
+    trade_count: 18
+    win_rate: 0.2777777777777778
+  MarketRegime.RANGE_BOUND:
+    avg_return: !!python/object/apply:numpy._core.multiarray.scalar
+    - *id001
+    - !!binary |
+      9BNGmY7SbD8=
+    profit_factor: 1.8455917986952475
+    total_return: 453.6600000000003
+    trade_count: 17
+    win_rate: 0.17647058823529413
+  MarketRegime.TRENDING:
+    avg_return: !!python/object/apply:numpy._core.multiarray.scalar
+    - *id001
+    - !!binary |
+      Wp/DeAaVrL8=
+    profit_factor: 0.34767376681614376
+    total_return: -977.5499999999993
+    trade_count: 11
+    win_rate: 0.18181818181818182

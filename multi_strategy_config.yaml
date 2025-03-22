@@ -1,0 +1,487 @@
+# Multi-Strategy Trading System Configuration v2.6
+# ------------------------------------------
+# Version: 2.6 - Optimized Strategy Weights and Parameters
+# Last Updated: 2025-03-15
+
+# Overall System Configuration
+initial_capital: 100000.0         # Starting capital
+max_open_positions: 8            # Reduced from 10 to 8 for better capital allocation
+max_positions_per_symbol: 2      # Maximum positions per symbol
+max_correlated_positions: 5      # Maximum correlated positions
+max_sector_exposure_pct: 30.0    # Maximum exposure to any sector (%)
+max_portfolio_risk_daily_pct: 1.5  # Reduced from 2.0% to 1.5% for better risk management
+rebalance_interval: 1d           # Rebalance interval (d=days, h=hours)
+data_lookback_days: 30           # Days of historical data to maintain
+market_hours_start: '09:30'      # Market open time (EST)
+market_hours_end: '16:00'        # Market close time (EST)
+debug_mode: true                 # Enable debug mode for more verbose logging
+
+# Data Source Configuration
+data_source: ALPACA             # Data source (YAHOO, ALPACA, IB)
+api_key: null                  # API key (if required)
+api_secret: null               # API secret (if required)
+
+# Strategy Weights (adjusted based on performance analysis)
+strategy_weights:
+  MeanReversion: 0.60          # Increased mean reversion weight (from 0.35)
+  TrendFollowing: 0.30         # Slightly increased trend following weight (from 0.25)
+  VolatilityBreakout: 0.05     # Reduced volatility breakout weight (from 0.20)
+  GapTrading: 0.05             # Reduced gap trading weight (from 0.20)
+
+# Trading Configuration
+enable_auto_trading: false     # Enable automated trading
+backtesting_mode: true         # Enable backtesting mode
+
+# Signal Quality Filters Configuration
+signal_quality_filters:
+  min_score_threshold: 0.7       # Increased from 0.6 to 0.7 for higher quality signals
+  max_correlation_threshold: 0.7 # Maximum correlation between signals
+  min_volume_percentile: 50      # Minimum volume percentile
+  min_price: 5.0                 # Minimum price for a stock
+  max_spread_percent: 1.0        # Maximum bid-ask spread percentage
+  min_volatility_percentile: 20  # Minimum volatility percentile
+  max_volatility_percentile: 90  # Maximum volatility percentile
+  min_regime_weight: 0.3         # Minimum regime weight for a strategy
+  max_signals_per_regime: 5      # Maximum signals per market regime
+  max_sector_exposure: 0.3       # Maximum sector exposure (as fraction)
+  max_signals_per_day: 8         # Reduced from 10 to 8 for more selective signals
+
+# Adaptive Position Sizing Configuration
+position_sizing_config:
+  base_risk_per_trade: 0.01      # Base risk per trade (as fraction of portfolio)
+  max_position_size: 0.1         # Maximum position size (as fraction of portfolio)
+  min_position_size: 0.005       # Minimum position size (as fraction of portfolio)
+  volatility_adjustment: true     # Enable volatility-based position sizing
+  signal_strength_adjustment: true # Enable signal strength-based position sizing
+
+# ML-Based Strategy Selection Configuration
+ml_strategy_selector:
+  ml_lookback_window: 30         # Lookback window for ML training (days)
+  ml_min_training_samples: 100   # Minimum training samples required
+  ml_retraining_frequency: 7     # Retraining frequency (days)
+  ml_feature_columns:            # Features used for ML models
+    - vix
+    - market_adx
+    - trending_strength
+    - range_bound_strength
+    - volatility_strength
+    - regime_change_probability
+
+# Strategy-Specific Configurations
+strategy_configs:
+  MeanReversion:
+    # Core parameters - using optimized values from configuration_mean_reversion_final.yaml
+    bb_period: 20
+    bb_std_dev: 1.9              # Optimized value
+    rsi_period: 14
+    rsi_overbought: 65           # Less extreme threshold for more signals
+    rsi_oversold: 35             # Less extreme threshold for more signals
+    
+    # Signal generation parameters
+    require_reversal: true        # Require reversal pattern for higher quality signals
+    min_reversal_candles: 1       # Only need 1 candle for reversal
+    
+    # Risk management parameters
+    stop_loss_atr: 1.8            # 1.8x ATR for stop loss
+    take_profit_atr: 3.0          # 3x ATR for take profit (1.67:1 risk-reward)
+    
+    # Position sizing parameters
+    max_position_size: 0.1        # Maximum 10% of portfolio per position
+    
+  TrendFollowing:
+    # Optimized parameters based on configuration_trend_following_optimized.yaml
+    fast_ema_period: 8            # Faster EMA for quicker trend detection
+    slow_ema_period: 21           # Optimized slow EMA period
+    adx_period: 14
+    adx_threshold: 20             # Lowered for more signals
+    
+    # MACD parameters
+    macd_fast: 12
+    macd_slow: 26
+    macd_signal: 9
+    
+    # New parameters for improved signal quality
+    min_trend_strength: 0.15      # Minimum trend strength to consider
+    consecutive_bars: 2           # Require consecutive confirming bars
+    
+    # Risk management
+    atr_period: 14
+    stop_loss_atr: 1.5            # Tighter stop loss
+    risk_reward_ratio: 2.0        # 2:1 reward-to-risk ratio
+    
+  VolatilityBreakout:
+    # Optimized parameters
+    lookback_period: 20
+    breakout_std_dev: 2.0
+    min_volume_ratio: 1.5
+    
+  GapTrading:
+    # Optimized parameters
+    min_gap_percent: 2.0
+    max_gap_percent: 10.0
+    volume_ratio_threshold: 2.0
+
+# Stocks Configuration
+stocks:
+  - symbol: AAPL
+    max_position_size: 500
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.5
+    min_volume: 10000
+    beta: 1.2
+    sector: Technology
+    industry: Consumer Electronics
+    mean_reversion_params:
+      bb_period: 20
+      bb_std_dev: 1.9
+      rsi_period: 14
+      rsi_overbought: 65
+      rsi_oversold: 35
+      min_reversal_candles: 1
+    trend_following_params:
+      adx_threshold: 20
+      adx_period: 14
+      fast_ema_period: 8
+      slow_ema_period: 21
+      consecutive_bars: 2
+    volatility_breakout_params:
+      min_squeeze_periods: 3
+      bollinger_period: 10
+      keltner_period: 10
+    gap_trading_params:
+      min_gap_pct: 0.5
+  
+  - symbol: MSFT
+    max_position_size: 500
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.5
+    min_volume: 10000
+    beta: 1.1
+    sector: Technology
+    industry: Software
+    mean_reversion_params:
+      bb_period: 20
+      bb_std_dev: 1.9
+      rsi_period: 14
+      rsi_overbought: 65
+      rsi_oversold: 35
+      min_reversal_candles: 1
+    trend_following_params:
+      adx_threshold: 20
+      adx_period: 14
+      fast_ema_period: 8
+      slow_ema_period: 21
+      consecutive_bars: 2
+    volatility_breakout_params:
+      min_squeeze_periods: 3
+      bollinger_period: 10
+      keltner_period: 10
+    gap_trading_params:
+      min_gap_pct: 0.5
+  
+  - symbol: GOOGL
+    max_position_size: 500
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.5
+    min_volume: 10000
+    beta: 1.3
+    sector: Technology
+    industry: Internet Services
+    mean_reversion_params:
+      bb_period: 20
+      bb_std_dev: 1.9
+      rsi_period: 14
+      rsi_overbought: 65
+      rsi_oversold: 35
+      min_reversal_candles: 1
+    trend_following_params:
+      adx_threshold: 20
+      adx_period: 14
+      fast_ema_period: 8
+      slow_ema_period: 21
+      consecutive_bars: 2
+    volatility_breakout_params:
+      min_squeeze_periods: 3
+      bollinger_period: 10
+      keltner_period: 10
+    gap_trading_params:
+      min_gap_pct: 0.5
+  
+  - symbol: AMZN
+    max_position_size: 200
+    min_position_size: 5
+    max_risk_per_trade_pct: 0.5
+    min_volume: 10000
+    beta: 1.4
+    sector: Consumer Discretionary
+    industry: E-Commerce
+    mean_reversion_params:
+      bb_std_dev: 1.9
+      rsi_overbought: 65
+      rsi_oversold: 35
+    trend_following_params:
+      adx_threshold: 20
+      fast_ema_period: 8
+      slow_ema_period: 21
+      consecutive_bars: 2
+    volatility_breakout_params:
+      min_squeeze_periods: 6
+    gap_trading_params:
+      min_gap_pct: 1.0
+  
+  - symbol: META
+    max_position_size: 300
+    min_position_size: 5
+    max_risk_per_trade_pct: 0.5
+    min_volume: 10000
+    beta: 1.2
+    sector: Technology
+    industry: Social Media
+    mean_reversion_params:
+      bb_period: 20
+      bb_std_dev: 1.9
+      rsi_period: 14
+      rsi_overbought: 65
+      rsi_oversold: 35
+      min_reversal_candles: 1
+    trend_following_params:
+      adx_threshold: 20
+      adx_period: 14
+      fast_ema_period: 8
+      slow_ema_period: 21
+      consecutive_bars: 2
+    volatility_breakout_params:
+      min_squeeze_periods: 3
+      bollinger_period: 10
+      keltner_period: 10
+    gap_trading_params:
+      min_gap_pct: 0.5
+  
+  - symbol: NVDA
+    max_position_size: 300
+    min_position_size: 5
+    max_risk_per_trade_pct: 0.5
+    min_volume: 10000
+    beta: 1.5
+    sector: Technology
+    industry: Semiconductors
+    mean_reversion_params:
+      bb_period: 20
+      bb_std_dev: 1.9
+      rsi_period: 14
+      rsi_overbought: 65
+      rsi_oversold: 35
+      min_reversal_candles: 1
+    trend_following_params:
+      adx_threshold: 20
+      adx_period: 14
+      fast_ema_period: 8
+      slow_ema_period: 21
+      consecutive_bars: 2
+    volatility_breakout_params:
+      min_squeeze_periods: 3
+      bollinger_period: 10
+      keltner_period: 10
+    gap_trading_params:
+      min_gap_pct: 0.5
+  
+  - symbol: AMD
+    max_position_size: 400
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.5
+    min_volume: 10000
+    beta: 1.4
+    sector: Technology
+    industry: Semiconductors
+    mean_reversion_params:
+      bb_std_dev: 1.5
+      rsi_overbought: 65
+      rsi_oversold: 35
+    trend_following_params:
+      adx_threshold: 20
+    volatility_breakout_params:
+      min_squeeze_periods: 6
+    gap_trading_params:
+      min_gap_pct: 1.0
+  
+  - symbol: TSLA
+    max_position_size: 100
+    min_position_size: 5
+    max_risk_per_trade_pct: 0.5
+    min_volume: 10000
+    beta: 1.8
+    sector: Consumer Cyclical
+    industry: Auto Manufacturers
+    mean_reversion_params:
+      bb_std_dev: 1.5
+      rsi_overbought: 65
+      rsi_oversold: 35
+    trend_following_params:
+      adx_threshold: 20
+    volatility_breakout_params:
+      min_squeeze_periods: 6
+    gap_trading_params:
+      min_gap_pct: 1.0
+  
+  - symbol: JPM
+    max_position_size: 400
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.4
+    min_volume: 5000
+    beta: 1.1
+    sector: Financial Services
+    industry: Banks
+    mean_reversion_params:
+      bb_std_dev: 1.5
+      rsi_overbought: 65
+      rsi_oversold: 35
+    trend_following_params:
+      adx_threshold: 20
+    volatility_breakout_params:
+      min_squeeze_periods: 6
+    gap_trading_params:
+      min_gap_pct: 1.0
+  
+  - symbol: DIS
+    max_position_size: 400
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.4
+    min_volume: 5000
+    beta: 1.0
+    sector: Communication Services
+    industry: Entertainment
+    mean_reversion_params:
+      bb_std_dev: 1.5
+      rsi_overbought: 65
+      rsi_oversold: 35
+    trend_following_params:
+      adx_threshold: 20
+    volatility_breakout_params:
+      min_squeeze_periods: 6
+    gap_trading_params:
+      min_gap_pct: 1.0
+  
+  - symbol: SPY
+    max_position_size: 500
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.3
+    min_volume: 5000
+    beta: 1.0
+    sector: Index
+    industry: S&P 500
+    mean_reversion_params:
+      bb_std_dev: 1.5
+      rsi_overbought: 65
+      rsi_oversold: 35
+    trend_following_params:
+      adx_threshold: 20
+    volatility_breakout_params:
+      min_squeeze_periods: 6
+    gap_trading_params:
+      min_gap_pct: 1.0
+  
+  - symbol: V
+    max_position_size: 400
+    min_position_size: 10
+    max_risk_per_trade_pct: 0.3
+    min_volume: 5000
+    beta: 0.9
+    sector: Financial Services
+    industry: Credit Services
+    mean_reversion_params:
+      bb_std_dev: 1.5
+      rsi_overbought: 65
+      rsi_oversold: 35
+    trend_following_params:
+      adx_threshold: 20
+    volatility_breakout_params:
+      min_squeeze_periods: 6
+    gap_trading_params:
+      min_gap_pct: 1.0
+
+# Crypto Configuration
+crypto:
+  enabled: true                  # Enable crypto trading
+  max_allocation: 0.20           # Maximum portfolio allocation to crypto (20%)
+  trading_hours: 24/7            # Crypto markets trade 24/7
+  assets:
+    - symbol: BTCUSD
+      max_position_size: 10000
+      min_position_size: 1000
+      max_risk_per_trade_pct: 1.0
+      sector: Cryptocurrency
+      industry: Digital Currency
+      mean_reversion_params:
+        bb_period: 20
+        bb_std_dev: 2.2          # Higher volatility requires wider bands
+        rsi_period: 14
+        rsi_overbought: 70       # Slightly higher threshold for crypto
+        rsi_oversold: 30         # Slightly lower threshold for crypto
+        stop_loss_atr: 2.0       # Wider stop loss for crypto volatility
+        take_profit_atr: 3.5     # Higher take profit target for crypto
+        min_reversal_candles: 2  # Require stronger reversal pattern
+      trend_following_params:
+        adx_threshold: 25        # Stronger trend required for crypto
+        adx_period: 14
+        ema_short: 8
+        ema_long: 21
+      volatility_breakout_params:
+        min_squeeze_periods: 4
+        bollinger_period: 20
+        keltner_period: 20
+      gap_trading_params:
+        min_gap_pct: 3.0         # Larger gaps in crypto
+    
+    - symbol: ETHUSD
+      max_position_size: 8000
+      min_position_size: 800
+      max_risk_per_trade_pct: 1.0
+      sector: Cryptocurrency
+      industry: Smart Contracts
+      mean_reversion_params:
+        bb_period: 20
+        bb_std_dev: 2.2
+        rsi_period: 14
+        rsi_overbought: 70
+        rsi_oversold: 30
+        stop_loss_atr: 2.0
+        take_profit_atr: 3.5
+        min_reversal_candles: 2
+      trend_following_params:
+        adx_threshold: 25
+        adx_period: 14
+        ema_short: 8
+        ema_long: 21
+      volatility_breakout_params:
+        min_squeeze_periods: 4
+        bollinger_period: 20
+        keltner_period: 20
+      gap_trading_params:
+        min_gap_pct: 3.0
+    
+    - symbol: SOLUSD
+      max_position_size: 5000
+      min_position_size: 500
+      max_risk_per_trade_pct: 1.2
+      sector: Cryptocurrency
+      industry: Smart Contracts
+      mean_reversion_params:
+        bb_period: 20
+        bb_std_dev: 2.5          # Higher volatility for SOL
+        rsi_period: 14
+        rsi_overbought: 72
+        rsi_oversold: 28
+        stop_loss_atr: 2.2       # Wider stop loss for higher volatility
+        take_profit_atr: 4.0     # Higher take profit for higher volatility
+        min_reversal_candles: 2
+      trend_following_params:
+        adx_threshold: 25
+        adx_period: 14
+        ema_short: 8
+        ema_long: 21
+      volatility_breakout_params:
+        min_squeeze_periods: 4
+        bollinger_period: 20
+        keltner_period: 20
+      gap_trading_params:
+        min_gap_pct: 4.0

@@ -1,0 +1,10 @@
+api_credentials_path: alpaca_credentials.json
+correlation_threshold: 0.7
+current_period_days: 30
+generate_plots: true
+lookback_years: 5
+min_avg_return: 0.2
+min_trades: 3
+min_win_rate: 0.55
+output_dir: output
+season_type: MONTH_OF_YEAR

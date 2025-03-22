@@ -1,0 +1,88 @@
+# Combined Strategy Optimized Configuration
+
+global:
+  initial_capital: 100000
+  max_positions: 10
+  position_size_pct: 0.05  # 5% of capital per position
+  max_risk_per_trade_pct: 0.01  # 1% max risk per trade
+  max_correlated_positions: 3
+  market_hours_only: true
+  enable_logging: true
+  log_level: INFO
+
+stocks:
+  AAPL:
+    weight: 1.2
+  MSFT:
+    weight: 1.1
+  GOOGL:
+    weight: 1.0
+  AMZN:
+    weight: 1.0
+  META:
+    weight: 0.9
+  SPY:
+    weight: 1.0
+
+strategies:
+  # Mean Reversion Strategy Configuration
+  MeanReversion:
+    base_weight: 0.4  # Reduced weight for mean reversion
+    
+    # Bollinger Bands Parameters
+    bb_period: 20
+    bb_std: 1.9  # Slightly tighter bands than default
+    
+    # RSI Parameters
+    rsi_period: 14
+    rsi_oversold: 35  # Less extreme for more signals
+    rsi_overbought: 65  # Less extreme for more signals
+    
+    # Signal Quality Parameters
+    require_reversal: true  # Require price reversal for higher quality signals
+    min_distance_to_band_pct: 0.005  # Minimum distance to BB to consider a signal
+    
+    # Risk Management
+    atr_period: 14
+    stop_loss_atr: 1.5  # Tighter stop loss (reduced from 1.8)
+    take_profit_atr: 3.0  # Take profit at 3.0x ATR (2:1 reward-to-risk)
+    
+    # Symbol-specific weights (based on historical performance)
+    symbol_weights:
+      AAPL: 1.2
+      MSFT: 1.1
+      GOOGL: 1.0
+      AMZN: 1.0
+      META: 0.9
+      SPY: 1.0
+
+  # Trend Following Strategy Configuration
+  TrendFollowing:
+    base_weight: 0.6  # Increased weight for trend following
+    
+    # EMA Parameters
+    fast_ema_period: 8  # Slightly faster than default (9)
+    slow_ema_period: 21
+    
+    # ADX Parameters
+    adx_period: 14
+    adx_threshold: 22  # Increased slightly to filter out weaker signals
+    
+    # MACD Parameters
+    macd_fast: 12
+    macd_slow: 26
+    macd_signal: 9
+    
+    # Risk Management
+    atr_period: 14
+    stop_loss_atr: 1.3  # Tighter stop loss
+    risk_reward_ratio: 2.5  # Increased reward-to-risk ratio
+    
+    # Symbol-specific weights (based on historical performance)
+    symbol_weights:
+      AAPL: 1.2
+      MSFT: 1.1
+      GOOGL: 1.0
+      AMZN: 1.0
+      META: 0.9
+      SPY: 1.0

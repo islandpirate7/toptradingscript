@@ -1,0 +1,151 @@
+# Configuration for Combined Strategy with March Seasonality Stocks
+
+# General settings
+general:
+  log_level: INFO
+  initial_capital: 100000
+  max_positions: 15
+  max_portfolio_risk_pct: 0.02
+  min_capital_per_trade: 1000
+  symbols:
+    # Top seasonal stocks for March
+    - LIN    # Top seasonal stock for March
+    - NVDA   # Top seasonal stock for March
+    - NEE    # Top seasonal stock for March
+    - VLO    # Top seasonal stock for March
+    - MRK    # Top seasonal stock for March
+    - PSX    # Top seasonal stock for March
+    - DE     # Top seasonal stock for March
+    - EOG    # Top seasonal stock for March
+    - CVX    # Top seasonal stock for March (also in original list)
+    - XLU    # Top seasonal stock for March
+  timeframe: '1D'
+  position_size_pct: 0.05  # Base position size (will be adjusted dynamically)
+  backtest_start_date: '2024-03-01'
+  backtest_end_date: '2024-03-31'
+  min_signal_score: 0.55  # Lowered to allow more signals overall
+
+# Strategy-specific configurations
+strategy_configs:
+  # Mean Reversion Strategy parameters
+  MeanReversion:
+    weight: 0.45
+    bb_period: 20
+    bb_std: 1.8
+    rsi_period: 14
+    rsi_lower: 38
+    rsi_upper: 62
+    require_reversal: true
+    stop_loss_atr_multiplier: 1.6
+    take_profit_atr_multiplier: 2.8
+    atr_period: 14
+    volume_filter: true
+    min_volume_percentile: 50
+    min_atr_percentile: 30
+    min_price: 10.0
+    max_price: 1000.0
+    max_spread_pct: 0.5
+    signal_expiry_bars: 3
+    entry_limit_pct: 0.5
+    exit_limit_pct: 0.5
+    symbol_weights:
+      LIN: 1.2
+      NVDA: 1.3
+      NEE: 1.1
+      VLO: 1.2
+      MRK: 1.1
+      PSX: 1.2
+      DE: 1.1
+      EOG: 1.2
+      CVX: 1.2
+      XLU: 1.1
+
+  # Trend Following Strategy parameters
+  TrendFollowing:
+    weight: 0.55
+    ema_short: 9
+    ema_medium: 21
+    ema_long: 50
+    macd_fast: 12
+    macd_slow: 26
+    macd_signal: 9
+    adx_period: 14
+    adx_threshold: 25
+    stop_loss_atr_multiplier: 1.6
+    take_profit_atr_multiplier: 2.8
+    atr_period: 14
+    volume_filter: true
+    min_volume_percentile: 50
+    min_atr_percentile: 30
+    min_price: 10.0
+    max_price: 1000.0
+    max_spread_pct: 0.5
+    signal_expiry_bars: 3
+    entry_limit_pct: 0.5
+    exit_limit_pct: 0.5
+    symbol_weights:
+      LIN: 1.2
+      NVDA: 1.3
+      NEE: 1.1
+      VLO: 1.2
+      MRK: 1.1
+      PSX: 1.2
+      DE: 1.1
+      EOG: 1.2
+      CVX: 1.2
+      XLU: 1.1
+
+# Combined strategy parameters
+combined_strategy:
+    dynamic_weights: true
+    signal_threshold: 0.6
+    signal_expiry_bars: 3
+    adx_period: 14
+    adx_threshold: 25
+    min_signal_score: 0.55
+    max_signals_per_day: 4
+    position_size_pct: 0.05
+
+# Risk management parameters
+risk_management:
+  max_portfolio_risk_pct: 0.02
+  max_position_risk_pct: 0.005
+  max_sector_exposure_pct: 0.20
+  max_drawdown_exit_pct: 0.15
+  trailing_stop_activation_pct: 0.05
+  trailing_stop_distance_pct: 0.03
+  profit_taking_levels:
+    - level: 0.05
+      size_reduction_pct: 0.25
+    - level: 0.10
+      size_reduction_pct: 0.50
+  volatility_adjustment: true
+  volatility_lookback: 20
+  volatility_scaling_factor: 0.8
+
+# Market regime configuration
+market_regime:
+  adx_threshold: 25
+  volatility_period: 20
+  regime_lookback: 10
+  trending_weights:
+    mean_reversion: 0.15
+    trend_following: 0.85
+  range_bound_weights:
+    mean_reversion: 0.75
+    trend_following: 0.25
+  mixed_weights:
+    mean_reversion: 0.55
+    trend_following: 0.45
+
+# Seasonality configuration
+seasonality:
+  enabled: true
+  data_file: 'output/seasonal_opportunities_converted.yaml'
+  min_score_threshold: 0.6
+  weight_adjustment: true
+  sector_influence: 0.3
+  stock_specific_influence: 0.7
+  top_n_selection: 10
+  boost_factor: 0.3  # Increased from default 0.2
+  penalty_factor: 0.3  # Increased from default 0.2

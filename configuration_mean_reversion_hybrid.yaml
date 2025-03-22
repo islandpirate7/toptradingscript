@@ -1,0 +1,131 @@
+# Mean Reversion Strategy Hybrid Configuration
+
+# Core parameters
+strategy_name: MeanReversion
+initial_capital: 100000
+position_size_percentage: 10
+max_positions: 10
+market_hours_only: true
+
+# Signal generation parameters
+signal_parameters:
+  bb_period: 20
+  bb_std_dev: 2.0  # From original (better returns)
+  rsi_period: 14
+  rsi_oversold: 30  # From original (more signals)
+  rsi_overbought: 70  # From original (more signals)
+  require_price_reversal: true  # From optimized (better quality signals)
+  volume_threshold_multiplier: 1.0
+
+# Risk management parameters
+risk_management:
+  stop_loss_atr_multiplier: 1.8  # From optimized (better risk control)
+  take_profit_atr_multiplier: 3.0  # Same in both
+  atr_period: 14
+  trailing_stop_activation_percentage: 1.5
+  trailing_stop_distance_percentage: 0.5
+  max_loss_per_trade_percentage: 2.0
+
+# Stock universe
+symbols:
+  - symbol: AAPL
+    weight_multiplier: 1.2
+  - symbol: MSFT
+    weight_multiplier: 1.2
+  - symbol: GOOGL
+    weight_multiplier: 1.0
+  - symbol: AMZN
+    weight_multiplier: 1.0
+  - symbol: META
+    weight_multiplier: 1.0
+  - symbol: NVDA
+    weight_multiplier: 1.5
+  - symbol: AMD
+    weight_multiplier: 1.0
+  - symbol: TSLA
+    weight_multiplier: 0.8
+  - symbol: JPM
+    weight_multiplier: 1.0
+  - symbol: DIS
+    weight_multiplier: 1.0
+  - symbol: NFLX
+    weight_multiplier: 1.0
+  - symbol: INTC
+    weight_multiplier: 0.8
+  - symbol: CSCO
+    weight_multiplier: 0.8
+  - symbol: ADBE
+    weight_multiplier: 1.0
+  - symbol: PYPL
+    weight_multiplier: 0.8
+  - symbol: CRM
+    weight_multiplier: 1.0
+  - symbol: COST
+    weight_multiplier: 1.0
+  - symbol: PEP
+    weight_multiplier: 0.8
+  - symbol: CMCSA
+    weight_multiplier: 0.8
+  - symbol: AVGO
+    weight_multiplier: 1.0
+  - symbol: TXN
+    weight_multiplier: 0.8
+  - symbol: QCOM
+    weight_multiplier: 0.8
+  - symbol: TMUS
+    weight_multiplier: 0.8
+  - symbol: IBM
+    weight_multiplier: 0.8
+  - symbol: SBUX
+    weight_multiplier: 0.8
+  # Cryptocurrencies
+  - symbol: BTC/USD
+    weight_multiplier: 1.0
+  - symbol: ETH/USD
+    weight_multiplier: 1.0
+  - symbol: SOL/USD
+    weight_multiplier: 0.8
+  - symbol: ADA/USD
+    weight_multiplier: 0.7
+  - symbol: DOT/USD
+    weight_multiplier: 0.7
+  - symbol: AVAX/USD
+    weight_multiplier: 0.7
+  - symbol: LINK/USD
+    weight_multiplier: 0.7
+  - symbol: MATIC/USD
+    weight_multiplier: 0.7
+  - symbol: XRP/USD
+    weight_multiplier: 0.7
+  - symbol: DOGE/USD
+    weight_multiplier: 0.6
+  - symbol: UNI/USD
+    weight_multiplier: 0.6
+  - symbol: AAVE/USD
+    weight_multiplier: 0.6
+  - symbol: ATOM/USD
+    weight_multiplier: 0.6
+  - symbol: LTC/USD
+    weight_multiplier: 0.7
+  - symbol: BCH/USD
+    weight_multiplier: 0.6
+  - symbol: XLM/USD
+    weight_multiplier: 0.6
+  - symbol: EOS/USD
+    weight_multiplier: 0.5
+  - symbol: FIL/USD
+    weight_multiplier: 0.5
+  - symbol: ALGO/USD
+    weight_multiplier: 0.5
+  - symbol: XTZ/USD
+    weight_multiplier: 0.5
+  - symbol: COMP/USD
+    weight_multiplier: 0.5
+  - symbol: MKR/USD
+    weight_multiplier: 0.5
+  - symbol: YFI/USD
+    weight_multiplier: 0.5
+  - symbol: SNX/USD
+    weight_multiplier: 0.5
+  - symbol: SUSHI/USD
+    weight_multiplier: 0.5

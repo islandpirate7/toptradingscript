@@ -1,0 +1,21 @@
+symbol,data_available,trading_days,expected_days,has_gaps,has_zeros,has_nulls,price_range,avg_volume,potential_buy_signals,potential_sell_signals,ultra_buy_signals,ultra_sell_signals
+LIN,True,23,23,False,False,False,"(np.float64(324.11), np.float64(362.74))",2290039.347826087,0,0,5,4
+NVDA,True,23,23,False,False,False,"(np.float64(222.97), np.float64(278.3431))",51519638.39130435,0,0,0,10
+NEE,True,23,23,False,False,False,"(np.float64(69.64), np.float64(77.12))",8492092.52173913,0,0,0,9
+VLO,True,23,23,False,False,False,"(np.float64(120.85), np.float64(142.29))",5018982.478260869,0,0,6,4
+MRK,True,23,23,False,False,False,"(np.float64(102.44), np.float64(112.18))",9414923.56521739,0,0,8,0
+PSX,True,23,23,False,False,False,"(np.float64(90.66), np.float64(107.45))",4504820.956521739,0,0,6,4
+DE,True,23,23,False,False,False,"(np.float64(381.39), np.float64(432.89))",1540257.4347826086,0,0,8,2
+EOG,True,23,23,False,False,False,"(np.float64(98.5217), np.float64(122.0))",4672660.173913044,0,0,7,3
+CVX,True,23,23,False,False,False,"(np.float64(149.91), np.float64(166.8))",8953245.47826087,0,0,6,4
+XLU,True,23,23,False,False,False,"(np.float64(63.38), np.float64(68.01))",17145664.43478261,0,0,1,6
+AAPL,True,23,23,False,False,False,"(np.float64(143.9), np.float64(165.0))",74085225.30434783,0,1,0,10
+MSFT,True,23,23,False,False,False,"(np.float64(245.61), np.float64(289.27))",36671730.30434783,0,0,0,10
+AMZN,True,23,23,False,False,False,"(np.float64(88.12), np.float64(103.49))",64125020.95652174,0,0,0,10
+GOOGL,True,23,23,False,False,False,"(np.float64(89.42), np.float64(106.59))",41399775.91304348,0,0,0,10
+META,True,23,23,False,False,False,"(np.float64(171.43), np.float64(212.17))",31899511.13043478,0,0,0,10
+TSLA,True,23,23,False,False,False,"(np.float64(163.91), np.float64(207.79))",146202442.3478261,0,1,1,4
+JPM,True,23,23,False,False,False,"(np.float64(123.11), np.float64(144.04))",19931036.260869566,0,0,10,0
+V,True,23,23,False,False,False,"(np.float64(208.76), np.float64(227.415))",7287337.0,0,0,1,5
+WMT,True,23,23,False,False,False,"(np.float64(136.09), np.float64(148.44))",7566899.826086956,0,2,0,5
+PG,True,23,23,False,False,False,"(np.float64(136.1), np.float64(148.69))",6734932.521739131,0,0,0,10

@@ -1,0 +1,202 @@
+{
+    "strategy_name": "Improved Mean Reversion",
+    "quarters": {
+        "Q1 2023": {
+            "initial_capital": 100000,
+            "final_capital": 99974.94915714287,
+            "return_pct": 0,
+            "win_rate": 0.4,
+            "profit_factor": 0.9931551216235601,
+            "max_drawdown": 0.41353626478387884,
+            "total_trades": 5
+        },
+        "Q2 2023": {
+            "initial_capital": 100000,
+            "final_capital": 99260.2328,
+            "return_pct": 0,
+            "win_rate": 0.0,
+            "profit_factor": 0.0,
+            "max_drawdown": 0.16970835584183094,
+            "total_trades": 2
+        },
+        "Q3 2023": {
+            "initial_capital": 100000,
+            "final_capital": 102466.01525714288,
+            "return_pct": 0,
+            "win_rate": 0.4,
+            "profit_factor": Infinity,
+            "max_drawdown": 0.15968607444803629,
+            "total_trades": 5
+        },
+        "Q4 2023": {
+            "initial_capital": 100000,
+            "final_capital": 100184.75933285714,
+            "return_pct": 0,
+            "win_rate": 0.3333333333333333,
+            "profit_factor": 1.4029415543801675,
+            "max_drawdown": 0.009995393350168998,
+            "total_trades": 3
+        }
+    },
+    "overall": {
+        "initial_capital": 100000,
+        "final_capital": 100000.0,
+        "return_pct": 0.0,
+        "win_rate": 33.33333333333333,
+        "profit_factor": 1.389480222891199,
+        "max_drawdown": 0,
+        "total_trades": 15
+    },
+    "trades": [
+        {
+            "symbol": "SPY",
+            "direction": "short",
+            "entry_price": 391.49,
+            "entry_time": "2023-01-18T05:00:00+00:00",
+            "exit_price": 402.8408,
+            "exit_time": "2023-01-26T05:00:00+00:00",
+            "profit_loss": -283.7699999999998,
+            "reason": "stop_loss"
+        },
+        {
+            "symbol": "GOOGL",
+            "direction": "short",
+            "entry_price": 104.78,
+            "entry_time": "2023-02-03T05:00:00+00:00",
+            "exit_price": 94.42787857142858,
+            "exit_time": "2023-02-09T05:00:00+00:00",
+            "profit_loss": 1169.7897214285708,
+            "reason": "take_profit"
+        },
+        {
+            "symbol": "QQQ",
+            "direction": "short",
+            "entry_price": 306.18,
+            "entry_time": "2023-02-03T05:00:00+00:00",
+            "exit_price": 285.94307142857144,
+            "exit_time": "2023-03-13T04:00:00+00:00",
+            "profit_loss": 647.581714285714,
+            "reason": "take_profit"
+        },
+        {
+            "symbol": "META",
+            "direction": "short",
+            "entry_price": 186.53,
+            "entry_time": "2023-02-03T05:00:00+00:00",
+            "exit_price": 201.10614285714286,
+            "exit_time": "2023-03-16T04:00:00+00:00",
+            "profit_loss": -1107.7868571428571,
+            "reason": "stop_loss"
+        },
+        {
+            "symbol": "AMZN",
+            "direction": "short",
+            "entry_price": 98.95,
+            "entry_time": "2023-03-17T04:00:00+00:00",
+            "exit_price": 103.29,
+            "exit_time": "2023-03-31T04:00:00+00:00",
+            "profit_loss": -438.3400000000004,
+            "reason": "end_of_backtest"
+        },
+        {
+            "symbol": "AAPL",
+            "direction": "short",
+            "entry_price": 172.69,
+            "entry_time": "2023-05-17T04:00:00+00:00",
+            "exit_price": 177.7048,
+            "exit_time": "2023-05-30T04:00:00+00:00",
+            "profit_loss": -285.8436000000005,
+            "reason": "stop_loss"
+        },
+        {
+            "symbol": "SPY",
+            "direction": "short",
+            "entry_price": 439.46,
+            "entry_time": "2023-06-16T04:00:00+00:00",
+            "exit_price": 443.28,
+            "exit_time": "2023-06-30T04:00:00+00:00",
+            "profit_loss": -84.03999999999985,
+            "reason": "end_of_backtest"
+        },
+        {
+            "symbol": "MSFT",
+            "direction": "short",
+            "entry_price": 355.08,
+            "entry_time": "2023-07-19T04:00:00+00:00",
+            "exit_price": 330.6282,
+            "exit_time": "2023-07-27T04:00:00+00:00",
+            "profit_loss": 684.6503999999998,
+            "reason": "take_profit"
+        },
+        {
+            "symbol": "GOOGL",
+            "direction": "short",
+            "entry_price": 137.4,
+            "entry_time": "2023-09-15T04:00:00+00:00",
+            "exit_price": 129.88825714285713,
+            "exit_time": "2023-09-22T04:00:00+00:00",
+            "profit_loss": 548.35722857143,
+            "reason": "take_profit"
+        },
+        {
+            "symbol": "SPY",
+            "direction": "long",
+            "entry_price": 427.48,
+            "entry_time": "2023-09-29T04:00:00+00:00",
+            "exit_price": 427.48,
+            "exit_time": "2023-09-29T04:00:00+00:00",
+            "profit_loss": 0.0,
+            "reason": "end_of_backtest"
+        },
+        {
+            "symbol": "QQQ",
+            "direction": "long",
+            "entry_price": 358.27,
+            "entry_time": "2023-09-29T04:00:00+00:00",
+            "exit_price": 358.27,
+            "exit_time": "2023-09-29T04:00:00+00:00",
+            "profit_loss": 0.0,
+            "reason": "end_of_backtest"
+        },
+        {
+            "symbol": "GOOGL",
+            "direction": "long",
+            "entry_price": 130.86,
+            "entry_time": "2023-09-29T04:00:00+00:00",
+            "exit_price": 130.86,
+            "exit_time": "2023-09-29T04:00:00+00:00",
+            "profit_loss": 0.0,
+            "reason": "end_of_backtest"
+        },
+        {
+            "symbol": "GOOGL",
+            "direction": "long",
+            "entry_price": 130.86,
+            "entry_time": "2023-09-29T04:00:00+00:00",
+            "exit_price": 139.32428571428574,
+            "exit_time": "2023-10-10T04:00:00+00:00",
+            "profit_loss": 643.2857142857149,
+            "reason": "take_profit"
+        },
+        {
+            "symbol": "SPY",
+            "direction": "long",
+            "entry_price": 427.48,
+            "entry_time": "2023-09-29T04:00:00+00:00",
+            "exit_price": 418.6258514285714,
+            "exit_time": "2023-10-23T04:00:00+00:00",
+            "profit_loss": -203.6454171428577,
+            "reason": "stop_loss"
+        },
+        {
+            "symbol": "QQQ",
+            "direction": "long",
+            "entry_price": 358.27,
+            "entry_time": "2023-09-29T04:00:00+00:00",
+            "exit_price": 348.82996428571425,
+            "exit_time": "2023-10-26T04:00:00+00:00",
+            "profit_loss": -254.88096428571464,
+            "reason": "stop_loss"
+        }
+    ]
+}

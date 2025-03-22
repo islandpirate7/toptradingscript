@@ -1,0 +1,44 @@
+{
+    "total_return_pct": {
+        "original": 15.46171276855468,
+        "enhanced": 15.46171276855468,
+        "difference": 0.0,
+        "percent_improvement": 0.0
+    },
+    "annualized_return_pct": {
+        "original": 15.507325598983247,
+        "enhanced": 15.507325598983247,
+        "difference": 0.0,
+        "percent_improvement": 0.0
+    },
+    "sharpe_ratio": {
+        "original": 18.46712567255715,
+        "enhanced": 18.46712567255715,
+        "difference": 0.0,
+        "percent_improvement": 0.0
+    },
+    "max_drawdown_pct": {
+        "original": 3.034305510232887,
+        "enhanced": 3.034305510232887,
+        "difference": 0.0,
+        "percent_improvement": 0.0
+    },
+    "win_rate": {
+        "original": 0.675,
+        "enhanced": 0.675,
+        "difference": 0.0,
+        "percent_improvement": 0.0
+    },
+    "profit_factor": {
+        "original": 1.499111947139848,
+        "enhanced": 1.499111947139848,
+        "difference": 0.0,
+        "percent_improvement": 0.0
+    },
+    "total_trades": {
+        "original": 40,
+        "enhanced": 40,
+        "difference": 0,
+        "percent_change": 0.0
+    }
+}
