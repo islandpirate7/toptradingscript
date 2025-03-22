@@ -520,6 +520,52 @@ def run_simulation():
         logger.error(f"Error starting market simulation: {str(e)}")
         return jsonify({'success': False, 'message': f'Error: {str(e)}'})
 
+@app.route('/run_live_trading', methods=['POST'])
+def run_live_trading():
+    """Run live trading"""
+    try:
+        # Get form data
+        max_signals = request.form.get('max_signals', '10')
+        check_interval = request.form.get('check_interval', '5')
+        max_capital = request.form.get('max_capital', '50000')
+        risk_level = request.form.get('risk_level', 'medium')
+        
+        # Create process name
+        process_name = f"live_trading_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        
+        # Check if credentials file exists
+        credentials_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'alpaca_credentials.json')
+        if not os.path.exists(credentials_file):
+            return jsonify({
+                'success': False,
+                'message': 'Error: Alpaca credentials file not found. Please create alpaca_credentials.json with your API keys.'
+            })
+        
+        # Start process in a thread
+        args = [
+            '--max_signals', max_signals,
+            '--check_interval', check_interval,
+            '--max_capital', max_capital,
+            '--risk_level', risk_level,
+            '--live'  # Important flag to indicate live trading
+        ]
+        thread = threading.Thread(
+            target=run_process,
+            args=('run_live_trading.py', args, process_name)
+        )
+        thread.daemon = True
+        thread.start()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Live trading started with process name: {process_name}',
+            'process_name': process_name
+        })
+    
+    except Exception as e:
+        logger.error(f"Error starting live trading: {str(e)}")
+        return jsonify({'success': False, 'message': f'Error: {str(e)}'})
+
 @app.route('/stop_process/<process_name>', methods=['POST'])
 def stop_process_route(process_name):
     """Stop a running process"""

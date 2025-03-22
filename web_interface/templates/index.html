@@ -66,6 +66,39 @@
     
     <div class="col-md-4">
         <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="card-title mb-0">Run Live Trading</h5>
+            </div>
+            <div class="card-body">
+                <form id="liveTradingForm">
+                    <div class="mb-3">
+                        <label for="liveMaxSignals" class="form-label">Max Signals</label>
+                        <input type="number" class="form-control" id="liveMaxSignals" name="max_signals" value="10" min="1" max="50">
+                    </div>
+                    <div class="mb-3">
+                        <label for="liveCheckInterval" class="form-label">Check Interval (minutes)</label>
+                        <input type="number" class="form-control" id="liveCheckInterval" name="check_interval" value="5" min="1" max="60">
+                    </div>
+                    <div class="mb-3">
+                        <label for="liveMaxCapital" class="form-label">Max Capital</label>
+                        <input type="number" class="form-control" id="liveMaxCapital" name="max_capital" value="50000" min="10000" max="1000000">
+                    </div>
+                    <div class="mb-3">
+                        <label for="liveRiskLevel" class="form-label">Risk Level</label>
+                        <select class="form-select" id="liveRiskLevel" name="risk_level">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-danger w-100">Start Live Trading</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
             <div class="card-header bg-info text-white">
                 <h5 class="card-title mb-0">Run Backtest</h5>
             </div>
@@ -307,6 +340,31 @@
             .catch(error => {
                 console.error('Error:', error);
                 alert('An error occurred while starting simulation');
+            });
+        });
+
+        // Live Trading Form
+        document.getElementById('liveTradingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            fetch('/run_live_trading', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while starting live trading');
             });
         });
 
