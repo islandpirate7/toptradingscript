@@ -1,0 +1,54 @@
+# Error Handler Configuration
+# This file controls the behavior of the error handling system
+
+# General settings
+error_log_dir: "logs/errors"
+max_error_log_size: 1000  # Maximum number of errors to keep in memory
+
+# Recovery settings
+enable_auto_recovery: true
+recovery_attempts: 3      # Number of recovery attempts for each error
+recovery_wait_time: 5     # Seconds to wait between recovery attempts
+
+# Notification settings
+enable_email_notifications: false  # Set to true to enable email notifications
+notification_email: ""            # Email address to send notifications to
+notification_threshold: "ERROR"   # Minimum severity level for notifications (INFO, WARNING, ERROR, CRITICAL, FATAL)
+
+# SMTP settings for email notifications
+smtp_server: ""
+smtp_port: 587
+smtp_username: ""
+smtp_password: ""
+
+# Error type specific settings
+error_types:
+  CONFIG_ERROR:
+    recovery_attempts: 2
+    recovery_wait_time: 2
+    notification_threshold: "ERROR"
+  
+  API_ERROR:
+    recovery_attempts: 5
+    recovery_wait_time: 10
+    notification_threshold: "ERROR"
+  
+  DATA_ERROR:
+    recovery_attempts: 3
+    recovery_wait_time: 5
+    notification_threshold: "WARNING"
+  
+  TRADE_ERROR:
+    recovery_attempts: 2
+    recovery_wait_time: 3
+    notification_threshold: "CRITICAL"
+  
+  BACKTEST_ERROR:
+    recovery_attempts: 2
+    recovery_wait_time: 2
+    notification_threshold: "WARNING"
+  
+  SYSTEM_ERROR:
+    recovery_attempts: 3
+    recovery_wait_time: 10
+    notification_threshold: "CRITICAL"

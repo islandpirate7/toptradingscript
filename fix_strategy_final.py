@@ -45,7 +45,7 @@ def fix_volatility_strategy():
                 if "try:" not in method_body:
                     # Add try-except block
                     new_method_body = """
-        """Generate volatility breakout signals based on Bollinger Band squeeze"""
+        \"\"\"Generate volatility breakout signals based on Bollinger Band squeeze\"\"\"
         signals = []
         
         try:

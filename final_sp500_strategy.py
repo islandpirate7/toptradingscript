@@ -3,33 +3,50 @@
 
 """
 Final S&P 500 Trading Strategy
-Optimized based on backtest results showing strong performance with SHORT-biased strategy
+-----------------------------------
+This module implements a trading strategy for S&P 500 stocks.
 """
 
 import os
+import sys
 import json
-import logging
-import pandas as pd
-import numpy as np
-import time
-import requests
 import yaml
+import time
+import logging
+import random
+import traceback
+import requests
+import numpy as np
+import pandas as pd
 from datetime import datetime, timedelta
+from bs4 import BeautifulSoup
 import alpaca_trade_api as tradeapi
 from tqdm import tqdm
 import math
+
+# Import custom modules
+from alpaca_api import AlpacaAPI
+from portfolio import Portfolio
+from signal_generator import generate_signals
 from strategy_performance_tracker import StrategyPerformanceTracker
-from bs4 import BeautifulSoup
-import traceback
-import argparse
-import random
 
 # Set up logging
+logger = logging.getLogger(__name__)
+
+"""
+Final S&P 500 Trading Strategy
+Optimized based on backtest results showing strong performance with SHORT-biased strategy
+"""
+
+# Ensure logs directory exists
+os.makedirs('logs', exist_ok=True)
+
+# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler(f"sp500_strategy_{datetime.now().strftime('%Y%m%d')}.log"),
+        logging.FileHandler(os.path.join('logs', f"strategy_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")),
         logging.StreamHandler()
     ]
 )
@@ -106,9 +123,9 @@ def get_sp500_symbols():
             
             if midcap_symbols:
                 # Combine S&P 500 and mid-cap symbols, removing duplicates
-                combined_symbols = list(set(sp500_symbols + midcap_symbols))
-                logger.info(f"Added {len(midcap_symbols)} mid-cap symbols to universe (total: {len(combined_symbols)})")
-                return combined_symbols
+                symbols = list(set(sp500_symbols + midcap_symbols))
+                logger.info(f"Added {len(midcap_symbols)} mid-cap symbols to universe (total: {len(symbols)})")
+                return symbols
         
         return sp500_symbols
         
@@ -175,10 +192,9 @@ CONFIG = load_config()
 class SP500Strategy:
     """S&P 500 Trading Strategy"""
     
-    def __init__(self, api, config=None, mode='paper', backtest_mode=False, backtest_start_date=None, backtest_end_date=None):
+    def __init__(self, api=None, config=None, mode='live', backtest_mode=False, backtest_start_date=None, backtest_end_date=None):
         """Initialize the strategy"""
         try:
-            # Set API and mode
             self.api = api
             self.mode = mode
             self.backtest_mode = backtest_mode
@@ -187,17 +203,19 @@ class SP500Strategy:
             
             # Load configuration if not provided
             if config is None:
-                config_path = 'configuration_enhanced_mean_reversion.yaml'
+                config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sp500_config.yaml')
                 with open(config_path, 'r') as file:
                     config = yaml.safe_load(file)
             
             self.config = config
+            self.config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sp500_config.yaml')  # Default config path
+            self.config_last_modified = os.path.getmtime(self.config_path)
+            
+            # Get global parameters
+            self.global_params = config.get('global', {})
             
             # Set up strategy parameters
             self.strategy_params = config.get('strategies', {}).get('MeanReversion', {})
-            self.global_params = config.get('global', {})
-            
-            # Initialize technical indicators
             self.bb_period = self.strategy_params.get('bb_period', 15)
             self.bb_std_dev = self.strategy_params.get('bb_std_dev', 2.0)
             self.rsi_period = self.strategy_params.get('rsi_period', 10)
@@ -209,6 +227,78 @@ class SP500Strategy:
             self.macd_fast = self.strategy_params.get('macd_fast', 8)
             self.macd_slow = self.strategy_params.get('macd_slow', 17)
             self.macd_signal = self.strategy_params.get('macd_signal', 5)
+            
+            # Initialize Stochastic Oscillator parameters
+            self.stoch_k_period = self.strategy_params.get('stoch_k_period', 14)
+            self.stoch_d_period = self.strategy_params.get('stoch_d_period', 3)
+            self.stoch_slowing = self.strategy_params.get('stoch_slowing', 3)
+            
+            # Initialize ADX parameters
+            self.adx_period = self.strategy_params.get('adx_period', 14)
+            self.adx_threshold = self.strategy_params.get('adx_threshold', 25)
+            
+            # Enhanced Seasonality parameters
+            seasonality_config = config.get('strategy', {}).get('seasonality', {})
+            self.seasonality_enabled = seasonality_config.get('enabled', True)
+            self.seasonality_lookback_years = seasonality_config.get('lookback_years', 5)
+            self.seasonality_min_score_threshold = seasonality_config.get('min_score_threshold', 0.6)
+            self.seasonality_sector_influence = seasonality_config.get('sector_influence', 0.3)
+            self.seasonality_stock_influence = seasonality_config.get('stock_specific_influence', 0.7)
+            self.seasonality_top_n = seasonality_config.get('top_n_selection', 5)
+            self.seasonality_data_file = seasonality_config.get('data_file', 'data/seasonality.yaml')
+            
+            # Enhanced Scoring System Weights
+            scoring_weights = config.get('strategy', {}).get('scoring_weights', {})
+            self.technical_weight = scoring_weights.get('technical_weight', 0.925)
+            self.seasonality_weight = scoring_weights.get('seasonality_weight', 0.075)
+            
+            # Technical indicator weights within technical score
+            technical_weights = scoring_weights.get('technical_indicators', {})
+            self.rsi_weight = technical_weights.get('rsi_weight', 0.25)
+            self.macd_weight = technical_weights.get('macd_weight', 0.20)
+            self.bb_weight = technical_weights.get('bb_weight', 0.25)
+            self.stoch_weight = technical_weights.get('stoch_weight', 0.20)
+            self.adx_weight = technical_weights.get('adx_weight', 0.10)
+            
+            # Dynamic Weight Adjustment based on market regime
+            dynamic_weights = config.get('strategy', {}).get('dynamic_weights', {})
+            
+            # 3.23.25 - Guillermo added this code
+            # Dynamic weight adjustment
+            self.dynamic_weight_adjustment = config.get('strategy', {}).get('dynamic_weights', {}).get('enabled', False)
+            self.base_technical_weight = self.technical_weight  # Store the base weights
+            self.base_seasonality_weight = self.seasonality_weight
+            self.base_rsi_weight = self.rsi_weight
+            self.base_macd_weight = self.macd_weight
+            self.base_bb_weight = self.bb_weight
+            self.base_stoch_weight = self.stoch_weight
+            self.base_adx_weight = self.adx_weight
+
+            # 3.23.25 - Guillermo added this code
+            # Market regime detection thresholds
+            dynamic_thresholds = config.get('strategy', {}).get('dynamic_weights', {}).get('thresholds', {})
+            self.trending_threshold = dynamic_thresholds.get('trending_threshold', 25)
+            self.range_bound_threshold = dynamic_thresholds.get('range_bound_threshold', 3)
+            self.volatility_threshold = dynamic_thresholds.get('volatility_threshold', 2)
+            self.strong_seasonality_threshold = dynamic_thresholds.get('strong_seasonality_threshold', 0.7)
+            
+            # Market regime weights
+            market_regime_weights = dynamic_weights.get('market_regime_weights', {})
+            
+            # Trending market weights
+            trending_weights = market_regime_weights.get('trending', {})
+            self.trending_mean_reversion_weight = trending_weights.get('mean_reversion', 0.2)
+            self.trending_trend_following_weight = trending_weights.get('trend_following', 0.8)
+            
+            # Range-bound market weights
+            range_bound_weights = market_regime_weights.get('range_bound', {})
+            self.range_bound_mean_reversion_weight = range_bound_weights.get('mean_reversion', 0.8)
+            self.range_bound_trend_following_weight = range_bound_weights.get('trend_following', 0.2)
+            
+            # Mixed market weights
+            mixed_weights = market_regime_weights.get('mixed', {})
+            self.mixed_mean_reversion_weight = mixed_weights.get('mean_reversion', 0.5)
+            self.mixed_trend_following_weight = mixed_weights.get('trend_following', 0.5)
             
             # Initialize risk management parameters
             self.stop_loss_atr = self.strategy_params.get('stop_loss_atr', 2.0)
@@ -245,11 +335,11 @@ class SP500Strategy:
                 'PFE', 'KO', 'AVGO', 'PEP', 'LLY', 'COST', 'TMO', 'MRK', 'CSCO', 'WMT',
                 'ABT', 'MCD', 'ACN', 'DHR', 'WFC', 'BMY', 'TXN', 'CRM', 'NKE', 'VZ',
                 'CMCSA', 'ADBE', 'ORCL', 'PM', 'QCOM', 'UPS', 'HON', 'T', 'INTC', 'NFLX',
-                'LIN', 'INTU', 'AMD', 'LOW', 'NEE', 'AMGN', 'IBM', 'CAT', 'DE', 'PYPL',
-                'SBUX', 'GS', 'BA', 'MS', 'RTX', 'SPGI', 'BLK', 'GILD', 'C', 'AXP',
-                'MDLZ', 'SCHW', 'ADI', 'TGT', 'ZTS', 'MMM', 'CVS', 'BKNG', 'PLD', 'ISRG',
-                'TMUS', 'MO', 'AMAT', 'SYK', 'DIS', 'CI', 'GE', 'REGN', 'NOW', 'TJX',
-                'AMT', 'MRNA', 'LRCX', 'ELV', 'COP', 'CB', 'BDX', 'DUK', 'SO', 'EOG'
+                'LIN', 'INTU', 'AMD', 'LOW', 'NEE', 'AMGN', 'IBM', 'CAT', 'DE', 'AMAT',
+                'ISRG', 'AXP', 'BKNG', 'MDLZ', 'GILD', 'ADI', 'SBUX', 'TJX', 'MMC', 'SYK',
+                'VRTX', 'PLD', 'MS', 'BLK', 'SCHW', 'C', 'ZTS', 'CB', 'AMT', 'ADP', 'GS',
+                'ETN', 'LRCX', 'NOW', 'MO', 'REGN', 'EOG', 'SO', 'BMY', 'EQIX', 'BSX', 'CME',
+                'CI', 'PANW', 'TGT', 'SLB'
             ]
             
             # Set up sector ETFs for market regime detection
@@ -279,6 +369,11 @@ class SP500Strategy:
             for path_key in ['backtest_results', 'plots', 'trades', 'performance']:
                 if path_key in self.paths:
                     os.makedirs(self.paths[path_key], exist_ok=True)
+            
+            # Initialize symbol selection timestamp for periodic re-selection
+            self.last_symbol_selection_time = datetime.now()
+            self.symbol_reselection_interval = self.global_params.get('symbol_reselection_interval', 7)  # Default: 7 days
+            self.symbols_cache = None
             
             logger.info(f"Strategy initialized in {mode} mode")
             
@@ -425,6 +520,77 @@ class SP500Strategy:
             df['price_change_1d'] = df['close'].pct_change(1) * 100
             df['price_change_5d'] = df['close'].pct_change(5) * 100
             
+            # Calculate Stochastic Oscillator
+            df['stoch_k'] = ((df['close'] - df['low'].rolling(window=self.stoch_k_period).min()) / 
+                            (df['high'].rolling(window=self.stoch_k_period).max() - df['low'].rolling(window=self.stoch_k_period).min())) * 100
+            df['stoch_d'] = df['stoch_k'].rolling(window=self.stoch_d_period).mean()
+            
+            # Calculate ADX
+            # First, calculate the directional movement
+            df['up_move'] = df['high'].diff()
+            df['down_move'] = df['low'].diff(-1).abs()
+            
+            # Positive and negative directional movement
+            df['plus_dm'] = np.where((df['up_move'] > df['down_move']) & (df['up_move'] > 0), df['up_move'], 0)
+            df['minus_dm'] = np.where((df['down_move'] > df['up_move']) & (df['down_move'] > 0), df['down_move'], 0)
+            
+            # Smooth the directional movement
+            df['plus_di'] = 100 * (df['plus_dm'].rolling(window=self.adx_period).mean() / df['atr'])
+            df['minus_di'] = 100 * (df['minus_dm'].rolling(window=self.adx_period).mean() / df['atr'])
+            
+            # Calculate directional movement index
+            df['dx'] = 100 * (abs(df['plus_di'] - df['minus_di']) / (df['plus_di'] + df['minus_di']))
+            
+            # Calculate ADX (Average Directional Index)
+            df['adx'] = df['dx'].rolling(window=self.adx_period).mean()
+            
+            # Calculate seasonality factors
+            if self.seasonality_enabled:
+                # Extract month and day from the index
+                df['month'] = df.index.month
+                df['day_of_month'] = df.index.day
+                
+                # Try to load seasonality data from file
+                seasonality_data = self._load_seasonality_data()
+                
+                if seasonality_data:
+                    # Apply seasonality data from file
+                    df['seasonality_score'] = df.apply(
+                        lambda row: self._get_seasonality_score_from_data(
+                            row, 
+                            seasonality_data
+                        ), 
+                        axis=1
+                    )
+                else:
+                    # Use built-in seasonality model as fallback
+                    # Monthly seasonality factors based on historical market performance
+                    monthly_seasonality = {
+                        1: 0.8,   # January - historically strong
+                        2: 0.6,   # February
+                        3: 0.7,   # March
+                        4: 0.9,   # April - historically strong
+                        5: 0.5,   # May - "Sell in May and go away"
+                        6: 0.4,   # June
+                        7: 0.6,   # July
+                        8: 0.4,   # August
+                        9: 0.3,   # September - historically weak
+                        10: 0.7,  # October
+                        11: 0.9,  # November - historically strong
+                        12: 0.8   # December - "Santa Claus rally"
+                    }
+                    
+                    # Apply monthly seasonality factors
+                    df['seasonality_factor'] = df['month'].map(monthly_seasonality)
+                    
+                    # Add day-of-month effect (first half of month often stronger)
+                    df['day_effect'] = np.where(df['day_of_month'] <= 15, 0.1, -0.1)
+                    df['seasonality_factor'] = df['seasonality_factor'] + df['day_effect']
+                    
+                    # Normalize to 0-1 range
+                    df['seasonality_score'] = (df['seasonality_factor'] - 0.2) / 0.8  # Normalize from 0.2-1.0 to 0-1
+                    df['seasonality_score'] = df['seasonality_score'].clip(0, 1)  # Ensure within 0-1 range
+            
             # Drop NaN values
             df = df.dropna()
             
@@ -433,6 +599,67 @@ class SP500Strategy:
         except Exception as e:
             logger.error(f"Error calculating technical indicators: {str(e)}")
             return None
+            
+    def _load_seasonality_data(self):
+        """Load seasonality data from YAML file"""
+        try:
+            if os.path.exists(self.seasonality_data_file):
+                with open(self.seasonality_data_file, 'r') as f:
+                    seasonality_data = yaml.safe_load(f)
+                logger.info(f"Loaded seasonality data from {self.seasonality_data_file}")
+                return seasonality_data
+            else:
+                logger.warning(f"Seasonality data file {self.seasonality_data_file} not found")
+                return None
+        except Exception as e:
+            logger.error(f"Error loading seasonality data: {str(e)}")
+            return None
+            
+    def _get_seasonality_score_from_data(self, row, seasonality_data):
+        """Get seasonality score from loaded data"""
+        try:
+            month = row['month']
+            day = row['day_of_month']
+            
+            # Get month-day key in format "MM-DD"
+            date_key = f"{int(month):02d}-{int(day):02d}"
+            
+            # Get sector-specific seasonality if available
+            sector_score = 0.5  # Default neutral score
+            if hasattr(row, 'sector') and row['sector'] in seasonality_data.get('sectors', {}):
+                sector_data = seasonality_data['sectors'][row['sector']]
+                if date_key in sector_data:
+                    sector_score = sector_data[date_key]
+                    
+            # Get market-wide seasonality
+            market_score = 0.5  # Default neutral score
+            if 'market' in seasonality_data and date_key in seasonality_data['market']:
+                market_score = seasonality_data['market'][date_key]
+                
+            # Get stock-specific seasonality if available
+            stock_score = 0.5  # Default neutral score
+            if hasattr(row, 'symbol') and row['symbol'] in seasonality_data.get('stocks', {}):
+                stock_data = seasonality_data['stocks'][row['symbol']]
+                if date_key in stock_data:
+                    stock_score = stock_data[date_key]
+            
+            # Combine scores based on configured weights
+            # Stock-specific has highest weight, then sector, then market-wide
+            combined_score = (
+                (stock_score * self.seasonality_stock_influence) +
+                (sector_score * self.seasonality_sector_influence) +
+                (market_score * (1 - self.seasonality_stock_influence - self.seasonality_sector_influence))
+            )
+            
+            # Apply minimum threshold filter
+            if combined_score < self.seasonality_min_score_threshold:
+                combined_score = 0.5  # Neutral score for weak seasonal signals
+                
+            return combined_score
+            
+        except Exception as e:
+            logger.error(f"Error getting seasonality score: {str(e)}")
+            return 0.5  # Return neutral score on error
     
     def calculate_score(self, row):
         """Calculate combined technical score for a row"""
@@ -444,6 +671,17 @@ class SP500Strategy:
             close = row['close']
             lower_band = row['lower_band']
             upper_band = row['upper_band']
+            
+            # Extract new indicator values if available
+            stoch_k = row.get('stoch_k', 50)
+            stoch_d = row.get('stoch_d', 50)
+            adx = row.get('adx', 0)
+            seasonality_score = row.get('seasonality_score', 0.5)
+            
+            
+            # Detect market regime and adjust weights if enabled
+            if self.dynamic_weight_adjustment:
+                self._adjust_weights_based_on_market_regime(row)
             
             # RSI component (0-1)
             if rsi < 30:
@@ -467,8 +705,42 @@ class SP500Strategy:
             else:
                 bb_score = 1 - ((close - lower_band) / (upper_band - lower_band))
             
-            # Combined score for LONG (weighted average)
-            long_score = (rsi_score * 0.3) + (macd_score * 0.3) + (bb_score * 0.4)
+            # Stochastic Oscillator component (0-1)
+            if stoch_k < 20:
+                stoch_score = 1.0  # Oversold - bullish for LONG
+            elif stoch_k > 80:
+                stoch_score = 0.0  # Overbought - bearish for LONG
+            else:
+                stoch_score = 1 - ((stoch_k - 20) / 60)  # Linear scale between 20-80
+                
+            # Stochastic crossover component
+            if stoch_k > stoch_d:
+                stoch_cross_score = 1.0  # Bullish crossover
+            else:
+                stoch_cross_score = 0.0  # No bullish crossover
+                
+            # Combine stochastic components
+            stoch_combined_score = 0.7 * stoch_score + 0.3 * stoch_cross_score
+            
+            # ADX component (0-1) - trend strength
+            adx_score = min(adx / 50, 1.0)  # Normalize ADX to 0-1 range
+            
+            # Technical analysis components with weights
+            technical_score = (
+                (rsi_score * self.rsi_weight) +
+                (macd_score * self.macd_weight) +
+                (bb_score * self.bb_weight) +
+                (stoch_combined_score * self.stoch_weight) +
+                (adx_score * self.adx_weight)
+            ) * self.technical_weight
+            
+            # Add seasonality component
+            long_score = technical_score + (seasonality_score * self.seasonality_weight)
+            
+            # Log the weights if in debug mode
+            if self.debug_mode and random.random() < 0.01:  # Log only 1% of the time to avoid excessive logging
+                logger.debug(f"Current weights: Technical={self.technical_weight:.2f}, Seasonality={self.seasonality_weight:.2f}")
+                logger.debug(f"Technical breakdown: RSI={self.rsi_weight:.2f}, MACD={self.macd_weight:.2f}, BB={self.bb_weight:.2f}, Stoch={self.stoch_weight:.2f}, ADX={self.adx_weight:.2f}")
             
             return {
                 'long_score': long_score
@@ -529,6 +801,14 @@ class SP500Strategy:
             'Real Estate': 0.8,
             'Unknown': 1.0
         }
+        
+        # Get mid-cap configuration
+        include_midcap = self.config.get('strategy', {}).get('include_midcap', False)
+        midcap_config = self.config.get('strategy', {}).get('midcap_stocks', {})
+        
+        # Get market cap balance settings (default: 70% large-cap, 30% mid-cap)
+        large_cap_pct = midcap_config.get('large_cap_percentage', 70)
+        mid_cap_pct = 100 - large_cap_pct
         
         # Get signal information
         score = signal['score']
@@ -1023,7 +1303,7 @@ class SP500Strategy:
             signal['priority'] = priority
         
         # Sort by priority (highest first)
-        prioritized_signals = sorted(prioritized_signals, key=lambda x: x['priority'], reverse=True)
+        prioritized_signals = sorted(prioritized_signals, key=lambda x: x.get('priority', x['score']), reverse=True)
         
         # If mid-cap inclusion is enabled, ensure we have a good balance
         if include_midcap and prioritized_signals:
@@ -2224,6 +2504,24 @@ class SP500Strategy:
                     else:
                         score -= 0.1
             
+            # === Stochastic Oscillator (Bullish crossover or oversold conditions are bullish for LONG) ===
+            if all(x in latest for x in ['stoch_k', 'stoch_d']):
+                # Bullish crossover (Stochastic K crosses above Stochastic D)
+                if latest['stoch_k'] > latest['stoch_d'] and data['stoch_k'].iloc[-2] <= data['stoch_d'].iloc[-2]:
+                    score += 0.3
+                
+                # Oversold conditions (Stochastic K below 20)
+                if latest['stoch_k'] < 20:
+                    score += 0.2
+                elif latest['stoch_k'] < 30:
+                    score += 0.1
+            
+            # === ADX (Trend strength) ===
+            if 'adx' in latest:
+                # Strong trend (ADX above 25)
+                if latest['adx'] > 25:
+                    score += 0.2
+            
             # === Market Regime Adjustments ===
             if market_regime == 'STRONG_BULLISH':
                 score += 0.15
@@ -2348,6 +2646,9 @@ class SP500Strategy:
     def run_strategy(self):
         """Run the strategy"""
         try:
+            # Check for configuration changes before running
+            self.check_config_reload()
+            
             # First, check for stop-loss conditions to exit underperforming positions
             if not self.backtest_mode and self.stop_loss_enabled:
                 # Free up any locked positions first
@@ -2803,6 +3104,321 @@ class SP500Strategy:
             else:
                 return 'Unknown'
     
+    def calculate_long_signal_score(self, symbol, data, market_regime=None, sector_regime=None):
+        """
+        Calculate a score for a LONG signal based on technical indicators
+        Higher score = stronger signal
+        """
+        try:
+            if data is None or len(data) < 10:
+                return 0
+                
+            # Get the latest data point
+            latest = data.iloc[-1]
+            
+            # Initialize score
+            score = 0.0
+            
+            # Get market regime if not provided
+            if market_regime is None and self.market_regime_enabled:
+                market_regime = self.detect_market_regime()
+                
+            # Get sector regime if not provided
+            sector_etf = None
+            if sector_regime is None and self.sector_performance_enabled:
+                symbol_sector = self.get_symbol_sector(symbol)
+                if symbol_sector:
+                    # Find corresponding sector ETF
+                    if symbol_sector == 'Technology':
+                        sector_etf = 'XLK'
+                    elif symbol_sector == 'Financials':
+                        sector_etf = 'XLF'
+                    elif symbol_sector == 'Healthcare':
+                        sector_etf = 'XLV'
+                    elif symbol_sector == 'Energy':
+                        sector_etf = 'XLE'
+                    elif symbol_sector == 'Industrials':
+                        sector_etf = 'XLI'
+                    elif symbol_sector == 'Consumer Discretionary':
+                        sector_etf = 'XLY'
+                    elif symbol_sector == 'Consumer Staples':
+                        sector_etf = 'XLP'
+                    elif symbol_sector == 'Materials':
+                        sector_etf = 'XLB'
+                    elif symbol_sector == 'Utilities':
+                        sector_etf = 'XLU'
+                    elif symbol_sector == 'Real Estate':
+                        sector_etf = 'XLRE'
+                    elif symbol_sector == 'Communication Services':
+                        sector_etf = 'XLC'
+                    
+                    # Get sector performance
+                    sector_performance = self.get_sector_performance() if self.sector_performance_enabled else {}
+                    sector_regime = sector_performance.get(sector_etf, 'NEUTRAL') if sector_etf else 'NEUTRAL'
+            
+            # === RSI (Oversold conditions are bullish for LONG) ===
+            if 'rsi' in latest:
+                if latest['rsi'] < 40:
+                    score += 0.2
+                elif latest['rsi'] < 30:
+                    score += 0.35
+                elif latest['rsi'] < 20:
+                    score += 0.5
+                    
+                # Adjust RSI weight based on market regime
+                if market_regime in ['BEARISH', 'STRONG_BEARISH']:
+                    # In bearish markets, require more oversold conditions for LONG signals
+                    if latest['rsi'] > 35:
+                        score -= 0.15
+                elif market_regime in ['BULLISH', 'STRONG_BULLISH']:
+                    # In bullish markets, even mild oversold conditions can be good entry points
+                    if latest['rsi'] < 45:
+                        score += 0.1
+            
+            # === MACD (Bullish crossover or histogram increasing is bullish for LONG) ===
+            if all(x in latest for x in ['macd', 'macd_signal', 'macd_hist']):
+                # Bullish crossover (MACD crosses above signal line)
+                if latest['macd'] > latest['macd_signal'] and data['macd'].iloc[-2] <= data['macd_signal'].iloc[-2]:
+                    score += 0.3
+                
+                # MACD histogram increasing (momentum building)
+                if latest['macd_hist'] > 0 and latest['macd_hist'] > data['macd_hist'].iloc[-2]:
+                    score += 0.2
+                elif latest['macd_hist'] < 0 and latest['macd_hist'] > data['macd_hist'].iloc[-2]:
+                    # Histogram still negative but increasing (early sign of potential reversal)
+                    score += 0.15
+                    
+                # Adjust MACD weight based on market regime
+                if market_regime in ['BULLISH', 'STRONG_BULLISH']:
+                    # In bullish markets, MACD signals are more reliable for LONG positions
+                    if latest['macd'] > latest['macd_signal']:
+                        score += 0.1
+                elif market_regime in ['BEARISH', 'STRONG_BEARISH']:
+                    # In bearish markets, be more cautious with MACD signals
+                    if latest['macd'] < 0 and latest['macd_signal'] < 0:
+                        score -= 0.1
+            
+            # === Bollinger Bands (Price near or below lower band is bullish for LONG) ===
+            if all(x in latest for x in ['bb_lower', 'bb_middle', 'bb_upper']):
+                # Price near or below lower band (potential oversold condition)
+                bb_position = (latest['close'] - latest['bb_lower']) / (latest['bb_upper'] - latest['bb_lower'])
+                
+                if latest['close'] <= latest['bb_lower']:
+                    score += 0.4
+                elif bb_position < 0.2:
+                    score += 0.25
+                    
+                # Bollinger Band width (narrow bands may signal upcoming volatility)
+                bb_width = (latest['bb_upper'] - latest['bb_lower']) / latest['bb_middle']
+                bb_width_prev = (data['bb_upper'].iloc[-2] - data['bb_lower'].iloc[-2]) / data['bb_middle'].iloc[-2]
+                
+                if bb_width < bb_width_prev:
+                    # Bands are contracting, potential reversal
+                    score += 0.1
+            
+            # === Moving Averages (Price above key MAs is bullish for LONG) ===
+            if 'sma20' in latest and 'sma50' in latest:
+                # Price above key moving averages
+                if latest['close'] > latest['sma20']:
+                    score += 0.15
+                if latest['close'] > latest['sma50']:
+                    score += 0.15
+                
+                # Moving average alignment (uptrend confirmation)
+                if latest['sma20'] > latest['sma50']:
+                    score += 0.2
+                    
+                # Adjust MA weight based on market regime
+                if market_regime in ['BULLISH', 'STRONG_BULLISH']:
+                    # In bullish markets, being above MAs is more significant
+                    if latest['close'] > latest['sma20'] and latest['sma20'] > latest['sma50']:
+                        score += 0.1
+            
+            # === Volume (High volume on up days is bullish for LONG) ===
+            if 'volume' in latest and len(data) >= 5:
+                # Calculate average volume
+                avg_volume = data['volume'].iloc[-5:].mean()
+                
+                # Check if current volume is above average on an up day
+                if latest['volume'] > avg_volume * 1.2 and latest['close'] > data['close'].iloc[-2]:
+                    score += 0.2
+                    
+                # Volume trend (increasing volume on up days is bullish)
+                up_days_volume = 0
+                up_days_count = 0
+                down_days_volume = 0
+                down_days_count = 0
+                
+                for i in range(-5, 0):
+                    if data['close'].iloc[i] > data['close'].iloc[i-1]:
+                        up_days_volume += data['volume'].iloc[i]
+                        up_days_count += 1
+                    else:
+                        down_days_volume += data['volume'].iloc[i]
+                        down_days_count += 1
+                
+                # Calculate average volume for up and down days
+                avg_up_volume = up_days_volume / max(1, up_days_count)
+                avg_down_volume = down_days_volume / max(1, down_days_count)
+                
+                # Compare volume on up vs down days
+                if up_days_count > 0 and down_days_count > 0:
+                    if avg_up_volume > avg_down_volume * 1.5:
+                        score += 1
+                    elif avg_down_volume > avg_up_volume * 1.5:
+                        score -= 1
+            
+            # === ATR (Volatility assessment) ===
+            if 'atr' in latest and 'close' in latest:
+                # Calculate ATR as percentage of price
+                atr_pct = (latest['atr'] / latest['close']) * 100
+                
+                # Adjust score based on volatility
+                if atr_pct > 3.0:  # High volatility
+                    if market_regime in ['BULLISH', 'STRONG_BULLISH']:
+                        score += 0.1
+                    else:
+                        score -= 0.1
+            
+            # === Stochastic Oscillator (Bullish crossover or oversold conditions are bullish for LONG) ===
+            if all(x in latest for x in ['stoch_k', 'stoch_d']):
+                # Bullish crossover (Stochastic K crosses above Stochastic D)
+                if latest['stoch_k'] > latest['stoch_d'] and data['stoch_k'].iloc[-2] <= data['stoch_d'].iloc[-2]:
+                    score += 0.3
+                
+                # Oversold conditions (Stochastic K below 20)
+                if latest['stoch_k'] < 20:
+                    score += 0.2
+                elif latest['stoch_k'] < 30:
+                    score += 0.1
+            
+            # === ADX (Trend strength) ===
+            if 'adx' in latest:
+                # Strong trend (ADX above 25)
+                if latest['adx'] > 25:
+                    score += 0.2
+            
+            # === Market Regime Adjustments ===
+            if market_regime == 'STRONG_BULLISH':
+                score += 0.15
+            elif market_regime == 'BULLISH':
+                score += 0.1
+            elif market_regime == 'BEARISH':
+                score -= 0.1
+            elif market_regime == 'STRONG_BEARISH':
+                score -= 0.2
+            
+            # === Sector Regime Adjustments ===
+            if sector_regime == 'STRONG_BULLISH':
+                score += 0.15
+            elif sector_regime == 'BULLISH':
+                score += 0.1
+            elif sector_regime == 'BEARISH':
+                score -= 0.1
+            elif sector_regime == 'STRONG_BEARISH':
+                score -= 0.2
+            
+            # Ensure score is within bounds
+            score = max(0, min(score, 1.0))
+            
+            return score
+            
+        except Exception as e:
+            logger.error(f"Error calculating LONG signal score for {symbol}: {str(e)}")
+            return 0
+    
+    def get_signal_tier(self, score):
+        """Determine the tier of a signal based on its score"""
+        if score >= 0.9:
+            return 'Tier 1 (≥0.9)'
+        elif score >= 0.8:
+            return 'Tier 2 (0.8-0.9)'
+        else:
+            return 'Below Threshold (<0.8)'
+    
+    def calculate_performance_metrics(self, simulated_trades):
+        """Calculate performance metrics from simulated trades"""
+        if not simulated_trades:
+            return {}
+        
+        # Basic metrics
+        total_trades = len(simulated_trades)
+        winning_trades = [t for t in simulated_trades if t['is_win']]
+        losing_trades = [t for t in simulated_trades if not t['is_win']]
+        
+        win_rate = len(winning_trades) / total_trades * 100 if total_trades > 0 else 0
+        
+        # P&L metrics
+        total_profit = sum([t['profit_loss'] for t in winning_trades])
+        total_loss = abs(sum([t['profit_loss'] for t in losing_trades]))
+        profit_factor = total_profit / total_loss if total_loss > 0 else float('inf')
+        
+        avg_win = sum([t['profit_loss'] for t in winning_trades]) / len(winning_trades) if winning_trades else 0
+        avg_loss = sum([t['profit_loss'] for t in losing_trades]) / len(losing_trades) if losing_trades else 0
+        
+        # Holding period
+        if 'holding_period' in simulated_trades[0]:
+            avg_holding_period = sum([t['holding_period'] for t in simulated_trades]) / total_trades if total_trades > 0 else 0
+        else:
+            # Calculate holding period from dates if not directly provided
+            avg_holding_period = 0
+            if total_trades > 0:
+                for t in simulated_trades:
+                    if isinstance(t['entry_date'], str):
+                        entry_date = datetime.strptime(t['entry_date'], "%Y-%m-%d %H:%M:%S")
+                        exit_date = datetime.strptime(t['exit_date'], "%Y-%m-%d %H:%M:%S")
+                    else:
+                        entry_date = t['entry_date']
+                        exit_date = t['exit_date']
+                    holding_days = (exit_date - entry_date).days
+                    avg_holding_period += holding_days
+                avg_holding_period /= total_trades
+        
+        # Direction-specific metrics
+        long_trades = simulated_trades  # All trades are LONG in LONG-only strategy
+        long_win_rate = len([t for t in long_trades if t['is_win']]) / len(long_trades) * 100 if long_trades else 0
+        
+        # Tier metrics
+        tier_metrics = {}
+        tiers = {
+            'Tier 1 (≥0.9)': [t for t in simulated_trades if t['tier'] == 'Tier 1 (≥0.9)'],
+            'Tier 2 (0.8-0.9)': [t for t in simulated_trades if t['tier'] == 'Tier 2 (0.8-0.9)'],
+            'Below Threshold (<0.8)': [t for t in simulated_trades if t['tier'] == 'Below Threshold (<0.8)']
+        }
+        
+        for tier_name, tier_trades in tiers.items():
+            if not tier_trades:
+                continue
+            
+            # Basic metrics
+            tier_total = len(tier_trades)
+            tier_winners = [t for t in tier_trades if t['is_win']]
+            tier_win_rate = len(tier_winners) / tier_total * 100 if tier_total > 0 else 0
+            tier_avg_pl = sum([t['profit_loss'] for t in tier_trades]) / tier_total if tier_total > 0 else 0
+            
+            # Store metrics - simplified for LONG-only strategy
+            tier_metrics[tier_name] = {
+                'win_rate': tier_win_rate,
+                'avg_pl': tier_avg_pl,
+                'trade_count': tier_total,
+                'long_win_rate': tier_win_rate,  # Same as overall win rate for LONG-only
+                'long_count': tier_total         # All trades are LONG
+            }
+        
+        # Return all metrics - simplified for LONG-only strategy
+        return {
+            'win_rate': win_rate,
+            'profit_factor': profit_factor,
+            'avg_win': avg_win,
+            'avg_loss': avg_loss,
+            'avg_holding_period': avg_holding_period,
+            'long_win_rate': long_win_rate,
+            'tier_metrics': tier_metrics,
+            'total_trades': total_trades,
+            'winning_trades': len(winning_trades),
+            'losing_trades': len(losing_trades)
+        }
+    
     def run(self):
         """Run the strategy"""
         self.run_strategy()
@@ -2813,10 +3429,23 @@ class SP500Strategy:
         Returns a list of ticker symbols
         """
         try:
+            # Check if we need to re-select symbols based on the configured interval
+            current_time = datetime.now()
+            time_since_last_selection = (current_time - self.last_symbol_selection_time).days
+            
+            # If we have cached symbols and it's not time to refresh yet, return the cached symbols
+            if self.symbols_cache is not None and time_since_last_selection < self.symbol_reselection_interval:
+                logger.debug(f"Using cached symbols (last selected {time_since_last_selection} days ago)")
+                return self.symbols_cache
+            
+            # Time to refresh symbols
+            logger.info(f"Performing periodic symbol re-selection (last selected {time_since_last_selection} days ago)")
+            self.last_symbol_selection_time = current_time
+            
             # Get S&P 500 symbols
             sp500_symbols = get_sp500_symbols()
             
-            # Check if mid-cap stocks are enabled
+            # Check if mid-cap inclusion is enabled
             include_midcap = self.config.get('strategy', {}).get('include_midcap', False)
             symbols = sp500_symbols
             
@@ -2838,10 +3467,13 @@ class SP500Strategy:
                         logger.warning(f"Failed to get mid-cap symbols: {str(e)}")
         
                 # Add mid-cap symbols to the list
-                symbols = list(set(sp500_symbols + midcap_symbols))
-                logger.info(f"Added {len(midcap_symbols)} mid-cap symbols to the trading universe")
+            symbols = list(set(sp500_symbols + midcap_symbols))
+            logger.info(f"Added {len(midcap_symbols)} mid-cap symbols to universe (total: {len(symbols)})")
             
             logger.info(f"Trading universe contains {len(symbols)} symbols")
+            
+            # Cache the symbols for future use
+            self.symbols_cache = symbols
             return symbols
             
         except Exception as e:
@@ -2850,11 +3482,170 @@ class SP500Strategy:
             logger.warning("Falling back to TOP 100 symbols")
             return self.TOP_100_SYMBOLS
     
-def run_backtest(start_date, end_date, mode='backtest', max_signals=None, initial_capital=300, random_seed=42):
+    def _adjust_weights_based_on_market_regime(self, row):
+        """
+        Dynamically adjust indicator weights based on market regime
+        
+        Market regimes:
+        1. Trending market: Increase weight for trend indicators (MACD, ADX)
+        2. Range-bound market: Increase weight for mean-reversion indicators (RSI, Bollinger Bands)
+        3. Volatile market: Increase weight for volatility-based indicators (ATR, Bollinger Bands)
+        4. Seasonal periods: Increase weight for seasonality
+        """
+        try:
+            # Detect market regime based on indicators
+            
+            # Check for trending market
+            adx = row.get('adx', 0)
+            is_trending = adx > self.trending_threshold
+            
+            # Check for range-bound market
+            price_change_5d = abs(row.get('price_change_5d', 0))
+            is_range_bound = price_change_5d < self.range_bound_threshold
+            
+            # Check for volatile market
+            atr = row.get('atr', 0)
+            close = row.get('close', 0)
+            atr_pct = (atr / close * 100) if close > 0 else 0
+            is_volatile = atr_pct > self.volatility_threshold
+            
+            # Check for strong seasonal period
+            seasonality_score = row.get('seasonality_score', 0.5)
+            is_seasonal = seasonality_score > self.strong_seasonality_threshold
+            
+            # Base weights (default configuration)
+            base_technical_weight = self.base_technical_weight
+            base_seasonality_weight = self.base_seasonality_weight
+            
+            base_rsi_weight = self.base_rsi_weight
+            base_macd_weight = self.base_macd_weight
+            base_bb_weight = self.base_bb_weight
+            base_stoch_weight = self.base_stoch_weight
+            base_adx_weight = self.base_adx_weight
+            
+            # Adjust weights based on market regime
+            if is_trending:
+                # In trending markets, increase weight of trend indicators
+                self.macd_weight = base_macd_weight * 1.5
+                self.adx_weight = base_adx_weight * 1.5
+                self.rsi_weight = base_rsi_weight * 0.7
+                self.bb_weight = base_bb_weight * 0.7
+                self.stoch_weight = base_stoch_weight * 0.8
+                
+            elif is_range_bound:
+                # In range-bound markets, increase weight of mean-reversion indicators
+                self.rsi_weight = base_rsi_weight * 1.5
+                self.bb_weight = base_bb_weight * 1.5
+                self.macd_weight = base_macd_weight * 0.7
+                self.adx_weight = base_adx_weight * 0.7
+                self.stoch_weight = base_stoch_weight * 1.2
+                
+            elif is_volatile:
+                # In volatile markets, increase weight of volatility-based indicators
+                self.bb_weight = base_bb_weight * 1.5
+                self.adx_weight = base_adx_weight * 1.2
+                self.rsi_weight = base_rsi_weight * 1.2
+                self.macd_weight = base_macd_weight * 0.8
+                self.stoch_weight = base_stoch_weight * 0.8
+                
+            else:
+                # Default - reset to base weights
+                self.rsi_weight = base_rsi_weight
+                self.macd_weight = base_macd_weight
+                self.bb_weight = base_bb_weight
+                self.stoch_weight = base_stoch_weight
+                self.adx_weight = base_adx_weight
+            
+            # Adjust seasonality weight if in strong seasonal period
+            if is_seasonal:
+                self.seasonality_weight = base_seasonality_weight * 1.5
+                self.technical_weight = 1 - self.seasonality_weight
+            else:
+                self.seasonality_weight = base_seasonality_weight
+                self.technical_weight = 1 - self.seasonality_weight
+            
+            # Normalize technical indicator weights to sum to 1
+            total_tech_weight = self.rsi_weight + self.macd_weight + self.bb_weight + self.stoch_weight + self.adx_weight
+            
+            if total_tech_weight > 0:
+                self.rsi_weight /= total_tech_weight
+                self.macd_weight /= total_tech_weight
+                self.bb_weight /= total_tech_weight
+                self.stoch_weight /= total_tech_weight
+                self.adx_weight /= total_tech_weight
+            
+        except Exception as e:
+            logger.error(f"Error adjusting weights: {str(e)}")
+            # Reset to base weights on error
+            self.technical_weight = self.base_technical_weight
+            self.seasonality_weight = self.base_seasonality_weight
+            
+            self.rsi_weight = self.base_rsi_weight
+            self.macd_weight = self.base_macd_weight
+            self.bb_weight = self.base_bb_weight
+            self.stoch_weight = self.base_stoch_weight
+            self.adx_weight = self.base_adx_weight
+    
+    def check_config_reload(self):
+        """Check if configuration file has been modified and reload if necessary"""
+        try:
+            current_mtime = os.path.getmtime(self.config_path)
+            
+            # If the file has been modified since last load
+            if current_mtime > self.config_last_modified:
+                logger.info(f"Configuration file {self.config_path} has been modified, reloading...")
+                
+                # Reload configuration
+                with open(self.config_path, 'r') as file:
+                    new_config = yaml.safe_load(file)
+                
+                # Update configuration
+                self.config = new_config
+                self.config_last_modified = current_mtime
+                
+                # Update strategy parameters
+                self.strategy_params = new_config.get('strategies', {}).get('MeanReversion', {})
+                self.global_params = new_config.get('global', {})
+                
+                # Update technical indicators
+                self.bb_period = self.strategy_params.get('bb_period', 15)
+                self.bb_std_dev = self.strategy_params.get('bb_std_dev', 2.0)
+                self.rsi_period = self.strategy_params.get('rsi_period', 10)
+                self.rsi_oversold = self.strategy_params.get('rsi_oversold', 30)
+                self.rsi_overbought = self.strategy_params.get('rsi_overbought', 70)
+                self.macd_fast = self.strategy_params.get('macd_fast', 12)
+                self.macd_slow = self.strategy_params.get('macd_slow', 26)
+                self.macd_signal = self.strategy_params.get('macd_signal', 9)
+                
+                # Update trading parameters
+                self.position_size = self.strategy_params.get('position_size', 0.05)
+                self.max_positions = self.strategy_params.get('max_positions', 10)
+                self.stop_loss_pct = self.strategy_params.get('stop_loss_pct', 0.05)
+                self.take_profit_pct = self.strategy_params.get('take_profit_pct', 0.10)
+                self.max_drawdown_pct = self.strategy_params.get('max_drawdown_pct', 0.15)
+                
+                # Update symbol reselection interval
+                self.symbol_reselection_interval = self.global_params.get('symbol_reselection_interval', 7)
+                
+                logger.info("Configuration reloaded successfully")
+                return True
+            
+            return False
+        except Exception as e:
+            logger.error(f"Error reloading configuration: {str(e)}")
+            return False
+
+def run_backtest(start_date, end_date, mode='backtest', max_signals=None, initial_capital=300, random_seed=42, weekly_selection=True, continuous_capital=False, tier1_threshold=0.8, tier2_threshold=0.7, tier3_threshold=0.6):
     """Run a backtest for a specified period with specified initial capital"""
     try:
+
+        # Debug logging
+        logger.info("[DEBUG] Starting run_backtest in final_sp500_strategy.py")
+        logger.info(f"[DEBUG] Parameters: start_date={start_date}, end_date={end_date}, mode={mode}, max_signals={max_signals}, initial_capital={initial_capital}, random_seed={random_seed}, weekly_selection={weekly_selection}")
+        start_time = time.time()
+        
         # Load configuration
-        config_path = 'sp500_config.yaml'
+        config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sp500_config.yaml')
         with open(config_path, 'r') as file:
             config = yaml.safe_load(file)
         
@@ -2865,7 +3656,7 @@ def run_backtest(start_date, end_date, mode='backtest', max_signals=None, initia
             os.makedirs(config['paths'][path_key], exist_ok=True)
         
         # Load Alpaca credentials
-        with open('alpaca_credentials.json', 'r') as f:
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'alpaca_credentials.json'), 'r') as f:
             credentials = json.load(f)
         
         # Use paper trading credentials for backtesting
@@ -2888,6 +3679,14 @@ def run_backtest(start_date, end_date, mode='backtest', max_signals=None, initia
             backtest_start_date=start_date,
             backtest_end_date=end_date
         )
+        
+        # Update tier thresholds in config
+        if 'strategy' in config:
+            if 'signal_thresholds' not in config['strategy']:
+                config['strategy']['signal_thresholds'] = {}
+            config['strategy']['signal_thresholds']['tier_1'] = tier1_threshold
+            config['strategy']['signal_thresholds']['tier_2'] = tier2_threshold
+            config['strategy']['signal_thresholds']['tier_3'] = tier3_threshold
         
         # Run the strategy
         signals = strategy.run_strategy()
@@ -2915,15 +3714,15 @@ def run_backtest(start_date, end_date, mode='backtest', max_signals=None, initia
             
             # Ensure we don't exceed available signals
             large_cap_count = min(large_cap_count, len(largecap_signals))
-            mid_cap_count = min(mid_cap_count, len(midcap_symbols))
+            mid_cap_count = min(mid_cap_count, len(midcap_signals))
             
             # If we don't have enough of one type, allocate more to the other
             if large_cap_count < int(max_signals * (large_cap_percentage / 100)):
-                additional_mid_cap = min(mid_cap_count + (int(max_signals * (large_cap_percentage / 100)) - large_cap_count), len(midcap_symbols))
+                additional_mid_cap = min(mid_cap_count + (int(max_signals * (large_cap_percentage / 100)) - large_cap_count), len(midcap_signals))
                 mid_cap_count = additional_mid_cap
             
             if mid_cap_count < (max_signals - int(max_signals * (large_cap_percentage / 100))):
-                additional_large_cap = min(large_cap_count + ((max_signals - int(max_signals * (large_cap_percentage / 100))) - mid_cap_count), len(largecap_symbols))
+                additional_large_cap = min(large_cap_count + ((max_signals - int(max_signals * (large_cap_percentage / 100))) - mid_cap_count), len(largecap_signals))
                 large_cap_count = additional_large_cap
             
             # Get the top N signals of each type
@@ -2981,6 +3780,10 @@ def run_backtest(start_date, end_date, mode='backtest', max_signals=None, initia
             
             # Track remaining capital
             remaining_capital = initial_capital
+            # Track final capital for continuous capital mode
+            final_capital = remaining_capital
+            # Track final capital for continuous capital mode
+            final_capital = remaining_capital
             
             for signal in signals:
                 # Calculate position size based on signal score and remaining capital
@@ -3100,7 +3903,8 @@ def run_backtest(start_date, end_date, mode='backtest', max_signals=None, initia
             'long_signals': len([s for s in signals if s['direction'] == 'LONG']) if signals else 0,
             'avg_score': sum([s['score'] for s in signals]) / len(signals) if signals and len(signals) > 0 else 0,
             'avg_long_score': sum([s['score'] for s in signals if s['direction'] == 'LONG']) / len([s for s in signals if s['direction'] == 'LONG']) if signals and len([s for s in signals if s['direction'] == 'LONG']) > 0 else 0,
-            'long_win_rate': metrics['win_rate'] if metrics else 0  # For LONG-only strategy, long_win_rate equals win_rate
+            'long_win_rate': metrics['win_rate'] if metrics else 0,  # For LONG-only strategy, long_win_rate equals win_rate
+            'final_capital': metrics['final_capital'] if metrics and 'final_capital' in metrics else initial_capital,
         }
         
         # Add performance metrics to summary if available
@@ -3149,9 +3953,49 @@ def run_backtest(start_date, end_date, mode='backtest', max_signals=None, initia
             logger.info(f"Final Capital: ${metrics['final_capital']:.2f}")
             logger.info(f"Total Return: {metrics['total_return']:.2f}%")
         
-        return summary, signals
+
+        # Log execution time
+        end_time = time.time()
+        execution_time = end_time - start_time
+        logger.info(f"[DEBUG] Returning {len(signals) if signals else 0} signals")
+        if signals and len(signals) > 0:
+            logger.info(f"[DEBUG] First few signals: {signals[:3]}")
         
+        # Add continuous_capital flag to summary
+        if summary:
+            summary['continuous_capital'] = continuous_capital
+            if metrics and 'final_capital' in metrics:
+                summary['final_capital'] = metrics['final_capital']
+        
+        # Update final_capital for continuous capital mode
+        if metrics and 'final_capital' in metrics:
+            final_capital = metrics['final_capital']
+        return summary, signals
+    
     except Exception as e:
         logger.error(f"Error running backtest: {str(e)}")
         traceback.print_exc()
-        return None, []
+        
+        # Create a fallback summary with minimal information
+        fallback_summary = {
+            'start_date': start_date,
+            'end_date': end_date,
+            'total_signals': 0,
+            'long_signals': 0,
+            'avg_score': 0,
+            'avg_long_score': 0,
+            'win_rate': 0,
+            'profit_factor': 0,
+            'avg_win': 0,
+            'avg_loss': 0,
+            'avg_holding_period': 0,
+            'total_trades': 0,
+            'winning_trades': 0,
+            'losing_trades': 0,
+            'initial_capital': initial_capital,
+            'final_capital': initial_capital,
+            'total_return': 0,
+            'error': str(e)
+        }
+        
+        return fallback_summary, []

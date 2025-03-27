@@ -1,0 +1,27 @@
+# Trading System Logging Configuration
+# This file controls the behavior of the logging system
+
+# General logging settings
+log_dir: "logs"
+console_level: "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+file_level: "DEBUG"    # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+
+# Log file management
+max_file_size_mb: 10   # Maximum size of log files before rotation
+backup_count: 5        # Number of backup files to keep
+log_rotation: "size"   # Options: "size" or "time"
+
+# Log types to enable
+enable_json_logs: true        # Enable structured JSON logs for machine processing
+enable_trade_logs: true       # Enable detailed trade logging
+enable_performance_logs: true # Enable performance metric logging
+enable_error_logs: true       # Enable detailed error logging with stack traces
+
+# Custom log formats
+trade_log_format: "{timestamp} - {symbol} {action} at {price}"
+performance_log_format: "{timestamp} - Equity: {equity}, Return: {return}%"
+
+# Debug settings
+debug_mode: false      # Enable additional debug information
+log_api_calls: true    # Log API calls to external services
+log_data_processing: true # Log data processing operations

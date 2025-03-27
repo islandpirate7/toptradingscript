@@ -1,0 +1,324 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - S&P 500 Trading Strategy{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5 mb-3">S&P 500 Trading Strategy Dashboard</h1>
+            <p class="lead">Monitor and control your trading strategies</p>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Run Paper Trading</h5>
+                </div>
+                <div class="card-body">
+                    <form id="paperTradingForm">
+                        <div class="mb-3">
+                            <label for="initialCapital" class="form-label">Initial Capital</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" id="initialCapital" name="initial_capital" value="{{ config.initial_capital }}" min="100" step="100">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="maxSignalsPerDay" class="form-label">Max Signals Per Day</label>
+                            <input type="number" class="form-control" id="maxSignalsPerDay" name="max_signals_per_day" value="{{ config.backtest.max_signals_per_day }}" min="1" max="100">
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label for="tier1Threshold" class="form-label">Tier 1 Threshold</label>
+                                <input type="number" class="form-control" id="tier1Threshold" name="tier1_threshold" value="{{ config.backtest.tier1_threshold }}" min="0" max="1" step="0.01">
+                            </div>
+                            <div class="col">
+                                <label for="tier1Size" class="form-label">Tier 1 Size</label>
+                                <input type="number" class="form-control" id="tier1Size" name="tier1_size" value="{{ config.position_sizing.tier1_size }}" min="0" max="1" step="0.01">
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label for="tier2Threshold" class="form-label">Tier 2 Threshold</label>
+                                <input type="number" class="form-control" id="tier2Threshold" name="tier2_threshold" value="{{ config.backtest.tier2_threshold }}" min="0" max="1" step="0.01">
+                            </div>
+                            <div class="col">
+                                <label for="tier2Size" class="form-label">Tier 2 Size</label>
+                                <input type="number" class="form-control" id="tier2Size" name="tier2_size" value="{{ config.position_sizing.tier2_size }}" min="0" max="1" step="0.01">
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label for="tier3Threshold" class="form-label">Tier 3 Threshold</label>
+                                <input type="number" class="form-control" id="tier3Threshold" name="tier3_threshold" value="{{ config.backtest.tier3_threshold }}" min="0" max="1" step="0.01">
+                            </div>
+                            <div class="col">
+                                <label for="tier3Size" class="form-label">Tier 3 Size</label>
+                                <input type="number" class="form-control" id="tier3Size" name="tier3_size" value="{{ config.position_sizing.tier3_size }}" min="0" max="1" step="0.01">
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Start Paper Trading</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">Run Backtest</h5>
+                </div>
+                <div class="card-body">
+                    <form id="backtestForm">
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="useCustomDateRange" name="use_custom_date_range">
+                                <label class="form-check-label" for="useCustomDateRange">
+                                    Use Custom Date Range
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="custom-date-range-fields" style="display: none;">
+                            <div class="mb-3">
+                                <label for="startDate" class="form-label">Start Date</label>
+                                <input type="date" class="form-control" id="startDate" name="start_date">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="endDate" class="form-label">End Date</label>
+                                <input type="date" class="form-control" id="endDate" name="end_date">
+                            </div>
+                        </div>
+                        
+                        <div class="quarter-fields">
+                            <div class="mb-3">
+                                <label for="quarter" class="form-label">Quarter</label>
+                                <select class="form-select" id="quarter" name="quarter">
+                                    <option value="Q1_2023">Q1 2023</option>
+                                    <option value="Q2_2023">Q2 2023</option>
+                                    <option value="Q3_2023">Q3 2023</option>
+                                    <option value="Q4_2023">Q4 2023</option>
+                                    <option value="Q1_2024">Q1 2024</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="maxSignalsBacktest" class="form-label">Max Signals Per Day</label>
+                            <input type="number" class="form-control" id="maxSignalsBacktest" name="max_signals_per_day" value="{{ config.backtest.max_signals_per_day }}" min="1" max="100">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="initialCapitalBacktest" class="form-label">Initial Capital</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" id="initialCapitalBacktest" name="initial_capital" value="{{ config.initial_capital }}" min="100" step="100">
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label for="backtestTier1Threshold" class="form-label">Tier 1 Threshold</label>
+                                <input type="number" class="form-control" id="backtestTier1Threshold" name="tier1_threshold" value="{{ config.backtest.tier1_threshold }}" min="0" max="1" step="0.01">
+                            </div>
+                            <div class="col">
+                                <label for="backtestTier1Size" class="form-label">Tier 1 Size</label>
+                                <input type="number" class="form-control" id="backtestTier1Size" name="tier1_size" value="{{ config.position_sizing.tier1_size }}" min="0" max="1" step="0.01">
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label for="backtestTier2Threshold" class="form-label">Tier 2 Threshold</label>
+                                <input type="number" class="form-control" id="backtestTier2Threshold" name="tier2_threshold" value="{{ config.backtest.tier2_threshold }}" min="0" max="1" step="0.01">
+                            </div>
+                            <div class="col">
+                                <label for="backtestTier2Size" class="form-label">Tier 2 Size</label>
+                                <input type="number" class="form-control" id="backtestTier2Size" name="tier2_size" value="{{ config.position_sizing.tier2_size }}" min="0" max="1" step="0.01">
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label for="backtestTier3Threshold" class="form-label">Tier 3 Threshold</label>
+                                <input type="number" class="form-control" id="backtestTier3Threshold" name="tier3_threshold" value="{{ config.backtest.tier3_threshold }}" min="0" max="1" step="0.01">
+                            </div>
+                            <div class="col">
+                                <label for="backtestTier3Size" class="form-label">Tier 3 Size</label>
+                                <input type="number" class="form-control" id="backtestTier3Size" name="tier3_size" value="{{ config.position_sizing.tier3_size }}" min="0" max="1" step="0.01">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="weeklySelection" name="weekly_selection">
+                                <label class="form-check-label" for="weeklySelection">
+                                    Weekly Selection
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="multipleRuns" name="multiple_runs">
+                                <label class="form-check-label" for="multipleRuns">
+                                    Use Multiple Runs
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="numRuns" class="form-label">Number of Runs</label>
+                            <input type="number" class="form-control" id="numRuns" name="num_runs" value="5" min="1" max="20">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="randomSeed" class="form-label">Random Seed</label>
+                            <input type="number" class="form-control" id="randomSeed" name="random_seed" value="42" min="1" max="1000">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-info">Run Backtest</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Active Processes</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="processesTable">
+                            <thead>
+                                <tr>
+                                    <th>Process</th>
+                                    <th>Status</th>
+                                    <th>Start Time</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="4" class="text-center">Loading processes...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">Run Comprehensive Backtest</h5>
+                </div>
+                <div class="card-body">
+                    <form id="comprehensiveBacktestForm">
+                        <div class="mb-3">
+                            <label for="quarters" class="form-label">Quarters to Test</label>
+                            <input type="text" class="form-control" id="quarters" name="quarters" value="Q1_2023,Q2_2023">
+                            <small class="form-text text-muted">Comma-separated list of quarters (e.g., Q1_2023,Q2_2023) or 'all' for all quarters</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="comprehensiveMaxSignals" class="form-label">Max Signals Per Day</label>
+                            <input type="number" class="form-control" id="comprehensiveMaxSignals" name="max_signals_per_day" value="{{ config.backtest.max_signals_per_day }}" min="1" max="100">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="comprehensiveInitialCapital" class="form-label">Initial Capital</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" id="comprehensiveInitialCapital" name="initial_capital" value="{{ config.initial_capital }}" min="100" step="100">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="comprehensiveWeeklySelection" name="weekly_selection">
+                                <label class="form-check-label" for="comprehensiveWeeklySelection">
+                                    Weekly Selection
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="continuousCapital" name="continuous_capital">
+                                <label class="form-check-label" for="continuousCapital">
+                                    Use Continuous Capital
+                                </label>
+                                <small class="form-text text-muted d-block">Pass final balance from one quarter to the next</small>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-warning">Run Comprehensive Backtest</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Backtest Results</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="backtestResultsTable">
+                            <thead>
+                                <tr>
+                                    <th>Filename</th>
+                                    <th>Date Range</th>
+                                    <th>Modified</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="4" class="text-center">Loading backtest results...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Toggle custom date range fields
+    document.addEventListener('DOMContentLoaded', function() {
+        const useCustomDateRange = document.getElementById('useCustomDateRange');
+        if (useCustomDateRange) {
+            useCustomDateRange.addEventListener('change', function() {
+                const customDateRangeFields = document.querySelector('.custom-date-range-fields');
+                const quarterFields = document.querySelector('.quarter-fields');
+                if (customDateRangeFields && quarterFields) {
+                    customDateRangeFields.style.display = this.checked ? 'block' : 'none';
+                    quarterFields.style.display = this.checked ? 'none' : 'block';
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

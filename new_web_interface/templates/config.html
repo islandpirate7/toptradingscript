@@ -1,0 +1,366 @@
+{% extends 'base.html' %}
+
+{% block title %}Configuration - S&P 500 Trading Strategy{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Strategy Configuration</h1>
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> Changes to the configuration will be applied to all future runs of the strategy.
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Configuration Settings</h5>
+            </div>
+            <div class="card-body">
+                <form id="configForm">
+                    <ul class="nav nav-tabs" id="configTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab" aria-controls="general" aria-selected="true">General</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="alpaca-tab" data-bs-toggle="tab" data-bs-target="#alpaca" type="button" role="tab" aria-controls="alpaca" aria-selected="false">Alpaca API</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="backtest-tab" data-bs-toggle="tab" data-bs-target="#backtest" type="button" role="tab" aria-controls="backtest" aria-selected="false">Backtest</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="trading-tab" data-bs-toggle="tab" data-bs-target="#trading" type="button" role="tab" aria-controls="trading" aria-selected="false">Trading</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="signals-tab" data-bs-toggle="tab" data-bs-target="#signals" type="button" role="tab" aria-controls="signals" aria-selected="false">Signals</button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content p-3 border border-top-0 rounded-bottom" id="configTabsContent">
+                        <!-- General Tab -->
+                        <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="initialCapital" class="form-label">Initial Capital</label>
+                                        <input type="number" class="form-control" id="initialCapital" name="config.initial_capital" value="{{ config.initial_capital|default(300) }}">
+                                        <small class="form-text text-muted">Starting capital for backtests</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="logLevel" class="form-label">Log Level</label>
+                                        <select class="form-select" id="logLevel" name="config.log_level">
+                                            <option value="DEBUG" {% if config.log_level == 'DEBUG' %}selected{% endif %}>DEBUG</option>
+                                            <option value="INFO" {% if config.log_level == 'INFO' %}selected{% endif %}>INFO</option>
+                                            <option value="WARNING" {% if config.log_level == 'WARNING' %}selected{% endif %}>WARNING</option>
+                                            <option value="ERROR" {% if config.log_level == 'ERROR' %}selected{% endif %}>ERROR</option>
+                                        </select>
+                                        <small class="form-text text-muted">Logging verbosity level</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="dataDirectory" class="form-label">Data Directory</label>
+                                        <input type="text" class="form-control" id="dataDirectory" name="config.data_directory" value="{{ config.data_directory|default('./data') }}">
+                                        <small class="form-text text-muted">Directory for storing market data</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="resultsDirectory" class="form-label">Results Directory</label>
+                                        <input type="text" class="form-control" id="resultsDirectory" name="config.results_directory" value="{{ config.results_directory|default('./backtest_results') }}">
+                                        <small class="form-text text-muted">Directory for storing backtest results</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Alpaca API Tab -->
+                        <div class="tab-pane fade" id="alpaca" role="tabpanel" aria-labelledby="alpaca-tab">
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i> API keys are sensitive information. Make sure you're on a secure connection.
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="alpacaApiKey" class="form-label">API Key</label>
+                                        <input type="text" class="form-control" id="alpacaApiKey" name="config.alpaca.api_key" value="{{ config.alpaca.api_key|default('') }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="alpacaApiSecret" class="form-label">API Secret</label>
+                                        <input type="password" class="form-control" id="alpacaApiSecret" name="config.alpaca.api_secret" value="{{ config.alpaca.api_secret|default('') }}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="alpacaBaseUrl" class="form-label">Base URL</label>
+                                        <input type="text" class="form-control" id="alpacaBaseUrl" name="config.alpaca.base_url" value="{{ config.alpaca.base_url|default('https://paper-api.alpaca.markets') }}">
+                                        <small class="form-text text-muted">Use https://api.alpaca.markets for live trading</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="alpacaDataUrl" class="form-label">Data URL</label>
+                                        <input type="text" class="form-control" id="alpacaDataUrl" name="config.alpaca.data_url" value="{{ config.alpaca.data_url|default('https://data.alpaca.markets') }}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Backtest Tab -->
+                        <div class="tab-pane fade" id="backtest" role="tabpanel" aria-labelledby="backtest-tab">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="maxSignalsPerDay" class="form-label">Max Signals Per Day</label>
+                                        <input type="number" class="form-control" id="maxSignalsPerDay" name="config.backtest.max_signals_per_day" value="{{ config.backtest.max_signals_per_day|default(40) }}">
+                                        <small class="form-text text-muted">Maximum number of signals to generate per day</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="defaultQuarter" class="form-label">Default Quarter</label>
+                                        <input type="text" class="form-control" id="defaultQuarter" name="config.backtest.default_quarter" value="{{ config.backtest.default_quarter|default('Q1_2023') }}">
+                                        <small class="form-text text-muted">Default quarter for backtests (e.g., Q1_2023)</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="useWeeklySelection" name="config.backtest.use_weekly_selection" {% if config.backtest.use_weekly_selection %}checked{% endif %}>
+                                            <label class="form-check-label" for="useWeeklySelection">
+                                                Use Weekly Selection
+                                            </label>
+                                            <small class="form-text text-muted d-block">Refresh stock selection weekly instead of daily</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="useContinuousCapital" name="config.backtest.use_continuous_capital" {% if config.backtest.use_continuous_capital %}checked{% endif %}>
+                                            <label class="form-check-label" for="useContinuousCapital">
+                                                Use Continuous Capital
+                                            </label>
+                                            <small class="form-text text-muted d-block">Pass final balance from one quarter to the next</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Trading Tab -->
+                        <div class="tab-pane fade" id="trading" role="tabpanel" aria-labelledby="trading-tab">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="maxPositions" class="form-label">Max Positions</label>
+                                        <input type="number" class="form-control" id="maxPositions" name="config.trading.max_positions" value="{{ config.trading.max_positions|default(20) }}">
+                                        <small class="form-text text-muted">Maximum number of concurrent positions</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="positionSize" class="form-label">Position Size (%)</label>
+                                        <input type="number" class="form-control" id="positionSize" name="config.trading.position_size_percent" value="{{ config.trading.position_size_percent|default(5) }}">
+                                        <small class="form-text text-muted">Default position size as percentage of portfolio</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="stopLossPercent" class="form-label">Stop Loss (%)</label>
+                                        <input type="number" class="form-control" id="stopLossPercent" name="config.trading.stop_loss_percent" value="{{ config.trading.stop_loss_percent|default(5) }}" step="0.1">
+                                        <small class="form-text text-muted">Default stop loss percentage</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="takeProfitPercent" class="form-label">Take Profit (%)</label>
+                                        <input type="number" class="form-control" id="takeProfitPercent" name="config.trading.take_profit_percent" value="{{ config.trading.take_profit_percent|default(10) }}" step="0.1">
+                                        <small class="form-text text-muted">Default take profit percentage</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="maxHoldingDays" class="form-label">Max Holding Days</label>
+                                        <input type="number" class="form-control" id="maxHoldingDays" name="config.trading.max_holding_days" value="{{ config.trading.max_holding_days|default(10) }}">
+                                        <small class="form-text text-muted">Maximum number of days to hold a position</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="checkInterval" class="form-label">Check Interval (minutes)</label>
+                                        <input type="number" class="form-control" id="checkInterval" name="config.trading.check_interval_minutes" value="{{ config.trading.check_interval_minutes|default(5) }}">
+                                        <small class="form-text text-muted">Interval between position checks in minutes</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Signals Tab -->
+                        <div class="tab-pane fade" id="signals" role="tabpanel" aria-labelledby="signals-tab">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="tier1Threshold" class="form-label">Tier 1 Threshold</label>
+                                        <input type="number" class="form-control" id="tier1Threshold" name="config.signals.tier1_threshold" value="{{ config.signals.tier1_threshold|default(0.8) }}" step="0.01" min="0" max="1">
+                                        <small class="form-text text-muted">Threshold for tier 1 signals (strongest)</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="tier2Threshold" class="form-label">Tier 2 Threshold</label>
+                                        <input type="number" class="form-control" id="tier2Threshold" name="config.signals.tier2_threshold" value="{{ config.signals.tier2_threshold|default(0.7) }}" step="0.01" min="0" max="1">
+                                        <small class="form-text text-muted">Threshold for tier 2 signals</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="tier3Threshold" class="form-label">Tier 3 Threshold</label>
+                                        <input type="number" class="form-control" id="tier3Threshold" name="config.signals.tier3_threshold" value="{{ config.signals.tier3_threshold|default(0.6) }}" step="0.01" min="0" max="1">
+                                        <small class="form-text text-muted">Threshold for tier 3 signals (weakest)</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="tier1PositionSize" class="form-label">Tier 1 Position Size (%)</label>
+                                        <input type="number" class="form-control" id="tier1PositionSize" name="config.signals.tier1_position_size" value="{{ config.signals.tier1_position_size|default(7) }}" step="0.1">
+                                        <small class="form-text text-muted">Position size for tier 1 signals</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="tier2PositionSize" class="form-label">Tier 2 Position Size (%)</label>
+                                        <input type="number" class="form-control" id="tier2PositionSize" name="config.signals.tier2_position_size" value="{{ config.signals.tier2_position_size|default(5) }}" step="0.1">
+                                        <small class="form-text text-muted">Position size for tier 2 signals</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="tier3PositionSize" class="form-label">Tier 3 Position Size (%)</label>
+                                        <input type="number" class="form-control" id="tier3PositionSize" name="config.signals.tier3_position_size" value="{{ config.signals.tier3_position_size|default(3) }}" step="0.1">
+                                        <small class="form-text text-muted">Position size for tier 3 signals</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="useLongOnly" name="config.signals.long_only" {% if config.signals.long_only %}checked{% endif %}>
+                                            <label class="form-check-label" for="useLongOnly">
+                                                Long Only
+                                            </label>
+                                            <small class="form-text text-muted d-block">Only generate long signals (no shorts)</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3 d-flex justify-content-between">
+                        <button type="button" class="btn btn-secondary" id="resetConfigBtn">Reset to Defaults</button>
+                        <button type="submit" class="btn btn-primary">Save Configuration</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Save configuration
+        document.getElementById('configForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch('/update_config', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success toast
+                    showToast('success', data.message);
+                } else {
+                    // Show error toast
+                    showToast('danger', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error updating configuration:', error);
+                showToast('danger', 'Error updating configuration: ' + error);
+            });
+        });
+        
+        // Reset configuration
+        document.getElementById('resetConfigBtn').addEventListener('click', function() {
+            if (confirm('Are you sure you want to reset all configuration settings to their default values?')) {
+                // Here you would typically call an API endpoint to reset the configuration
+                // For now, we'll just reload the page
+                window.location.reload();
+            }
+        });
+        
+        // Show toast notification
+        function showToast(type, message) {
+            // Create toast container if it doesn't exist
+            const toastContainer = document.getElementById('toastContainer');
+            
+            // Create toast
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white bg-${type} border-0`;
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+            
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            `;
+            
+            // Add toast to container
+            toastContainer.appendChild(toast);
+            
+            // Show toast
+            const bsToast = new bootstrap.Toast(toast, {
+                autohide: true,
+                delay: 5000
+            });
+            bsToast.show();
+            
+            // Remove toast after it's hidden
+            toast.addEventListener('hidden.bs.toast', function() {
+                toast.remove();
+            });
+        }
+    });
+</script>
+{% endblock %}

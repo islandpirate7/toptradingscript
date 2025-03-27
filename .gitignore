@@ -1,4 +1,11 @@
-# Python
+# Sensitive information
+alpaca_credentials.json
+*_credentials.json
+*.key
+*.pem
+*.ppk
+
+# Python cache files
 __pycache__/
 *.py[cod]
 *$py.class
@@ -19,38 +26,20 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+venv/
 
 # Logs
 *.log
 logs/
+*.log.*
+
+# Results and data files
 backtest_results/
-simulation_results/
-trades/
-performance/
-plots/
-
-# Credentials
-alpaca_credentials.json
-*_key.json
-*_keys.json
-*.pem
-*.key
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# Environment
-.env
-.venv
-venv/
-ENV/
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# OS specific
-.DS_Store
-Thumbs.db
+*.csv
+!trading_cli.py
+!error_handler.py
+!trading_logger.py
+!final_sp500_strategy.py
+!combined_strategy.py
+!backtest_engine.py
+!*.py

@@ -1,0 +1,30 @@
+{
+  "start_date": "2023-06-01",
+  "end_date": "2023-09-30",
+  "total_signals": 40,
+  "long_signals": 40,
+  "avg_score": 1.0,
+  "avg_long_score": 1.0,
+  "long_win_rate": 72.5,
+  "final_capital": 698.2052819308828,
+  "win_rate": 72.5,
+  "profit_factor": 7.637200965657799,
+  "avg_win": 7.864415978930195,
+  "avg_loss": -2.7147983143720906,
+  "avg_holding_period": 10.3,
+  "total_trades": 40,
+  "winning_trades": 29,
+  "losing_trades": 11,
+  "initial_capital": 500.0,
+  "total_return": 39.641056386176565,
+  "tier_metrics": {
+    "Tier 1 (\u22650.9)": {
+      "win_rate": 72.5,
+      "avg_pl": 4.955132048272066,
+      "trade_count": 40,
+      "long_win_rate": 72.5,
+      "long_count": 40
+    }
+  },
+  "continuous_capital": false
+}

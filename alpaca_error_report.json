@@ -1,0 +1,111 @@
+{
+  "timestamp": "2025-03-22T19:23:45.256669",
+  "system_info": {
+    "python_version": "3.12.6 (tags/v3.12.6:a4a2d2b, Sep  6 2024, 20:11:23) [MSC v.1940 64 bit (AMD64)]",
+    "platform": "win32"
+  },
+  "api_info": {
+    "api_key_prefix": "PK52W...",
+    "api_secret_prefix": "NINtB...",
+    "base_url": "https://paper-api.alpaca.markets",
+    "data_url": "https://data.alpaca.markets"
+  },
+  "test_results": [
+    {
+      "test_name": "Account Access",
+      "endpoint": "https://paper-api.alpaca.markets/v2/account",
+      "success": true,
+      "response": {
+        "account_id": "18fc70a5-f27c-48b8-9336-e7535e12e3e5",
+        "status": "ACTIVE",
+        "currency": "USD",
+        "buying_power": "28377.02",
+        "cash": "120049.82",
+        "portfolio_value": "100088.74"
+      }
+    },
+    {
+      "test_name": "Recent Market Data",
+      "endpoint": "https://data.alpaca.markets/v2/stocks/AAPL/bars",
+      "params": {
+        "timeframe": "1Day",
+        "start": "2025-03-15T19:23:46.138966",
+        "end": "2025-03-22T19:23:46.138966",
+        "adjustment": "raw"
+      },
+      "success": false,
+      "status_code": 400,
+      "response_headers": {
+        "Date": "Sat, 22 Mar 2025 23:23:47 GMT",
+        "Content-Type": "application/json",
+        "Content-Length": "202",
+        "Connection": "keep-alive",
+        "X-Ratelimit-Limit": "200",
+        "X-Ratelimit-Remaining": "199",
+        "X-Ratelimit-Reset": "1742685827",
+        "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+        "X-Request-ID": "01d68c9d4a5fb08768acafcb6113a755",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Credentials": "true",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+        "Access-Control-Max-Age": "1728000"
+      },
+      "response_body": "{\"message\":\"Invalid format for parameter start: error parsing '2025-03-15T19:23:46.138966' as RFC3339 or 2006-01-02 time: parsing time \\\"2025-03-15T19:23:46.138966\\\": extra text: \\\"T19:23:46.138966\\\"\"}\n"
+    },
+    {
+      "test_name": "Historical Market Data (2022)",
+      "endpoint": "https://data.alpaca.markets/v2/stocks/AAPL/bars",
+      "params": {
+        "timeframe": "1Day",
+        "start": "2022-01-01T00:00:00",
+        "end": "2022-01-31T00:00:00",
+        "adjustment": "raw"
+      },
+      "success": false,
+      "status_code": 400,
+      "response_headers": {
+        "Date": "Sat, 22 Mar 2025 23:23:47 GMT",
+        "Content-Type": "application/json",
+        "Content-Length": "181",
+        "Connection": "keep-alive",
+        "X-Ratelimit-Limit": "200",
+        "X-Ratelimit-Remaining": "199",
+        "X-Ratelimit-Reset": "1742685828",
+        "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+        "X-Request-ID": "8244dbbaa5892250f4cff44d41ab487e",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Credentials": "true",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization",
+        "Access-Control-Max-Age": "1728000"
+      },
+      "response_body": "{\"message\":\"Invalid format for parameter start: error parsing '2022-01-01T00:00:00' as RFC3339 or 2006-01-02 time: parsing time \\\"2022-01-01T00:00:00\\\": extra text: \\\"T00:00:00\\\"\"}\n"
+    },
+    {
+      "test_name": "Subscription Status",
+      "endpoint": "https://paper-api.alpaca.markets/v2/account",
+      "success": true,
+      "status_code": 200,
+      "response_headers": {
+        "Date": "Sat, 22 Mar 2025 23:23:48 GMT",
+        "Content-Type": "application/json; charset=UTF-8",
+        "Transfer-Encoding": "chunked",
+        "Connection": "keep-alive",
+        "Vary": "Accept-Encoding, Origin",
+        "Access-Control-Allow-Origin": "*",
+        "X-Ratelimit-Limit": "200",
+        "X-Ratelimit-Remaining": "199",
+        "X-Ratelimit-Reset": "1742685828",
+        "X-Request-Id": "c7b51675bd19e44d6a597c9e353f1c30",
+        "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+        "Access-Control-Allow-Credentials": "true",
+        "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, POST, PATCH",
+        "Access-Control-Allow-Headers": "Apca-Api-Key-Id, Apca-Api-Secret-Key, Authorization, Content-Type",
+        "Access-Control-Max-Age": "1728000",
+        "Content-Encoding": "gzip"
+      },
+      "response_body": "{\"id\":\"18fc70a5-f27c-48b8-9336-e7535e12e3e5\",\"admin_configurations\":{},\"user_configurations\":null,\"account_number\":\"PA3K4ADFB2SA\",\"status\":\"ACTIVE\",\"crypto_status\":\"ACTIVE\",\"options_approved_level\":3,\"options_trading_level\":3,\"currency\":\"USD\",\"buying_power\":\"28377.02\",\"regt_buying_power\":\"28377.02\",\"daytrading_buying_power\":\"0\",\"effective_buying_power\":\"28377.02\",\"non_marginable_buying_power\":\"14188.5\",\"options_buying_power\":\"48250.03\",\"bod_dtbp\":\"0\",\"cash\":\"120049.82\",\"accrued_fees\":\"0\",\"portfolio_value\":\"100088.74\",\"pattern_day_trader\":false,\"trading_blocked\":false,\"transfers_blocked\":false,\"account_blocked\":false,\"created_at\":\"2025-03-14T11:50:16.597508Z\",\"trade_suspended_by_user\":false,\"multiplier\":\"2\",\"shorting_enabled\":true,\"equity\":\"100088.74\",\"last_equity\":\"100088.7396\",\"long_market_value\":\"75919.69\",\"short_market_value\":\"-95880.77\",\"position_market_value\":\"171800.46\",\"initial_margin\":\"85900.23\",\"maintenance_margin\":\"51838.71\",\"last_maintenance_margin\":\"51838.71\",\"sma\":\"128005."
+    }
+  ]
+}

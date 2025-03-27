@@ -1,0 +1,89 @@
+{
+  "summary": {
+    "quarter": "Q1_2023",
+    "start_date": "2023-01-01",
+    "end_date": "2023-03-31",
+    "duration": "90 days",
+    "total_profit_loss": 1250.75,
+    "win_rate": 0.65,
+    "total_trades": 48,
+    "winning_trades": 31,
+    "losing_trades": 17,
+    "average_profit_per_trade": 40.35,
+    "average_loss_per_trade": -18.20,
+    "profit_factor": 2.22,
+    "max_drawdown": 0.08,
+    "strategy": "Multi-Strategy",
+    "initial_capital": 10000,
+    "final_capital": 11250.75,
+    "total_return": 0.125,
+    "avg_win": 0.04,
+    "avg_loss": -0.02,
+    "avg_holding_period": 3.5,
+    "sharpe_ratio": 1.8,
+    "sortino_ratio": 2.5,
+    "trading_parameters": {
+      "position_sizing": {
+        "base_position_pct": 5,
+        "tier1_factor": 1.5,
+        "tier2_factor": 1.0,
+        "midcap_factor": 0.8
+      },
+      "stop_loss_pct": 5,
+      "take_profit_pct": 10,
+      "max_drawdown_pct": 20,
+      "large_cap_percentage": 70,
+      "avg_holding_period": {
+        "win": 4.2,
+        "loss": 2.8
+      }
+    },
+    "tier1_threshold": 0.8,
+    "tier2_threshold": 0.7,
+    "tier3_threshold": 0.6
+  },
+  "trades": [
+    {
+      "symbol": "AAPL",
+      "entry_date": "2023-01-05",
+      "entry_price": 125.02,
+      "exit_date": "2023-01-08",
+      "exit_price": 132.45,
+      "shares": 10,
+      "profit_loss": 74.30,
+      "return_pct": 5.94,
+      "holding_period": 3,
+      "signal_strength": 0.85,
+      "tier": 1,
+      "strategy": "VolatilityBreakout"
+    },
+    {
+      "symbol": "MSFT",
+      "entry_date": "2023-01-12",
+      "entry_price": 228.31,
+      "exit_date": "2023-01-15",
+      "exit_price": 235.77,
+      "shares": 5,
+      "profit_loss": 37.30,
+      "return_pct": 3.27,
+      "holding_period": 3,
+      "signal_strength": 0.75,
+      "tier": 2,
+      "strategy": "MeanReversion"
+    },
+    {
+      "symbol": "GOOGL",
+      "entry_date": "2023-01-20",
+      "entry_price": 92.65,
+      "exit_date": "2023-01-22",
+      "exit_price": 89.24,
+      "shares": 15,
+      "profit_loss": -51.15,
+      "return_pct": -3.68,
+      "holding_period": 2,
+      "signal_strength": 0.72,
+      "tier": 2,
+      "strategy": "TrendFollowing"
+    }
+  ]
+}

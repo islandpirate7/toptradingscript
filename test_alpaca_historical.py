@@ -36,10 +36,10 @@ def test_alpaca_historical():
         base_url='https://data.alpaca.markets'
     )
     
-    # Test fetching historical data from 2023 (should be available with free tier)
+    # Test fetching historical data from 2022 (should be available with free tier)
     symbol = "AAPL"
-    start_date = "2023-01-01"
-    end_date = "2023-01-31"
+    start_date = "2022-01-01"
+    end_date = "2022-01-31"
     
     try:
         logger.info(f"Fetching historical data for {symbol} from {start_date} to {end_date}")
