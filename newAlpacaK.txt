@@ -1,0 +1,51 @@
+Vercel Variables
+
+ALPACA_API_KEY: PKMFZR1AZ2PLDZO7FMDN
+ALPACA_API_SECRET: UM1AXRjrl0tFlBbbrmqOrZ9S3OqM6hH7hdqXM0o1
+ALPACA_BASE_URL: https://paper-api.alpaca.markets
+
+
+New Alpaca:
+Individual Accounts
+API Keys
+Endpoint
+https://api.alpaca.markets
+Key
+AKJTN1ABCRTO83QCM2HK
+Secret
+02lS1EiaPuY6rpPKR2bJ8872BaE65HIEPeWJ3Bj8
+
+Paper Account
+Endpoint
+https://paper-api.alpaca.markets/v2
+Key
+PK52W7Q87YFYQQOREGIQ
+Secret
+NINtBWhPFeRSgnMe8nralpnJJ8WqTm2rklDkYblc
+
+Paper trading 2
+Alpaca 2nd Paper Trading
+Endpoint
+https://paper-api.alpaca.markets/v2
+Key
+PKMFZR1AZ2PLDZO7FMDN
+Secret
+UM1AXRjrl0tFlBbbrmqOrZ9S3OqM6hH7hdqXM0o1
+
+New Keys
+Individual Accounts
+API Keys
+Endpoint
+https://api.alpaca.markets
+Key
+AKCF6YW17DSV72F5GVDY
+Secret
+hEdBbET4dqSzR8RGajIH2763X06d5oPqbaLEcO4p
+
+Paper Account
+Endpoint
+https://paper-api.alpaca.markets/v2
+Key
+PK0N5HTUWPQ85S4OA7LM
+Secret
+4zdWOKiAb9oJjIcsQB94IV0ijhUluUcyt4howw3A

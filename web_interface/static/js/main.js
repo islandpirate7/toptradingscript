@@ -18,6 +18,123 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Restart Server Button
+    const restartServerBtn = document.getElementById('restartServerBtn');
+    if (restartServerBtn) {
+        restartServerBtn.addEventListener('click', function() {
+            const restartServerModal = new bootstrap.Modal(document.getElementById('restartServerModal'));
+            restartServerModal.show();
+        });
+    }
+
+    // Confirm Restart Server Button
+    const confirmRestartServerBtn = document.getElementById('confirmRestartServer');
+    if (confirmRestartServerBtn) {
+        confirmRestartServerBtn.addEventListener('click', function() {
+            // Show loading state
+            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Restarting...';
+            this.disabled = true;
+            
+            // Close the modal first to avoid issues with the page reloading
+            const modal = bootstrap.Modal.getInstance(document.getElementById('restartServerModal'));
+            if (modal) {
+                modal.hide();
+            }
+            
+            // Show notification that restart is in progress
+            showNotification('Server restart initiated. The page will reload shortly...', 'warning');
+            
+            fetch('/restart_server', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => {
+                // The server might restart before sending a response
+                // So we'll handle both successful responses and errors
+                if (response.ok) {
+                    try {
+                        return response.json();
+                    } catch (e) {
+                        // If parsing fails, we'll assume the server is restarting
+                        return { success: true, message: "Server is restarting" };
+                    }
+                } else {
+                    // If we get an error response, the server might be restarting
+                    return { success: true, message: "Server might be restarting" };
+                }
+            })
+            .then(data => {
+                // Set a timer to reload the page after a delay
+                setTimeout(function() {
+                    showNotification('Attempting to reconnect...', 'info');
+                    
+                    // Function to check if server is back up
+                    function checkServerStatus() {
+                        fetch('/', { 
+                            method: 'GET',
+                            cache: 'no-store'  // Prevent caching
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                // Server is back up, reload the page
+                                showNotification('Server is back online! Reloading page...', 'success');
+                                setTimeout(() => window.location.reload(), 1000);
+                            } else {
+                                // Server returned an error, try again
+                                setTimeout(checkServerStatus, 1000);
+                            }
+                        })
+                        .catch(() => {
+                            // Server still down, try again in 1 second
+                            showNotification('Server still restarting, trying again...', 'info');
+                            setTimeout(checkServerStatus, 1000);
+                        });
+                    }
+                    
+                    // Start checking server status after a delay
+                    setTimeout(checkServerStatus, 3000);
+                }, 2000);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                
+                // Even if we get an error, the server might be restarting
+                // So we'll still try to reconnect
+                showNotification('Server might be restarting. Attempting to reconnect...', 'warning');
+                
+                // Function to check if server is back up
+                function checkServerStatus() {
+                    fetch('/', { 
+                        method: 'GET',
+                        cache: 'no-store'  // Prevent caching
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            // Server is back up, reload the page
+                            showNotification('Server is back online! Reloading page...', 'success');
+                            setTimeout(() => window.location.reload(), 1000);
+                        } else {
+                            // Server returned an error, try again
+                            setTimeout(checkServerStatus, 1000);
+                        }
+                    })
+                    .catch(() => {
+                        // Server still down, try again in 1 second
+                        showNotification('Server still restarting, trying again...', 'info');
+                        setTimeout(checkServerStatus, 1000);
+                    });
+                }
+                
+                // Start checking server status after a delay
+                setTimeout(checkServerStatus, 5000);
+            });
+        });
+    }
+
     // Confirm Emergency Stop Button
     const confirmEmergencyStopBtn = document.getElementById('confirmEmergencyStop');
     if (confirmEmergencyStopBtn) {

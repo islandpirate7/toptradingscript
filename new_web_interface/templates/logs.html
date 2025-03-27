@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Logs - S&P 500 Trading Strategy{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Application Logs</h1>
+        <div class="mb-3">
+            <a href="/" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Log Files</h5>
+            </div>
+            <div class="card-body">
+                {% if log_files %}
+                <div class="list-group">
+                    {% for log_file in log_files %}
+                    <a href="{{ url_for('view_logs', file=log_file) }}" class="list-group-item list-group-item-action {% if selected_log == log_file %}active{% endif %}">
+                        {{ log_file }}
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No log files found.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="card-title mb-0">{% if selected_log %}Log Content: {{ selected_log }}{% else %}Select a log file{% endif %}</h5>
+            </div>
+            <div class="card-body">
+                {% if log_content %}
+                <pre class="bg-dark text-light p-3" style="max-height: 600px; overflow-y: auto;">{{ log_content }}</pre>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> {% if selected_log %}No content available for this log file.{% else %}Please select a log file from the list.{% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

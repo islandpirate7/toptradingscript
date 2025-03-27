@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}Logs{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mt-4 mb-4">Application Logs</h1>
+    
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i> View logs to monitor your LONG-only strategy performance, data fetching issues, capital constraints, and other important events.
+    </div>
+    
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Log Files</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for log in logs %}
+                        <a href="#" class="list-group-item list-group-item-action view-log-btn" data-log-file="{{ log.filename }}">
+                            {{ log.filename }}
+                            <small class="d-block text-muted">{{ log.size_kb }} KB</small>
+                            <small class="d-block text-muted">Last modified: {{ log.modified }}</small>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Log Settings</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('update_config') }}" method="post">
+                        <div class="mb-3">
+                            <label for="log_level" class="form-label">Log Level</label>
+                            <select class="form-select" id="log_level" name="log_level">
+                                <option value="DEBUG" {% if log_level == 'DEBUG' %}selected{% endif %}>DEBUG</option>
+                                <option value="INFO" {% if log_level == 'INFO' %}selected{% endif %}>INFO</option>
+                                <option value="WARNING" {% if log_level == 'WARNING' %}selected{% endif %}>WARNING</option>
+                                <option value="ERROR" {% if log_level == 'ERROR' %}selected{% endif %}>ERROR</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="log_to_file" name="log_to_file" {% if log_to_file %}checked{% endif %}>
+                                <label class="form-check-label" for="log_to_file">
+                                    Log to File
+                                </label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Log Settings</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0" id="log-title">Log Content</h5>
+                    <div>
+                        <button id="refresh-log-btn" class="btn btn-sm btn-light" disabled>
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                        <button id="scroll-top-btn" class="btn btn-sm btn-light">
+                            <i class="fas fa-arrow-up"></i> Top
+                        </button>
+                        <button id="scroll-bottom-btn" class="btn btn-sm btn-light">
+                            <i class="fas fa-arrow-down"></i> Bottom
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div id="log-content" class="p-3" style="height: 600px; overflow-y: auto; font-family: monospace; white-space: pre-wrap;">
+                        <div class="text-center text-muted">
+                            <i class="fas fa-info-circle"></i> Select a log file from the list to view its contents.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        let currentLogFile = null;
+        
+        // View log file - Direct click handler
+        $(document).on('click', '.view-log-btn', function(e) {
+            e.preventDefault();
+            const logFile = $(this).data('log-file');
+            console.log('Log file clicked:', logFile);
+            currentLogFile = logFile;
+            
+            // Update UI
+            $('.view-log-btn').removeClass('active');
+            $(this).addClass('active');
+            $('#log-title').text(logFile);
+            $('#refresh-log-btn').prop('disabled', false);
+            
+            // Load log content
+            loadLogContent(logFile);
+        });
+        
+        // Refresh log content
+        $('#refresh-log-btn').click(function() {
+            if (currentLogFile) {
+                loadLogContent(currentLogFile);
+            }
+        });
+        
+        // Scroll buttons
+        $('#scroll-bottom-btn').click(function() {
+            const logContent = document.getElementById('log-content');
+            logContent.scrollTop = logContent.scrollHeight;
+        });
+        
+        $('#scroll-top-btn').click(function() {
+            document.getElementById('log-content').scrollTop = 0;
+        });
+        
+        // Load log content function
+        function loadLogContent(logFile) {
+            console.log('Loading log content for:', logFile);
+            $('#log-content').html('<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>');
+            
+            // Add a timestamp to prevent caching
+            const timestamp = new Date().getTime();
+            
+            // Try direct debug route first for troubleshooting
+            $.ajax({
+                url: '/debug_log/' + encodeURIComponent(logFile),
+                type: 'GET',
+                cache: false,
+                success: function(response) {
+                    console.log('Debug log loaded successfully');
+                    // Now try the normal route
+                    loadNormalLogContent(logFile, timestamp);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Debug route error:', status, error);
+                    // Still try the normal route
+                    loadNormalLogContent(logFile, timestamp);
+                }
+            });
+        }
+        
+        function loadNormalLogContent(logFile, timestamp) {
+            $.ajax({
+                url: '/view_log/' + encodeURIComponent(logFile) + '?t=' + timestamp,
+                type: 'GET',
+                dataType: 'json',
+                cache: false,
+                success: function(response) {
+                    console.log('Log content response:', response);
+                    if (response.success) {
+                        // Check if content is empty
+                        if (response.empty || !response.content || response.content.trim() === '') {
+                            $('#log-content').html('<div class="alert alert-info">The log file is empty (0 KB). No content to display.</div>');
+                            return;
+                        }
+                        
+                        // Highlight errors and warnings
+                        let content = response.content;
+                        content = content.replace(/ERROR/g, '<span class="text-danger">ERROR</span>');
+                        content = content.replace(/WARNING/g, '<span class="text-warning">WARNING</span>');
+                        content = content.replace(/INFO/g, '<span class="text-info">INFO</span>');
+                        content = content.replace(/DEBUG/g, '<span class="text-secondary">DEBUG</span>');
+                        
+                        $('#log-content').html('<pre>' + content + '</pre>');
+                        
+                        // Scroll to bottom by default for logs
+                        const logContent = document.getElementById('log-content');
+                        logContent.scrollTop = logContent.scrollHeight;
+                    } else {
+                        $('#log-content').html('<div class="alert alert-danger">' + response.message + '</div>');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX error:', status, error);
+                    console.error('Response text:', xhr.responseText);
+                    $('#log-content').html('<div class="alert alert-danger">Error loading log file: ' + error + '</div>');
+                    
+                    // Try to load via debug route as fallback
+                    $('#log-content').append('<div class="mt-3">Attempting to load via debug route...</div>');
+                    window.open('/debug_log/' + encodeURIComponent(logFile), '_blank');
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

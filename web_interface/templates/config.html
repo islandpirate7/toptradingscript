@@ -37,6 +37,9 @@
                             <button class="nav-link" id="midcap-tab" data-bs-toggle="tab" data-bs-target="#midcap" type="button" role="tab">Mid-Cap Integration</button>
                         </li>
                         <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="backtest-tab" data-bs-toggle="tab" data-bs-target="#backtest" type="button" role="tab">Backtest</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
                             <button class="nav-link" id="paths-tab" data-bs-toggle="tab" data-bs-target="#paths" type="button" role="tab">Paths</button>
                         </li>
                     </ul>
@@ -87,44 +90,86 @@
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label for="signalThreshold" class="form-label">Signal Score Threshold</label>
-                                        <input type="number" step="0.01" class="form-control" id="signalThreshold" name="signals.threshold" value="{{ config.signals.threshold|default(0.65) }}">
+                                        <input type="number" step="0.01" class="form-control" id="signalThreshold" name="strategy.signal_thresholds.min_score" value="{{ config.strategy.signal_thresholds.min_score|default(0.7) }}">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label for="maxSignals" class="form-label">Maximum Signals</label>
-                                        <input type="number" class="form-control" id="maxSignals" name="signals.max_signals" value="{{ config.signals.max_signals|default(100) }}">
+                                        <input type="number" class="form-control" id="maxSignals" name="strategy.max_positions" value="{{ config.strategy.max_positions|default(100) }}">
                                     </div>
                                 </div>
                             </div>
                             <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="longThreshold" class="form-label">LONG Signal Threshold</label>
+                                        <input type="number" step="0.01" class="form-control" id="longThreshold" name="strategy.signal_thresholds.long" value="{{ config.strategy.signal_thresholds.long|default(0.7) }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="shortThreshold" class="form-label">SHORT Signal Threshold</label>
+                                        <input type="number" step="0.01" class="form-control" id="shortThreshold" name="strategy.signal_thresholds.short" value="{{ config.strategy.signal_thresholds.short|default(0.8) }}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="tier1Threshold" class="form-label">Tier 1 Threshold</label>
+                                        <input type="number" step="0.01" class="form-control" id="tier1Threshold" name="strategy.signal_thresholds.tier_1" value="{{ config.strategy.signal_thresholds.tier_1|default(0.9) }}">
+                                    </div>
+                                </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label for="rsiWeight" class="form-label">RSI Weight</label>
-                                        <input type="number" step="0.01" class="form-control" id="rsiWeight" name="signals.weights.rsi" value="{{ config.signals.weights.rsi|default(0.3) }}">
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="macdWeight" class="form-label">MACD Weight</label>
-                                        <input type="number" step="0.01" class="form-control" id="macdWeight" name="signals.weights.macd" value="{{ config.signals.weights.macd|default(0.3) }}">
+                                        <input type="number" step="0.01" class="form-control" id="rsiWeight" name="strategy.sector_adjustments.sector_weights.Technology" value="{{ config.strategy.sector_adjustments.sector_weights.Technology|default(1.5) }}">
                                     </div>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="bollingerWeight" class="form-label">Bollinger Bands Weight</label>
-                                        <input type="number" step="0.01" class="form-control" id="bollingerWeight" name="signals.weights.bollinger" value="{{ config.signals.weights.bollinger|default(0.4) }}">
+                                        <label for="macdWeight" class="form-label">MACD Weight</label>
+                                        <input type="number" step="0.01" class="form-control" id="macdWeight" name="strategy.sector_adjustments.sector_weights.Financials" value="{{ config.strategy.sector_adjustments.sector_weights.Financials|default(1.4) }}">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
+                                        <label for="bollingerWeight" class="form-label">Bollinger Bands Weight</label>
+                                        <input type="number" step="0.01" class="form-control" id="bollingerWeight" name="strategy.sector_adjustments.sector_weights.Healthcare" value="{{ config.strategy.sector_adjustments.sector_weights.Healthcare|default(1.4) }}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
                                         <label for="marketRegimeEnabled" class="form-label">Market Regime Detection</label>
-                                        <select class="form-select" id="marketRegimeEnabled" name="signals.market_regime.enabled">
-                                            <option value="true" {% if config.signals.market_regime.enabled %}selected{% endif %}>Enabled</option>
-                                            <option value="false" {% if not config.signals.market_regime.enabled %}selected{% endif %}>Disabled</option>
+                                        <select class="form-select" id="marketRegimeEnabled" name="strategy.market_regime.enabled">
+                                            <option value="true" {% if config.strategy.market_regime.enabled %}selected{% endif %}>Enabled</option>
+                                            <option value="false" {% if not config.strategy.market_regime.enabled %}selected{% endif %}>Disabled</option>
                                         </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="smaShortPeriod" class="form-label">SMA Short Period</label>
+                                        <input type="number" class="form-control" id="smaShortPeriod" name="strategy.market_regime.sma_short_period" value="{{ config.strategy.market_regime.sma_short_period|default(5) }}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="smaLongPeriod" class="form-label">SMA Long Period</label>
+                                        <input type="number" class="form-control" id="smaLongPeriod" name="strategy.market_regime.sma_long_period" value="{{ config.strategy.market_regime.sma_long_period|default(20) }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="changePeriod" class="form-label">Change Period</label>
+                                        <input type="number" class="form-control" id="changePeriod" name="strategy.market_regime.change_period" value="{{ config.strategy.market_regime.change_period|default(5) }}">
                                     </div>
                                 </div>
                             </div>
@@ -136,31 +181,42 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="basePositionSize" class="form-label">Base Position Size (%)</label>
-                                        <input type="number" step="0.1" class="form-control" id="basePositionSize" name="position_sizing.base_size" value="{{ config.position_sizing.base_size|default(5.0) }}">
+                                        <label for="basePositionSize" class="form-label">Base Position Size ($)</label>
+                                        <input type="number" class="form-control" id="basePositionSize" name="strategy.base_position_size" value="{{ config.strategy.base_position_size|default(1000) }}">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="maxPositionSize" class="form-label">Maximum Position Size (%)</label>
-                                        <input type="number" step="0.1" class="form-control" id="maxPositionSize" name="position_sizing.max_size" value="{{ config.position_sizing.max_size|default(10.0) }}">
+                                        <label for="basePositionPct" class="form-label">Base Position Size (%)</label>
+                                        <input type="number" step="0.1" class="form-control" id="basePositionPct" name="strategy.position_sizing.base_position_pct" value="{{ config.strategy.position_sizing.base_position_pct|default(5) }}">
                                     </div>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="scoreScaling" class="form-label">Score Scaling Factor</label>
-                                        <input type="number" step="0.1" class="form-control" id="scoreScaling" name="position_sizing.score_scaling" value="{{ config.position_sizing.score_scaling|default(1.5) }}">
+                                        <label for="tier1Multiplier" class="form-label">Tier 1 Multiplier</label>
+                                        <input type="number" step="0.1" class="form-control" id="tier1Multiplier" name="strategy.position_sizing.tier_multipliers['Tier 1 (≥0.9)']" value="{{ config.strategy.position_sizing.tier_multipliers['Tier 1 (≥0.9)']|default(3.0) }}">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="volatilityScaling" class="form-label">Volatility Scaling</label>
-                                        <select class="form-select" id="volatilityScaling" name="position_sizing.volatility_scaling.enabled">
-                                            <option value="true" {% if config.position_sizing.volatility_scaling.enabled %}selected{% endif %}>Enabled</option>
-                                            <option value="false" {% if not config.position_sizing.volatility_scaling.enabled %}selected{% endif %}>Disabled</option>
-                                        </select>
+                                        <label for="tier2Multiplier" class="form-label">Tier 2 Multiplier</label>
+                                        <input type="number" step="0.1" class="form-control" id="tier2Multiplier" name="strategy.position_sizing.tier_multipliers['Tier 2 (0.8-0.9)']" value="{{ config.strategy.position_sizing.tier_multipliers['Tier 2 (0.8-0.9)']|default(1.5) }}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="longMultiplier" class="form-label">LONG Position Multiplier</label>
+                                        <input type="number" step="0.1" class="form-control" id="longMultiplier" name="strategy.position_sizing.long_multiplier" value="{{ config.strategy.position_sizing.long_multiplier|default(3.0) }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="maxCapitalPerDirection" class="form-label">Max Capital Per Direction ($)</label>
+                                        <input type="number" class="form-control" id="maxCapitalPerDirection" name="strategy.max_capital_per_direction" value="{{ config.strategy.max_capital_per_direction|default(60000) }}">
                                     </div>
                                 </div>
                             </div>
@@ -173,51 +229,35 @@
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label for="stopLossEnabled" class="form-label">Stop Loss</label>
-                                        <select class="form-select" id="stopLossEnabled" name="stop_loss.enabled">
-                                            <option value="true" {% if config.stop_loss.enabled %}selected{% endif %}>Enabled</option>
-                                            <option value="false" {% if not config.stop_loss.enabled %}selected{% endif %}>Disabled</option>
+                                        <select class="form-select" id="stopLossEnabled" name="strategy.stop_loss.enabled">
+                                            <option value="true" {% if config.strategy.stop_loss.enabled %}selected{% endif %}>Enabled</option>
+                                            <option value="false" {% if not config.strategy.stop_loss.enabled %}selected{% endif %}>Disabled</option>
                                         </select>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="stopLossType" class="form-label">Stop Loss Type</label>
-                                        <select class="form-select" id="stopLossType" name="stop_loss.type">
-                                            <option value="fixed" {% if config.stop_loss.type == 'fixed' %}selected{% endif %}>Fixed</option>
-                                            <option value="adaptive" {% if config.stop_loss.type == 'adaptive' %}selected{% endif %}>Adaptive</option>
-                                            <option value="trailing" {% if config.stop_loss.type == 'trailing' %}selected{% endif %}>Trailing</option>
-                                        </select>
+                                        <label for="longStopLoss" class="form-label">LONG Stop Loss Threshold (%)</label>
+                                        <input type="number" step="0.01" class="form-control" id="longStopLoss" name="strategy.stop_loss.long_threshold" value="{{ config.strategy.stop_loss.long_threshold|default(-0.02) }}">
+                                        <small class="form-text text-muted">Negative value, e.g., -0.02 for 2% loss</small>
                                     </div>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="stopLossThreshold" class="form-label">Base Stop Loss Threshold (%)</label>
-                                        <input type="number" step="0.1" class="form-control" id="stopLossThreshold" name="stop_loss.threshold" value="{{ config.stop_loss.threshold|default(5.0) }}">
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="volatilityScalingFactor" class="form-label">Volatility Scaling Factor</label>
-                                        <input type="number" step="0.1" class="form-control" id="volatilityScalingFactor" name="stop_loss.volatility_scaling.factor" value="{{ config.stop_loss.volatility_scaling.factor|default(1.0) }}">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="signalQualityScaling" class="form-label">Signal Quality Scaling</label>
-                                        <select class="form-select" id="signalQualityScaling" name="stop_loss.signal_quality_scaling.enabled">
-                                            <option value="true" {% if config.stop_loss.signal_quality_scaling.enabled %}selected{% endif %}>Enabled</option>
-                                            <option value="false" {% if not config.stop_loss.signal_quality_scaling.enabled %}selected{% endif %}>Disabled</option>
+                                        <label for="trailingStopEnabled" class="form-label">Trailing Stop</label>
+                                        <select class="form-select" id="trailingStopEnabled" name="strategy.stop_loss.trailing.enabled">
+                                            <option value="true" {% if config.strategy.stop_loss.trailing.enabled %}selected{% endif %}>Enabled</option>
+                                            <option value="false" {% if not config.strategy.stop_loss.trailing.enabled %}selected{% endif %}>Disabled</option>
                                         </select>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label for="trailingStopDistance" class="form-label">Trailing Stop Distance (%)</label>
-                                        <input type="number" step="0.1" class="form-control" id="trailingStopDistance" name="stop_loss.trailing.distance" value="{{ config.stop_loss.trailing.distance|default(3.0) }}">
+                                        <input type="number" step="0.01" class="form-control" id="trailingStopDistance" name="strategy.stop_loss.trailing.distance" value="{{ config.strategy.stop_loss.trailing.distance|default(0.01) }}">
+                                        <small class="form-text text-muted">Positive value, e.g., 0.01 for 1% below peak</small>
                                     </div>
                                 </div>
                             </div>
@@ -225,35 +265,104 @@
                         
                         <!-- Mid-Cap Integration Settings -->
                         <div class="tab-pane fade" id="midcap" role="tabpanel">
-                            <h4 class="mb-3">Mid-Cap Integration Settings</h4>
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Mid-Cap Integration</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="includeMidcap" class="form-label">Include Mid-Cap Stocks</label>
+                                                <select class="form-select" id="includeMidcap" name="strategy.include_midcap">
+                                                    <option value="true" {% if config.strategy.include_midcap %}selected{% endif %}>Enabled</option>
+                                                    <option value="false" {% if not config.strategy.include_midcap %}selected{% endif %}>Disabled</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="midcapMinVolume" class="form-label">Min Average Volume</label>
+                                                <input type="number" class="form-control" id="midcapMinVolume" name="strategy.midcap_stocks.min_avg_volume" value="{{ config.strategy.midcap_stocks.min_avg_volume|default(500000) }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="midcapMaxSymbols" class="form-label">Max Symbols</label>
+                                                <input type="number" class="form-control" id="midcapMaxSymbols" name="strategy.midcap_stocks.max_symbols" value="{{ config.strategy.midcap_stocks.max_symbols|default(50) }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="largecapPercentage" class="form-label">Large-Cap Percentage</label>
+                                                <input type="number" class="form-control" id="largecapPercentage" name="strategy.midcap_stocks.large_cap_percentage" value="{{ config.strategy.midcap_stocks.large_cap_percentage|default(70) }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="midcapPositionFactor" class="form-label">Position Factor</label>
+                                                <input type="number" step="0.1" class="form-control" id="midcapPositionFactor" name="strategy.midcap_stocks.position_factor" value="{{ config.strategy.midcap_stocks.position_factor|default(0.8) }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="midcapBoostFactor" class="form-label">Boost Factor</label>
+                                                <input type="number" step="0.1" class="form-control" id="midcapBoostFactor" name="strategy.midcap_stocks.boost_factor" value="{{ config.strategy.midcap_stocks.boost_factor|default(1.2) }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Backtest Settings -->
+                        <div class="tab-pane fade" id="backtest" role="tabpanel">
+                            <h4 class="mb-3">Backtest Settings</h4>
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="midCapEnabled" class="form-label">Mid-Cap Integration</label>
-                                        <select class="form-select" id="midCapEnabled" name="mid_cap.enabled">
-                                            <option value="true" {% if config.mid_cap.enabled %}selected{% endif %}>Enabled</option>
-                                            <option value="false" {% if not config.mid_cap.enabled %}selected{% endif %}>Disabled</option>
-                                        </select>
+                                        <label for="backtestStartDate" class="form-label">Start Date</label>
+                                        <input type="date" class="form-control" id="backtestStartDate" name="backtest.start_date" value="{{ config.backtest.start_date|default('2020-01-01') }}">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="midCapPercentage" class="form-label">Target Mid-Cap Percentage (%)</label>
-                                        <input type="number" step="1" class="form-control" id="midCapPercentage" name="mid_cap.target_percentage" value="{{ config.mid_cap.target_percentage|default(30) }}">
+                                        <label for="backtestEndDate" class="form-label">End Date</label>
+                                        <input type="date" class="form-control" id="backtestEndDate" name="backtest.end_date" value="{{ config.backtest.end_date|default('2022-12-31') }}">
                                     </div>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="midCapBoostFactor" class="form-label">Mid-Cap Boost Factor</label>
-                                        <input type="number" step="0.1" class="form-control" id="midCapBoostFactor" name="mid_cap.boost_factor" value="{{ config.mid_cap.boost_factor|default(1.2) }}">
+                                        <label for="backtestInitialCapital" class="form-label">Initial Capital</label>
+                                        <input type="number" class="form-control" id="backtestInitialCapital" name="backtest.initial_capital" value="{{ config.backtest.initial_capital|default(100000) }}">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="midCapSymbols" class="form-label">Mid-Cap Symbols (comma-separated)</label>
-                                        <input type="text" class="form-control" id="midCapSymbols" name="mid_cap.symbols" value="{{ config.mid_cap.symbols|join(',') if config.mid_cap.symbols else '' }}">
+                                        <label for="backtestCommission" class="form-label">Commission per Trade</label>
+                                        <input type="number" step="0.01" class="form-control" id="backtestCommission" name="backtest.commission" value="{{ config.backtest.commission|default(1.0) }}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="maxSignalsPerDay" class="form-label">Max Signals Per Day</label>
+                                        <input type="number" class="form-control" id="maxSignalsPerDay" name="backtest.max_signals_per_day" value="{{ config.backtest.max_signals_per_day|default(10) }}">
+                                        <small class="form-text text-muted">Maximum number of trading signals to process each day</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="holdingPeriod" class="form-label">Holding Period (Days)</label>
+                                        <input type="number" class="form-control" id="holdingPeriod" name="strategy.holding_period" value="{{ config.strategy.holding_period|default(3) }}">
+                                        <small class="form-text text-muted">Number of days to hold positions before automatic closure</small>
                                     </div>
                                 </div>
                             </div>
@@ -265,28 +374,28 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="tradesPath" class="form-label">Trades Path</label>
-                                        <input type="text" class="form-control" id="tradesPath" name="paths.trades" value="{{ config.paths.trades|default('trades') }}">
+                                        <label for="dataPath" class="form-label">Data Directory</label>
+                                        <input type="text" class="form-control" id="dataPath" name="paths.data" value="{{ config.paths.data|default('./data') }}">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="performancePath" class="form-label">Performance Path</label>
-                                        <input type="text" class="form-control" id="performancePath" name="paths.performance" value="{{ config.paths.performance|default('performance') }}">
+                                        <label for="resultsPath" class="form-label">Results Directory</label>
+                                        <input type="text" class="form-control" id="resultsPath" name="paths.results" value="{{ config.paths.results|default('./results') }}">
                                     </div>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="backtestResultsPath" class="form-label">Backtest Results Path</label>
-                                        <input type="text" class="form-control" id="backtestResultsPath" name="paths.backtest_results" value="{{ config.paths.backtest_results|default('backtest_results') }}">
+                                        <label for="logsPath" class="form-label">Logs Directory</label>
+                                        <input type="text" class="form-control" id="logsPath" name="paths.logs" value="{{ config.paths.logs|default('./logs') }}">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="logsPath" class="form-label">Logs Path</label>
-                                        <input type="text" class="form-control" id="logsPath" name="paths.logs" value="{{ config.paths.logs|default('logs') }}">
+                                        <label for="modelsPath" class="form-label">Models Directory</label>
+                                        <input type="text" class="form-control" id="modelsPath" name="paths.models" value="{{ config.paths.models|default('./models') }}">
                                     </div>
                                 </div>
                             </div>

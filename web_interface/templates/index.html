@@ -99,25 +99,71 @@
     
     <div class="col-md-4">
         <div class="card">
-            <div class="card-header bg-info text-white">
-                <h5 class="card-title mb-0">Run Backtest</h5>
+            <div class="card-header bg-warning text-dark">
+                <h5 class="card-title mb-0">Run Comprehensive Backtest</h5>
             </div>
             <div class="card-body">
-                <form id="backtestForm">
+                <form id="fixedBacktestForm">
                     <div class="mb-3">
-                        <label for="quarters" class="form-label">Quarters to Test</label>
-                        <input type="text" class="form-control" id="quarters" name="quarters" value="2023Q1,2023Q2,2023Q3,2023Q4">
-                        <small class="form-text text-muted">Comma-separated list of quarters (e.g., 2023Q1,2023Q2)</small>
+                        <label for="fixedQuarters" class="form-label">Quarters to Test</label>
+                        <input type="text" class="form-control" id="fixedQuarters" name="quarters" value="Q1_2023,Q2_2023">
+                        <small class="form-text text-muted">Comma-separated list of quarters (e.g., Q1_2023,Q2_2023) or 'all' for all quarters</small>
                     </div>
                     <div class="mb-3">
-                        <label for="runs" class="form-label">Number of Runs</label>
-                        <input type="number" class="form-control" id="runs" name="runs" value="5" min="1" max="20">
+                        <label for="fixedMaxSignals" class="form-label">Max Signals</label>
+                        <input type="number" class="form-control" id="fixedMaxSignals" name="max_signals" value="{{ config.backtest.max_signals_per_day|default(40) }}" min="1" max="100">
+                        <small class="form-text text-muted">Maximum number of signals to generate</small>
                     </div>
                     <div class="mb-3">
-                        <label for="randomSeed" class="form-label">Random Seed</label>
-                        <input type="number" class="form-control" id="randomSeed" name="random_seed" value="42" min="1" max="1000">
+                        <label for="fixedInitialCapital" class="form-label">Initial Capital</label>
+                        <input type="number" class="form-control" id="fixedInitialCapital" name="initial_capital" value="{{ config.initial_capital|default(300) }}" min="100">
+                        <small class="form-text text-muted">Starting capital for the backtest</small>
                     </div>
-                    <button type="submit" class="btn btn-info w-100">Start Backtest</button>
+                    <div class="mb-3">
+                        <label for="fixedNumRuns" class="form-label">Number of Runs</label>
+                        <input type="number" class="form-control" id="fixedNumRuns" name="num_runs" value="5" min="1" max="20">
+                        <small class="form-text text-muted">Multiple runs with different random seeds for statistical significance</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fixedRandomSeed" class="form-label">Random Seed</label>
+                        <input type="number" class="form-control" id="fixedRandomSeed" name="random_seed" value="42" min="1" max="1000">
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="multipleRuns" name="multiple_runs">
+                            <label class="form-check-label" for="multipleRuns">
+                                Use Multiple Runs
+                            </label>
+                            <small class="form-text text-muted d-block">Run multiple backtests and average the results</small>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="continuousCapital" name="continuous_capital">
+                            <label class="form-check-label" for="continuousCapital">
+                                Use Continuous Capital
+                            </label>
+                            <small class="form-text text-muted d-block">Pass final balance from one quarter to the next</small>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="weeklySelection" name="weekly_selection">
+                            <label class="form-check-label" for="weeklySelection">
+                                Weekly Selection
+                            </label>
+                            <small class="form-text text-muted d-block">Enable weekly stock selection refresh</small>
+                        </div>
+                    </div>
+                    <div id="comprehensiveBacktestStatus" class="alert alert-info d-none">
+                        <div class="d-flex align-items-center">
+                            <div class="spinner-border spinner-border-sm me-2" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <span>Starting comprehensive backtest...</span>
+                        </div>
+                    </div>
+                    <button type="button" id="startComprehensiveBacktest" class="btn btn-warning w-100">Start Comprehensive Backtest</button>
                 </form>
             </div>
         </div>
@@ -220,9 +266,9 @@
             <div class="card-body">
                 <div id="backtestResults">
                     {% if backtest_results %}
-                        <div class="table-responsive">
+                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                             <table class="table table-striped">
-                                <thead>
+                                <thead class="sticky-top bg-light">
                                     <tr>
                                         <th>File</th>
                                         <th>Date</th>
@@ -230,12 +276,12 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for result in backtest_results[:5] %}
+                                    {% for result in backtest_results %}
                                     <tr>
                                         <td>{{ result.name }}</td>
                                         <td>{{ result.date }}</td>
                                         <td>
-                                            <a href="{{ result.path }}" class="btn btn-sm btn-primary" target="_blank">View</a>
+                                            <a href="/view_backtest_result/{{ result.name }}" class="btn btn-sm btn-primary" target="_blank">View</a>
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -292,12 +338,116 @@
 
 {% block extra_js %}
 <script>
+    // Define base URL for API calls
+    const baseUrl = 'http://127.0.0.1:5000';  // Direct URL to Flask server
+    
     document.addEventListener('DOMContentLoaded', function() {
+        // Function to fetch active processes
+        function fetchProcesses() {
+            fetch(baseUrl + '/get_processes')
+                .then(response => response.json())
+                .then(data => {
+                    // Update processes table
+                    updateProcessesTable(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching processes:', error);
+                });
+        }
+        
+        // Function to update the processes table
+        function updateProcessesTable(processes) {
+            const processesContainer = document.getElementById('activeProcesses');
+            if (!processesContainer) return;
+            
+            if (processes.length === 0) {
+                processesContainer.innerHTML = '<div class="alert alert-info">No active processes</div>';
+                return;
+            }
+            
+            let html = `
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Process Name</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            processes.forEach(process => {
+                const statusClass = process.status === 'Running' ? 'success' : 
+                                   process.status === 'Starting' ? 'warning' : 'danger';
+                
+                html += `
+                    <tr>
+                        <td>${process.name}</td>
+                        <td>
+                            <span class="badge bg-${statusClass}">
+                                ${process.status}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-danger stop-process" data-process="${process.name}">Stop</button>
+                            <button class="btn btn-sm btn-info view-logs" data-process="${process.name}">Logs</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            processesContainer.innerHTML = html;
+            
+            // Add event listeners to the stop process buttons
+            document.querySelectorAll('.stop-process').forEach(button => {
+                button.addEventListener('click', function() {
+                    const processName = this.getAttribute('data-process');
+                    stopProcess(processName);
+                });
+            });
+            
+            // Add event listeners to the view logs buttons
+            document.querySelectorAll('.view-logs').forEach(button => {
+                button.addEventListener('click', function() {
+                    const processName = this.getAttribute('data-process');
+                    window.location.href = `/view_logs?process=${processName}`;
+                });
+            });
+        }
+        
+        // Function to stop a process
+        function stopProcess(processName) {
+            if (confirm(`Are you sure you want to stop the process "${processName}"?`)) {
+                fetch(`/stop_process/${processName}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast('success', data.message);
+                            fetchProcesses();
+                        } else {
+                            showToast('danger', 'Error: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showToast('danger', 'Error stopping process: ' + error);
+                    });
+            }
+        }
+        
         // Paper Trading Form
         document.getElementById('paperTradingForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const formData = new FormData(this);
-            fetch('/run_paper_trading', {
+            fetch(baseUrl + '/run_paper_trading', {
                 method: 'POST',
                 body: formData
             })
@@ -322,7 +472,7 @@
         document.getElementById('simulationForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const formData = new FormData(this);
-            fetch('/run_simulation', {
+            fetch(baseUrl + '/run_simulation', {
                 method: 'POST',
                 body: formData
             })
@@ -347,7 +497,7 @@
         document.getElementById('liveTradingForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const formData = new FormData(this);
-            fetch('/run_live_trading', {
+            fetch(baseUrl + '/run_live_trading', {
                 method: 'POST',
                 body: formData
             })
@@ -368,165 +518,119 @@
             });
         });
 
-        // Backtest Form
-        document.getElementById('backtestForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            fetch('/run_backtest', {
+        // Comprehensive Backtest Form
+        document.getElementById('startComprehensiveBacktest').addEventListener('click', function() {
+            const form = document.getElementById('fixedBacktestForm');
+            const formData = new FormData(form);
+            const statusElement = document.getElementById('comprehensiveBacktestStatus');
+            
+            // Log form data for debugging
+            console.log('Form data:');
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}: ${value}`);
+            }
+            
+            // Show loading indicator
+            statusElement.classList.remove('d-none');
+            statusElement.classList.add('d-block');
+            
+            console.log('Sending request to:', baseUrl + '/run_comprehensive_backtest');
+            
+            // Submit form data via AJAX
+            fetch(baseUrl + '/run_comprehensive_backtest', {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Response received:', response);
+                return response.json();
+            })
             .then(data => {
-                if (data.success) {
-                    alert(data.message);
-                    setTimeout(function() {
-                        window.location.reload();
-                    }, 1000);
+                console.log('Response data:', data);
+                statusElement.classList.add('d-none');
+                statusElement.classList.remove('d-block');
+                
+                if (data.status === 'success' || data.success === true) {
+                    showToast('success', data.message || 'Comprehensive backtest started successfully');
+                    // Refresh processes list
+                    fetchProcesses();
                 } else {
-                    alert('Error: ' + data.message);
+                    showToast('danger', 'Error: ' + (data.message || 'Unknown error'));
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('An error occurred while starting backtest');
+                statusElement.classList.add('d-none');
+                statusElement.classList.remove('d-block');
+                showToast('danger', 'Error starting comprehensive backtest: ' + error);
             });
         });
-
-        // Stop Process Buttons
-        document.querySelectorAll('.stop-process').forEach(button => {
-            button.addEventListener('click', function() {
-                const processName = this.getAttribute('data-process');
-                if (confirm(`Are you sure you want to stop process ${processName}?`)) {
-                    fetch(`/stop_process/${processName}`, {
-                        method: 'POST'
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert(data.message);
-                            setTimeout(function() {
-                                window.location.reload();
-                            }, 1000);
-                        } else {
-                            alert('Error: ' + data.message);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('An error occurred while stopping the process');
-                    });
-                }
+        
+        // Function to show toast notifications
+        function showToast(type, message) {
+            const toastContainer = document.getElementById('toastContainer') || createToastContainer();
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white bg-${type} border-0`;
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+            
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+            
+            // Remove toast after it's hidden
+            toast.addEventListener('hidden.bs.toast', function() {
+                toast.remove();
             });
-        });
+        }
+        
+        // Create toast container if it doesn't exist
+        function createToastContainer() {
+            const container = document.createElement('div');
+            container.id = 'toastContainer';
+            container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+            container.style.zIndex = '1050';
+            document.body.appendChild(container);
+            return container;
+        }
 
-        // View Logs Buttons
-        document.querySelectorAll('.view-logs').forEach(button => {
-            button.addEventListener('click', function() {
-                const processName = this.getAttribute('data-process');
-                fetch(`/process_logs/${processName}`)
+        // Emergency Stop
+        document.getElementById('emergencyStopBtn').addEventListener('click', function() {
+            if (confirm('Are you sure you want to perform an emergency stop? This will stop all running processes and close all positions.')) {
+                fetch(baseUrl + '/emergency_stop', {
+                    method: 'POST'
+                })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        const logsContent = document.getElementById('logsContent');
-                        logsContent.textContent = data.logs.join('\n');
-                        const logsModal = new bootstrap.Modal(document.getElementById('logsModal'));
-                        logsModal.show();
+                        alert(data.message);
+                        setTimeout(function() {
+                            window.location.reload();
+                        }, 1000);
                     } else {
                         alert('Error: ' + data.message);
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('An error occurred while fetching logs');
+                    alert('An error occurred during emergency stop');
                 });
-            });
+            }
         });
 
-        // Emergency Stop Button
-        document.getElementById('emergencyStopBtn').addEventListener('click', function() {
-            const emergencyStopModal = new bootstrap.Modal(document.getElementById('emergencyStopModal'));
-            emergencyStopModal.show();
-        });
-
-        // Confirm Emergency Stop Button
-        document.getElementById('confirmEmergencyStop').addEventListener('click', function() {
-            fetch('/emergency_stop', {
-                method: 'POST'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Emergency stop completed successfully');
-                    setTimeout(function() {
-                        window.location.reload();
-                    }, 1000);
-                } else {
-                    alert('Error: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred during emergency stop');
-            });
-        });
-
-        // Auto-refresh data every 30 seconds
-        setInterval(function() {
-            // Refresh open positions
-            fetch('/get_positions')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Update positions table
-                    const positionsDiv = document.getElementById('openPositions');
-                    if (data.positions.length > 0) {
-                        let html = `
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Symbol</th>
-                                        <th>Quantity</th>
-                                        <th>Entry Price</th>
-                                        <th>Current Price</th>
-                                        <th>P/L</th>
-                                    </tr>
-                                </thead>
-                                <tbody>`;
-                        
-                        data.positions.forEach(position => {
-                            const plClass = parseFloat(position.unrealized_pl) > 0 ? 'text-success' : 'text-danger';
-                            html += `
-                            <tr>
-                                <td>${position.symbol}</td>
-                                <td>${position.qty}</td>
-                                <td>$${position.entry_price}</td>
-                                <td>$${position.current_price}</td>
-                                <td class="${plClass}">
-                                    $${position.unrealized_pl} (${position.unrealized_plpc}%)
-                                </td>
-                            </tr>`;
-                        });
-                        
-                        html += `
-                                </tbody>
-                            </table>
-                        </div>`;
-                        
-                        positionsDiv.innerHTML = html;
-                    } else {
-                        positionsDiv.innerHTML = '<p class="text-muted">No open positions</p>';
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Error refreshing positions:', error);
-            });
-
-            // Refresh active processes
-            // This would require additional backend endpoints
-        }, 30000);
+        // Fetch processes on page load and every 10 seconds
+        fetchProcesses();
+        setInterval(fetchProcesses, 10000);
     });
 </script>
 {% endblock %}

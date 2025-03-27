@@ -1,0 +1,10 @@
+Backtest Results for Q3 2023
+Period: 2023-07-01 to 2023-09-30
+Initial Capital: $10000.00
+Final Portfolio Value: $0.00
+Return: 0.00%
+Annualized Return: 0.00%
+Sharpe Ratio: 0.00
+Max Drawdown: 0.00%
+Win Rate: 0.00%
+Total Trades: 0

@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Log File: {{ log_file }} - S&P 500 Trading Strategy{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Log File: {{ log_file }}</h1>
+        <div class="mb-3">
+            <a href="{{ url_for('view_logs') }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Logs</a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <h5 class="card-title mb-0">Log Contents</h5>
+            </div>
+            <div class="card-body">
+                <pre class="bg-dark text-light p-3" style="max-height: 600px; overflow-y: auto;">{{ log_content }}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -4,13 +4,13 @@
 """
 Test Alpaca API Connection
 --------------------------
-This script tests the connection to Alpaca API and fetches historical data
-for a single symbol to verify that the API credentials are working correctly.
+This script tests the connection to the Alpaca API and verifies that the API keys are working.
 """
 
 import os
+import yaml
 import logging
-import datetime
+from datetime import datetime, timedelta
 import pandas as pd
 from alpaca_trade_api.rest import REST, TimeFrame
 
@@ -21,109 +21,136 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+def load_config():
+    """Load configuration from YAML file"""
+    config_path = 'sp500_config.yaml'
+    if os.path.exists(config_path):
+        with open(config_path, 'r') as file:
+            return yaml.safe_load(file)
+    else:
+        logger.error(f"Configuration file {config_path} not found")
+        return None
+
 def test_alpaca_connection():
-    """Test connection to Alpaca API and fetch historical data"""
-    # Get API credentials
-    api_key = "PK3MIMOSIMVY8A9IYXE5"
-    api_secret = "GMXfCCDGQYSPyGrJZPwrIUUgmMO5XIOhXKWJnL3f"
-    
-    logger.info(f"Testing Alpaca API connection with key: {api_key[:5]}...")
-    
-    # Initialize Alpaca API client - try both endpoints
-    endpoints = [
-        'https://paper-api.alpaca.markets',  # Paper trading API
-        'https://api.alpaca.markets'         # Live trading API
-    ]
-    
-    api = None
-    account = None
-    
-    for endpoint in endpoints:
-        try:
-            logger.info(f"Trying endpoint: {endpoint}")
-            api = REST(
-                api_key,
-                api_secret,
-                base_url=endpoint
-            )
-            
-            # Test account info
-            account = api.get_account()
-            logger.info(f"Successfully connected to Alpaca API at {endpoint}")
-            logger.info(f"Account status: {account.status}")
-            logger.info(f"Account equity: ${float(account.equity):.2f}")
-            break
-        except Exception as e:
-            logger.warning(f"Failed to connect to {endpoint}: {e}")
-    
-    if not account:
-        logger.error("Could not connect to any Alpaca API endpoint")
+    """Test connection to Alpaca API"""
+    # Load configuration
+    config = load_config()
+    if not config or 'alpaca' not in config:
+        logger.error("Alpaca configuration not found")
         return False
     
-    # Test fetching historical data - use 2023 data as per free tier limitations
-    symbol = "AAPL"
-    start_date = "2023-01-01"
-    end_date = "2023-01-31"
+    # Get API credentials
+    api_key = config['alpaca']['api_key']
+    api_secret = config['alpaca']['api_secret']
+    base_url = config['alpaca']['base_url']
+    
+    logger.info(f"Testing Alpaca API connection with key: {api_key[:5]}...")
+    logger.info(f"Using base URL: {base_url}")
     
     try:
-        logger.info(f"Fetching historical data for {symbol} from {start_date} to {end_date}")
+        # Initialize Alpaca API client for trading
+        api = REST(
+            api_key,
+            api_secret,
+            base_url=base_url
+        )
         
-        # Convert dates to datetime objects
-        start = pd.Timestamp(start_date, tz='America/New_York')
-        end = pd.Timestamp(end_date, tz='America/New_York')
+        # Test account access
+        account = api.get_account()
+        logger.info(f"Successfully connected to Alpaca API")
+        logger.info(f"Account ID: {account.id}")
+        logger.info(f"Account status: {account.status}")
+        logger.info(f"Account equity: {account.equity}")
+        logger.info(f"Account cash: {account.cash}")
         
-        # Fetch data
-        bars = api.get_bars(
-            symbol,
-            TimeFrame.Day,
-            start=start.isoformat(),
-            end=end.isoformat()
-        ).df
+        # Test getting current positions
+        positions = api.list_positions()
+        logger.info(f"Current positions: {len(positions)}")
+        for position in positions:
+            logger.info(f"  {position.symbol}: {position.qty} shares at {position.avg_entry_price}")
         
-        if bars.empty:
-            logger.warning(f"No data found for {symbol} in the specified date range")
-            return False
-        
-        logger.info(f"Successfully fetched {len(bars)} bars for {symbol}")
-        logger.info(f"First bar: {bars.iloc[0]}")
-        logger.info(f"Last bar: {bars.iloc[-1]}")
+        # Test getting market data (last 5 trading days)
+        try:
+            end_date = datetime.now()
+            start_date = end_date - timedelta(days=5)
+            
+            # Convert to string format
+            end_str = end_date.strftime('%Y-%m-%d')
+            start_str = start_date.strftime('%Y-%m-%d')
+            
+            logger.info(f"Testing market data access from {start_str} to {end_str}")
+            
+            # Try to get data for a common stock
+            symbol = "AAPL"
+            
+            # Try using the get_bars method
+            try:
+                logger.info(f"Attempting to get bars for {symbol}...")
+                bars = api.get_bars(
+                    symbol,
+                    TimeFrame.Day,
+                    start=start_str,
+                    end=end_str,
+                    limit=5
+                ).df
+                
+                if bars.empty:
+                    logger.warning(f"No data found for {symbol}")
+                else:
+                    logger.info(f"Successfully retrieved {len(bars)} bars for {symbol}")
+                    logger.info(f"First bar: {bars.iloc[0]}")
+            except Exception as e:
+                logger.error(f"Error getting bars: {e}")
+            
+            # Try using the get_barset method (older API)
+            try:
+                logger.info(f"Attempting to get barset for {symbol}...")
+                barset = api.get_barset(symbol, 'day', limit=5)
+                
+                if symbol not in barset or not barset[symbol]:
+                    logger.warning(f"No data found for {symbol} in barset")
+                else:
+                    logger.info(f"Successfully retrieved {len(barset[symbol])} bars for {symbol} using barset")
+                    logger.info(f"First bar: {barset[symbol][0]}")
+            except Exception as e:
+                logger.error(f"Error getting barset: {e}")
+                
+            # Try using the get_bars method with the data API
+            try:
+                logger.info(f"Attempting to get data from data API...")
+                data_api = REST(
+                    api_key,
+                    api_secret,
+                    base_url='https://data.alpaca.markets'
+                )
+                
+                data_bars = data_api.get_bars(
+                    symbol,
+                    TimeFrame.Day,
+                    start=start_str,
+                    end=end_str,
+                    limit=5
+                ).df
+                
+                if data_bars.empty:
+                    logger.warning(f"No data found for {symbol} from data API")
+                else:
+                    logger.info(f"Successfully retrieved {len(data_bars)} bars for {symbol} from data API")
+                    logger.info(f"First bar: {data_bars.iloc[0]}")
+            except Exception as e:
+                logger.error(f"Error getting data from data API: {e}")
+            
+        except Exception as e:
+            logger.error(f"Error testing market data access: {e}")
         
         return True
     except Exception as e:
-        logger.error(f"Error fetching historical data: {e}")
-        
-        # Try with data API endpoint
-        try:
-            logger.info("Trying with data API endpoint...")
-            api = REST(
-                api_key,
-                api_secret,
-                base_url='https://data.alpaca.markets'
-            )
-            
-            bars = api.get_bars(
-                symbol,
-                TimeFrame.Day,
-                start=start.isoformat(),
-                end=end.isoformat()
-            ).df
-            
-            if bars.empty:
-                logger.warning(f"No data found for {symbol} in the specified date range")
-                return False
-            
-            logger.info(f"Successfully fetched {len(bars)} bars for {symbol}")
-            logger.info(f"First bar: {bars.iloc[0]}")
-            logger.info(f"Last bar: {bars.iloc[-1]}")
-            
-            return True
-        except Exception as e2:
-            logger.error(f"Error fetching historical data with data API: {e2}")
-            return False
+        logger.error(f"Error connecting to Alpaca API: {e}")
+        return False
 
 if __name__ == "__main__":
     success = test_alpaca_connection()
     if success:
-        logger.info("Alpaca API connection test successful!")
+        logger.info("Alpaca API connection test completed")
     else:
-        logger.error("Alpaca API connection test failed!")
+        logger.error("Alpaca API connection test failed")

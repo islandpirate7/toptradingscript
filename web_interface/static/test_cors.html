@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CORS Test</title>
+    <script>
+        function testCORS() {
+            const url = 'http://127.0.0.1:5000/get_processes';
+            
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+                document.getElementById('status').textContent = 'Success! CORS is working properly.';
+                document.getElementById('status').style.color = 'green';
+            })
+            .catch(error => {
+                document.getElementById('result').textContent = error.toString();
+                document.getElementById('status').textContent = 'Error! CORS is not working properly.';
+                document.getElementById('status').style.color = 'red';
+            });
+        }
+    </script>
+</head>
+<body>
+    <h1>CORS Test Page</h1>
+    <button onclick="testCORS()">Test CORS</button>
+    <div>
+        <h3>Status:</h3>
+        <p id="status">Click the button to test CORS</p>
+    </div>
+    <div>
+        <h3>Result:</h3>
+        <pre id="result"></pre>
+    </div>
+</body>
+</html>

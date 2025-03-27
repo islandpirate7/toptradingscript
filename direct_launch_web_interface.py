@@ -1,0 +1,896 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+Direct Launch Web Interface
+
+This script directly launches the Flask app without going through any intermediate scripts.
+It creates the Flask app from scratch to avoid any indentation issues in existing files.
+"""
+
+import os
+import sys
+import json
+import yaml
+import logging
+import datetime
+import subprocess
+import glob
+import time
+import threading
+import shutil
+from flask import Flask, render_template, request, jsonify, flash, redirect, url_for, send_file, abort
+from flask_cors import CORS
+
+# Configure logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(f"logs/direct_web_interface_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.log"),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
+
+# Ensure logs directory exists
+os.makedirs('logs', exist_ok=True)
+
+# Active processes
+active_processes = {}
+
+def main():
+    """Main function"""
+    logger.info("Starting direct web interface")
+    
+    # Get the directory of this script
+    global script_dir
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # Add the parent directory to the path
+    sys.path.insert(0, script_dir)
+    
+    # Path to web interface directory
+    web_interface_dir = os.path.join(script_dir, 'new_web_interface')
+    
+    # Create Flask app
+    app = Flask(
+        __name__,
+        template_folder=os.path.join(web_interface_dir, 'templates'),
+        static_folder=os.path.join(web_interface_dir, 'static')
+    )
+    app.secret_key = 'sp500_trading_strategy'
+    
+    # Enable CORS
+    CORS(app)
+    
+    # Dictionary to store active processes
+    processes = {}
+    
+    # Add CORS headers to all responses
+    @app.after_request
+    def add_cors_headers(response):
+        """Add CORS headers to all responses"""
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        return response
+    
+    # Add cache-busting headers to prevent browser caching of static files
+    @app.after_request
+    def add_header(response):
+        """Add headers to prevent caching"""
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '-1'
+        return response
+    
+    # Handle OPTIONS requests
+    @app.route('/', defaults={'path': ''}, methods=['OPTIONS'])
+    @app.route('/<path:path>', methods=['OPTIONS'])
+    def handle_options(path):
+        """Handle OPTIONS requests"""
+        return '', 200
+    
+    # Handle favicon.ico requests
+    @app.route('/favicon.ico')
+    def favicon():
+        """Serve favicon.ico"""
+        return send_file(os.path.join(app.static_folder, 'favicon.ico'))
+    
+    @app.route('/')
+    def index():
+        """Render the index page"""
+        # Default configuration values
+        config = {
+            'backtest': {
+                'max_signals_per_day': 40,
+                'tier1_threshold': 0.8,
+                'tier2_threshold': 0.7,
+                'tier3_threshold': 0.6
+            },
+            'initial_capital': 300,
+            'position_sizing': {
+                'tier1_size': 0.3,
+                'tier2_size': 0.2,
+                'tier3_size': 0.1
+            }
+        }
+        
+        # Try to load configuration from sp500_config.yaml if it exists
+        config_path = os.path.join(script_dir, 'sp500_config.yaml')
+        if os.path.exists(config_path):
+            try:
+                with open(config_path, 'r') as f:
+                    yaml_config = yaml.safe_load(f)
+                    
+                # Update config with values from YAML file
+                if yaml_config:
+                    if 'backtest' in yaml_config:
+                        config['backtest'].update(yaml_config.get('backtest', {}))
+                    if 'initial_capital' in yaml_config:
+                        config['initial_capital'] = yaml_config.get('initial_capital')
+                    if 'position_sizing' in yaml_config:
+                        config['position_sizing'].update(yaml_config.get('position_sizing', {}))
+                    
+                logger.info("Loaded configuration from sp500_config.yaml")
+            except Exception as e:
+                logger.warning(f"Error loading configuration: {str(e)}")
+        
+        # Add timestamp for cache-busting
+        now = int(time.time())
+        
+        return render_template('index.html', config=config, now=now)
+    
+    @app.route('/get_backtest_results')
+    def get_backtest_results_route():
+        """Get backtest results"""
+        try:
+            results = get_backtest_results(script_dir)
+            return jsonify({"results": results})
+        except Exception as e:
+            logger.error(f"Error getting backtest results: {str(e)}", exc_info=True)
+            return jsonify({'error': str(e)}), 500
+    
+    @app.route('/get_processes')
+    def get_processes_route():
+        """Get list of active processes"""
+        try:
+            # Prepare process information
+            process_list = []
+            for name, process_info in active_processes.items():
+                # Add to list
+                process_list.append({
+                    'name': name,
+                    'status': process_info['status'],
+                    'start_time': process_info['start_time'],
+                    'description': process_info['description'],
+                    'params': process_info['params']
+                })
+            
+            return jsonify({"processes": process_list})
+        except Exception as e:
+            logger.error(f"Error getting processes: {str(e)}", exc_info=True)
+            return jsonify({'error': str(e)}), 500
+    
+    @app.route('/stop_process', methods=['POST'])
+    def stop_process():
+        """Stop a running process"""
+        try:
+            process_name = request.form.get('process_name')
+            if not process_name:
+                return jsonify({'success': False, 'message': 'Process name is required'}), 400
+            
+            if process_name not in active_processes:
+                return jsonify({'success': False, 'message': f'Process {process_name} not found'}), 404
+            
+            # Terminate the process
+            process_info = active_processes[process_name]
+            if process_info['status'] == 'running':
+                process_info['status'] = 'terminated'
+                return jsonify({'success': True, 'message': f'Process {process_name} terminated'})
+            else:
+                return jsonify({'success': False, 'message': f'Process {process_name} is not running'})
+        except Exception as e:
+            logger.error(f"Error stopping process: {str(e)}", exc_info=True)
+            return jsonify({'success': False, 'message': str(e)}), 500
+    
+    @app.route('/emergency_stop', methods=['POST'])
+    def emergency_stop():
+        """Emergency stop all running processes"""
+        try:
+            # Terminate all processes
+            for name, process_info in active_processes.items():
+                if process_info['status'] == 'running':
+                    process_info['status'] = 'terminated'
+            
+            return jsonify({'success': True, 'message': 'All processes terminated'})
+        except Exception as e:
+            logger.error(f"Error during emergency stop: {str(e)}", exc_info=True)
+            return jsonify({'success': False, 'message': str(e)}), 500
+    
+    @app.route('/view_backtest_result/<filename>')
+    def view_backtest_result(filename):
+        """View a specific backtest result"""
+        try:
+            # Initialize default_summary
+            default_summary = {
+                'total_profit_loss': 0,
+                'win_rate': 0,
+                'total_trades': 0,
+                'winning_trades': 0,
+                'losing_trades': 0,
+                'average_profit_per_trade': 0,
+                'average_loss_per_trade': 0,
+                'profit_factor': 0,
+                'max_drawdown': 0,
+                'start_date': '',
+                'end_date': '',
+                'duration': '',
+                'strategy': 'Unknown'
+            }
+            
+            # Find the backtest result file
+            results_dirs = [
+                os.path.join(script_dir, 'backtest_results'),
+                os.path.join(web_interface_dir, 'backtest_results')
+            ]
+            
+            result_file = None
+            for results_dir in results_dirs:
+                if os.path.exists(results_dir):
+                    potential_file = os.path.join(results_dir, filename)
+                    if os.path.exists(potential_file):
+                        result_file = potential_file
+                        break
+            
+            if not result_file:
+                flash(f'Backtest result file {filename} not found', 'danger')
+                return redirect(url_for('index'))
+            
+            # Load the backtest result
+            with open(result_file, 'r') as f:
+                result = json.load(f)
+            
+            # Extract summary and trades
+            summary = result.get('summary', default_summary)
+            trades = result.get('trades', [])
+            
+            # Add timestamp for cache-busting
+            now = int(time.time())
+            
+            # Render the result page
+            return render_template(
+                'backtest_result.html',
+                filename=filename,
+                summary=summary,
+                trades=trades,
+                now=now
+            )
+        except Exception as e:
+            logger.error(f"Error viewing backtest result: {str(e)}", exc_info=True)
+            flash(f'Error viewing backtest result: {str(e)}', 'danger')
+            return redirect(url_for('index'))
+    
+    @app.route('/run_backtest', methods=['POST'])
+    def run_backtest():
+        """Run a backtest"""
+        try:
+            # Get form data
+            quarter = request.form.get('quarter')
+            use_custom_date_range = 'use_custom_date_range' in request.form
+            max_signals_per_day = int(request.form.get('max_signals_per_day', 40))
+            initial_capital = float(request.form.get('initial_capital', 300))
+            tier1_threshold = float(request.form.get('tier1_threshold', 0.8))
+            tier1_size = float(request.form.get('tier1_size', 0.3))
+            tier2_threshold = float(request.form.get('tier2_threshold', 0.7))
+            tier2_size = float(request.form.get('tier2_size', 0.2))
+            tier3_threshold = float(request.form.get('tier3_threshold', 0.6))
+            tier3_size = float(request.form.get('tier3_size', 0.1))
+            weekly_selection = 'weekly_selection' in request.form
+            multiple_runs = 'multiple_runs' in request.form
+            num_runs = int(request.form.get('num_runs', 5))
+            random_seed = int(request.form.get('random_seed', 42))
+            
+            # Log the parameters
+            logger.info(f"Running backtest with parameters: quarter={quarter}, use_custom_date_range={use_custom_date_range}, max_signals_per_day={max_signals_per_day}, initial_capital={initial_capital}")
+            
+            # Import the backtest function
+            from final_sp500_strategy import run_backtest as strategy_run_backtest
+            
+            # Define quarter date ranges
+            quarter_dates = {
+                'Q1_2023': ('2023-01-01', '2023-03-31'),
+                'Q2_2023': ('2023-04-01', '2023-06-30'),
+                'Q3_2023': ('2023-07-01', '2023-09-30'),
+                'Q4_2023': ('2023-10-01', '2023-12-31'),
+                'Q1_2024': ('2024-01-01', '2024-03-31'),
+                'Q2_2024': ('2024-04-01', '2024-06-30'),
+                'Q3_2024': ('2024-07-01', '2024-09-30'),
+                'Q4_2024': ('2024-10-01', '2024-12-31')
+            }
+            
+            # Create a unique process ID for tracking
+            process_id = f"backtest_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            
+            if use_custom_date_range:
+                start_date = request.form.get('start_date')
+                end_date = request.form.get('end_date')
+                
+                if not start_date or not end_date:
+                    return jsonify({
+                        'success': False,
+                        'message': 'Start date and end date are required for custom date range'
+                    })
+                
+                # Add to active processes
+                active_processes[process_id] = {
+                    'type': 'backtest',
+                    'status': 'running',
+                    'start_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                    'description': f'Custom backtest from {start_date} to {end_date}',
+                    'params': {
+                        'start_date': start_date,
+                        'end_date': end_date,
+                        'initial_capital': initial_capital,
+                        'max_signals': max_signals_per_day,
+                        'weekly_selection': weekly_selection,
+                        'random_seed': random_seed
+                    }
+                }
+                
+                # Run the backtest in a separate thread
+                thread = threading.Thread(
+                    target=run_backtest_thread,
+                    args=(
+                        process_id,
+                        start_date,
+                        end_date,
+                        max_signals_per_day,
+                        initial_capital,
+                        random_seed,
+                        weekly_selection,
+                        False,  # continuous_capital
+                        tier1_threshold,
+                        tier2_threshold,
+                        tier3_threshold
+                    )
+                )
+                thread.daemon = True
+                thread.start()
+                
+                return jsonify({
+                    'success': True,
+                    'message': f'Started backtest with custom date range: {start_date} to {end_date}',
+                    'process_id': process_id
+                })
+            else:
+                if not quarter or quarter not in quarter_dates:
+                    return jsonify({
+                        'success': False,
+                        'message': 'Valid quarter is required'
+                    })
+                
+                start_date, end_date = quarter_dates[quarter]
+                
+                # Add to active processes
+                active_processes[process_id] = {
+                    'type': 'backtest',
+                    'status': 'running',
+                    'start_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                    'description': f'Backtest for {quarter}',
+                    'params': {
+                        'quarter': quarter,
+                        'start_date': start_date,
+                        'end_date': end_date,
+                        'initial_capital': initial_capital,
+                        'max_signals': max_signals_per_day,
+                        'weekly_selection': weekly_selection,
+                        'random_seed': random_seed
+                    }
+                }
+                
+                # Run the backtest in a separate thread
+                thread = threading.Thread(
+                    target=run_backtest_thread,
+                    args=(
+                        process_id,
+                        start_date,
+                        end_date,
+                        max_signals_per_day,
+                        initial_capital,
+                        random_seed,
+                        weekly_selection,
+                        False,  # continuous_capital
+                        tier1_threshold,
+                        tier2_threshold,
+                        tier3_threshold
+                    )
+                )
+                thread.daemon = True
+                thread.start()
+                
+                return jsonify({
+                    'success': True,
+                    'message': f'Started backtest for quarter: {quarter}',
+                    'process_id': process_id
+                })
+        except Exception as e:
+            logger.error(f"Error running backtest: {str(e)}", exc_info=True)
+            return jsonify({
+                'success': False,
+                'message': f'Error running backtest: {str(e)}'
+            })
+
+    @app.route('/run_comprehensive_backtest', methods=['POST'])
+    def run_comprehensive_backtest():
+        """Run a comprehensive backtest"""
+        try:
+            # Get quarters from form data
+            quarters_str = request.form.get('quarters', '')
+            max_signals_per_day = int(request.form.get('max_signals_per_day', 40))
+            initial_capital = float(request.form.get('initial_capital', 300))
+            weekly_selection = 'weekly_selection' in request.form
+            continuous_capital = 'continuous_capital' in request.form
+            tier1_threshold = float(request.form.get('tier1_threshold', 0.8))
+            tier2_threshold = float(request.form.get('tier2_threshold', 0.7))
+            tier3_threshold = float(request.form.get('tier3_threshold', 0.6))
+            random_seed = int(request.form.get('random_seed', 42))
+            
+            # Log the parameters
+            logger.info(f"Running comprehensive backtest with parameters: quarters={quarters_str}, max_signals_per_day={max_signals_per_day}, initial_capital={initial_capital}, weekly_selection={weekly_selection}, continuous_capital={continuous_capital}")
+            
+            if not quarters_str:
+                return jsonify({
+                    'success': False,
+                    'message': 'No quarters specified for backtest'
+                })
+            
+            # Parse quarters from the string
+            quarters = [q.strip() for q in quarters_str.split(',') if q.strip()]
+            
+            if not quarters:
+                return jsonify({
+                    'success': False,
+                    'message': 'No valid quarters specified for backtest'
+                })
+            
+            # Define quarter date ranges
+            quarter_dates = {
+                'Q1_2023': ('2023-01-01', '2023-03-31'),
+                'Q2_2023': ('2023-04-01', '2023-06-30'),
+                'Q3_2023': ('2023-07-01', '2023-09-30'),
+                'Q4_2023': ('2023-10-01', '2023-12-31'),
+                'Q1_2024': ('2024-01-01', '2024-03-31'),
+                'Q2_2024': ('2024-04-01', '2024-06-30'),
+                'Q3_2024': ('2024-07-01', '2024-09-30'),
+                'Q4_2024': ('2024-10-01', '2024-12-31')
+            }
+            
+            # Validate quarters
+            valid_quarters = []
+            for quarter in quarters:
+                if quarter in quarter_dates:
+                    valid_quarters.append(quarter)
+            
+            if not valid_quarters:
+                return jsonify({
+                    'success': False,
+                    'message': 'No valid quarters found in the specified list'
+                })
+            
+            # Sort quarters chronologically
+            valid_quarters.sort()
+            
+            # Get start and end dates for the entire period
+            start_date = quarter_dates[valid_quarters[0]][0]
+            end_date = quarter_dates[valid_quarters[-1]][1]
+            
+            # Create a unique process ID for tracking
+            process_id = f"comprehensive_backtest_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            
+            # Add to active processes
+            active_processes[process_id] = {
+                'type': 'comprehensive_backtest',
+                'status': 'running',
+                'start_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'description': f'Comprehensive backtest for {", ".join(valid_quarters)}',
+                'params': {
+                    'quarters': valid_quarters,
+                    'start_date': start_date,
+                    'end_date': end_date,
+                    'initial_capital': initial_capital,
+                    'max_signals': max_signals_per_day,
+                    'weekly_selection': weekly_selection,
+                    'continuous_capital': continuous_capital,
+                    'random_seed': random_seed
+                }
+            }
+            
+            # Run the comprehensive backtest in a separate thread
+            thread = threading.Thread(
+                target=run_backtest_thread,
+                args=(
+                    process_id,
+                    start_date,
+                    end_date,
+                    max_signals_per_day,
+                    initial_capital,
+                    random_seed,
+                    weekly_selection,
+                    continuous_capital,
+                    tier1_threshold,
+                    tier2_threshold,
+                    tier3_threshold
+                )
+            )
+            thread.daemon = True
+            thread.start()
+            
+            return jsonify({
+                'success': True,
+                'message': f'Started comprehensive backtest for quarters: {", ".join(valid_quarters)}',
+                'process_id': process_id
+            })
+        except Exception as e:
+            logger.error(f"Error running comprehensive backtest: {str(e)}", exc_info=True)
+            return jsonify({
+                'success': False,
+                'message': f'Error running comprehensive backtest: {str(e)}'
+            })
+
+def run_backtest_thread(process_id, start_date, end_date, max_signals, initial_capital, random_seed, weekly_selection, continuous_capital, tier1_threshold, tier2_threshold, tier3_threshold):
+    """Run a backtest in a separate thread"""
+    try:
+        logger.info(f"[DEBUG] Starting backtest thread for process {process_id}")
+        logger.info(f"[DEBUG] Parameters: start_date={start_date}, end_date={end_date}, max_signals={max_signals}, initial_capital={initial_capital}")
+        logger.info(f"[DEBUG] Additional parameters: random_seed={random_seed}, weekly_selection={weekly_selection}, continuous_capital={continuous_capital}")
+        logger.info(f"[DEBUG] Thresholds: tier1={tier1_threshold}, tier2={tier2_threshold}, tier3={tier3_threshold}")
+        
+        # Check if sp500_config.yaml exists
+        config_path = os.path.join(script_dir, 'sp500_config.yaml')
+        if not os.path.exists(config_path):
+            logger.error(f"[DEBUG] Config file not found: {config_path}")
+            active_processes[process_id]['status'] = 'error'
+            active_processes[process_id]['end_time'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            active_processes[process_id]['error'] = f"Config file not found: {config_path}"
+            return
+        
+        # Check if alpaca_credentials.json exists
+        credentials_path = os.path.join(script_dir, 'alpaca_credentials.json')
+        if not os.path.exists(credentials_path):
+            logger.error(f"[DEBUG] Credentials file not found: {credentials_path}")
+            active_processes[process_id]['status'] = 'error'
+            active_processes[process_id]['end_time'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            active_processes[process_id]['error'] = f"Credentials file not found: {credentials_path}"
+            return
+        
+        # Import the backtest function
+        try:
+            logger.info("[DEBUG] Importing run_backtest from final_sp500_strategy")
+            from final_sp500_strategy import run_backtest as strategy_run_backtest
+        except ImportError as e:
+            logger.error(f"[DEBUG] Error importing run_backtest: {str(e)}")
+            active_processes[process_id]['status'] = 'error'
+            active_processes[process_id]['end_time'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            active_processes[process_id]['error'] = f"Error importing run_backtest: {str(e)}"
+            return
+        
+        # Update the process status
+        active_processes[process_id]['status'] = 'running'
+        
+        # Run the backtest
+        logger.info("[DEBUG] Calling strategy_run_backtest function")
+        try:
+            result = strategy_run_backtest(
+                start_date=start_date,
+                end_date=end_date,
+                mode='backtest',
+                max_signals=max_signals,
+                initial_capital=initial_capital,
+                random_seed=random_seed,
+                weekly_selection=weekly_selection,
+                continuous_capital=continuous_capital,
+                tier1_threshold=tier1_threshold,
+                tier2_threshold=tier2_threshold,
+                tier3_threshold=tier3_threshold
+            )
+            
+            logger.info(f"[DEBUG] Backtest completed successfully, result: {result}")
+            
+            # Update the process with results
+            active_processes[process_id]['status'] = 'completed'
+            active_processes[process_id]['end_time'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            active_processes[process_id]['result'] = {
+                'performance': result.get('performance', {}),
+                'trades': result.get('trades', []),
+                'result_file': result.get('result_file', '')
+            }
+            
+            logger.info(f"[DEBUG] Process {process_id} updated with results")
+            
+        except Exception as e:
+            logger.error(f"[DEBUG] Error running strategy_run_backtest: {str(e)}", exc_info=True)
+            active_processes[process_id]['status'] = 'error'
+            active_processes[process_id]['end_time'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            active_processes[process_id]['error'] = f"Error running backtest: {str(e)}"
+        
+    except Exception as e:
+        logger.error(f"[DEBUG] Error in backtest thread for process {process_id}: {str(e)}", exc_info=True)
+        
+        # Update the process with error
+        active_processes[process_id]['status'] = 'error'
+        active_processes[process_id]['end_time'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        active_processes[process_id]['error'] = str(e)
+
+    @app.route('/run_paper_trading', methods=['POST'])
+    def run_paper_trading():
+        """Run paper trading"""
+        try:
+            # Get form data
+            initial_capital = request.form.get('initial_capital', 300)
+            max_signals_per_day = request.form.get('max_signals_per_day', 40)
+            
+            # TODO: Implement paper trading
+            # For now, just return a success message
+            return jsonify({
+                'success': True,
+                'message': f'Started paper trading with initial capital: ${initial_capital} and max signals per day: {max_signals_per_day}'
+            })
+        except Exception as e:
+            logger.error(f"Error running paper trading: {str(e)}", exc_info=True)
+            return jsonify({
+                'success': False,
+                'message': f'Error running paper trading: {str(e)}'
+            })
+    
+    @app.route('/view_logs', methods=['GET'])
+    def view_logs():
+        """View logs page"""
+        try:
+            # Get list of log files
+            log_files = []
+            logs_dir = os.path.join(script_dir, 'logs')
+            
+            if os.path.exists(logs_dir):
+                log_files = [f for f in os.listdir(logs_dir) if f.endswith('.log')]
+                log_files.sort(reverse=True)  # Most recent first
+            
+            # If a specific log file is requested
+            selected_log = request.args.get('file')
+            log_content = ''
+            
+            if selected_log and selected_log in log_files:
+                log_path = os.path.join(logs_dir, selected_log)
+                try:
+                    with open(log_path, 'r') as f:
+                        log_content = f.read()
+                except Exception as e:
+                    logger.error(f"Error reading log file {selected_log}: {str(e)}", exc_info=True)
+                    flash(f'Error reading log file: {str(e)}', 'danger')
+            
+            # Add timestamp for cache-busting
+            now = int(time.time())
+            
+            return render_template('logs.html', log_files=log_files, selected_log=selected_log, log_content=log_content, now=now)
+        except Exception as e:
+            logger.error(f"Error viewing logs: {str(e)}", exc_info=True)
+            flash(f'Error viewing logs: {str(e)}', 'danger')
+            return redirect(url_for('index'))
+
+    @app.route('/view_configuration', methods=['GET', 'POST'])
+    def view_configuration():
+        """View and edit configuration"""
+        try:
+            config_path = os.path.join(script_dir, 'sp500_config.yaml')
+            config = {}
+            
+            # Load existing configuration
+            if os.path.exists(config_path):
+                try:
+                    with open(config_path, 'r') as f:
+                        config = yaml.safe_load(f)
+                except Exception as e:
+                    logger.error(f"Error reading configuration file: {str(e)}", exc_info=True)
+                    flash(f'Error reading configuration file: {str(e)}', 'danger')
+            
+            # If form was submitted, update the configuration
+            if request.method == 'POST':
+                try:
+                    # Extract form data
+                    initial_capital = float(request.form.get('initial_capital', 300))
+                    max_signals_per_day = int(request.form.get('max_signals_per_day', 40))
+                    
+                    # Position sizing
+                    tier1_threshold = float(request.form.get('tier1_threshold', 0.8))
+                    tier1_size = float(request.form.get('tier1_size', 0.3))
+                    tier2_threshold = float(request.form.get('tier2_threshold', 0.7))
+                    tier2_size = float(request.form.get('tier2_size', 0.2))
+                    tier3_threshold = float(request.form.get('tier3_threshold', 0.6))
+                    tier3_size = float(request.form.get('tier3_size', 0.1))
+                    
+                    # API settings
+                    alpaca_api_key = request.form.get('alpaca_api_key', '')
+                    alpaca_api_secret = request.form.get('alpaca_api_secret', '')
+                    paper_trading = 'paper_trading' in request.form
+                    
+                    # Advanced settings
+                    weekly_selection = 'weekly_selection' in request.form
+                    continuous_capital = 'continuous_capital' in request.form
+                    random_seed = int(request.form.get('random_seed', 42))
+                    
+                    # Update config dictionary
+                    if 'initial_capital' not in config:
+                        config['initial_capital'] = initial_capital
+                    else:
+                        config['initial_capital'] = initial_capital
+                    
+                    # Ensure backtest section exists
+                    if 'backtest' not in config:
+                        config['backtest'] = {}
+                    
+                    config['backtest']['max_signals_per_day'] = max_signals_per_day
+                    config['backtest']['tier1_threshold'] = tier1_threshold
+                    config['backtest']['tier2_threshold'] = tier2_threshold
+                    config['backtest']['tier3_threshold'] = tier3_threshold
+                    config['backtest']['weekly_selection'] = weekly_selection
+                    config['backtest']['continuous_capital'] = continuous_capital
+                    config['backtest']['random_seed'] = random_seed
+                    
+                    # Ensure position_sizing section exists
+                    if 'position_sizing' not in config:
+                        config['position_sizing'] = {}
+                    
+                    config['position_sizing']['tier1_size'] = tier1_size
+                    config['position_sizing']['tier2_size'] = tier2_size
+                    config['position_sizing']['tier3_size'] = tier3_size
+                    
+                    # Ensure alpaca section exists
+                    if 'alpaca' not in config:
+                        config['alpaca'] = {}
+                    
+                    config['alpaca']['api_key'] = alpaca_api_key
+                    config['alpaca']['api_secret'] = alpaca_api_secret
+                    config['alpaca']['paper_trading'] = paper_trading
+                    
+                    # Save configuration
+                    with open(config_path, 'w') as f:
+                        yaml.dump(config, f, default_flow_style=False)
+                    
+                    flash('Configuration saved successfully', 'success')
+                except Exception as e:
+                    logger.error(f"Error saving configuration: {str(e)}", exc_info=True)
+                    flash(f'Error saving configuration: {str(e)}', 'danger')
+            
+            # Add timestamp for cache-busting
+            now = int(time.time())
+            
+            return render_template('configuration.html', config=config, now=now)
+        except Exception as e:
+            logger.error(f"Error viewing configuration: {str(e)}", exc_info=True)
+            flash(f'Error viewing configuration: {str(e)}', 'danger')
+            return redirect(url_for('index'))
+    
+    # Log that we're running the web interface
+    logger.info("Running web interface on http://localhost:5000")
+    
+    # Run the Flask app
+    app.run(host='0.0.0.0', port=5000, debug=True)
+    
+    return app
+
+def get_backtest_results(script_dir):
+    """Get backtest results"""
+    results = []
+    
+    # Web interface directory
+    web_interface_dir = os.path.join(script_dir, 'new_web_interface')
+    
+    # Check multiple possible locations for backtest results
+    results_dirs = [
+        os.path.join(script_dir, 'backtest_results'),
+        os.path.join(web_interface_dir, 'backtest_results')
+    ]
+    
+    # Cache for performance
+    cache_file = os.path.join(web_interface_dir, 'backtest_results_cache.json')
+    cache_valid = False
+    
+    # Check if cache exists and is recent
+    if os.path.exists(cache_file):
+        cache_mtime = os.path.getmtime(cache_file)
+        if time.time() - cache_mtime < 300:  # 5 minutes
+            try:
+                with open(cache_file, 'r') as f:
+                    results = json.load(f)
+                    cache_valid = True
+                    logger.info("Using cached backtest results")
+            except Exception as e:
+                logger.warning(f"Error reading cache: {str(e)}")
+    
+    if not cache_valid:
+        # Find all backtest result files
+        for results_dir in results_dirs:
+            if os.path.exists(results_dir):
+                for result_file in glob.glob(os.path.join(results_dir, '*.json')):
+                    try:
+                        # Load the backtest result
+                        with open(result_file, 'r') as f:
+                            result = json.load(f)
+                        
+                        # Extract summary
+                        summary = result.get('summary', {})
+                        
+                        # Add to results
+                        results.append({
+                            'filename': os.path.basename(result_file),
+                            'quarter': summary.get('quarter', ''),
+                            'date_range': f"{summary.get('start_date', '')} to {summary.get('end_date', '')}",
+                            'profit_loss': summary.get('total_profit_loss', 0),
+                            'win_rate': summary.get('win_rate', 0)
+                        })
+                    except Exception as e:
+                        logger.warning(f"Error loading backtest result {result_file}: {str(e)}")
+        
+        # Sort by date (newest first)
+        results.sort(key=lambda x: x.get('filename', ''), reverse=True)
+        
+        # Cache the results
+        try:
+            with open(cache_file, 'w') as f:
+                json.dump(results, f)
+        except Exception as e:
+            logger.warning(f"Error writing cache: {str(e)}")
+    
+    return results
+
+def run_process(script, args, process_name, script_dir, processes):
+    """Run a Python script as a subprocess and capture its output"""
+    try:
+        # Check if a process with this name is already running
+        if process_name in processes and processes[process_name]['process'].poll() is None:
+            return False, f"Process {process_name} is already running"
+        
+        # Prepare the command
+        cmd = [sys.executable, os.path.join(script_dir, script)] + args
+        
+        # Start the process
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            universal_newlines=True,
+            bufsize=1
+        )
+        
+        # Store process information
+        processes[process_name] = {
+            'name': process_name,
+            'process': process,
+            'status': 'Running',
+            'start_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'logs': []
+        }
+        
+        # Start a thread to read the output
+        def read_output():
+            while True:
+                line = process.stdout.readline()
+                if not line and process.poll() is not None:
+                    break
+                if line:
+                    processes[process_name]['logs'].append(line.strip())
+            
+            # Update status when process completes
+            processes[process_name]['status'] = 'Completed'
+        
+        threading.Thread(target=read_output, daemon=True).start()
+        
+        return True, f"Process {process_name} started"
+    except Exception as e:
+        logger.error(f"Error running process: {str(e)}", exc_info=True)
+        return False, str(e)
+
+if __name__ == "__main__":
+    main()

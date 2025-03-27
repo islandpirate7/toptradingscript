@@ -1,0 +1,95 @@
+Example usage:
+
+bash
+CopyInsert
+# Start a backtest process
+python process_control.py start backtest --start-date 2023-01-01 --end-date 2023-03-31
+
+# Start paper trading
+python process_control.py start paper_trading
+
+# List all running processes
+python process_control.py list
+
+# Stop a specific process
+python process_control.py stop <process_id>
+
+# Stop all processes
+python process_control.py stop-all
+
+3. Credential Verification
+Added a credential verification tool (verify_credentials.py) that:
+
+Checks if your Alpaca API credentials are valid before trading
+Provides detailed information about your account status
+Verifies trading permissions and buying power
+Example usage:
+
+bash
+CopyInsert
+# Verify paper trading credentials
+python verify_credentials.py --mode paper --verbose
+
+# Verify live trading credentials
+python verify_credentials.py --mode live --verbose
+
+Analyze Log Files: Use the log analyzer to review the results:
+bash
+CopyInsert in Terminal
+python log_analyzer.py --issues --plot
+
+Running Live Trading
+To start live trading, use the following command:
+
+bash
+CopyInsert in Terminal
+python process_control.py start live_trading
+You can also specify additional parameters:
+
+bash
+CopyInsert in Terminal
+python process_control.py start live_trading --initial-capital 1000 --max-signals 20 --tier1-threshold 0.85 --tier2-threshold 0.75
+Process Types
+The process control system supports three types of processes:
+
+backtest - For running backtests
+paper_trading - For paper trading
+live_trading - For live trading with real money
+Managing Processes
+When you list processes using python process_control.py list, you'll see output like this:
+
+CopyInsert
+Found 3 processes:
+  12345: backtest (running) - Started at 2025-03-27 00:15:23
+  12346: paper_trading (running) - Started at 2025-03-27 00:18:45
+  12347: live_trading (running) - Started at 2025-03-27 00:20:12
+The number at the beginning (e.g., 12345) is the process ID, which you use to stop a specific process:
+
+bash
+CopyInsert in Terminal
+python process_control.py stop 12345
+Process Status
+Processes can have the following statuses:
+
+running - Process is currently running
+completed - Process completed successfully
+failed - Process terminated with an error
+stopped - Process was manually stopped
+killed - Process was forcibly terminated
+terminated - Process terminated unexpectedly
+Additional Commands
+You can get detailed information about a specific process:
+
+bash
+CopyInsert in Terminal
+python process_control.py info 12345
+And you can clean up old process records:
+
+bash
+CopyInsert in Terminal
+python process_control.py cleanup --days 7
+Important Notes
+Live Trading Confirmation: When starting live trading, you'll be asked to confirm since it involves real money.
+Graceful Shutdown: The stop command attempts a graceful shutdown first, then forcibly terminates the process if it doesn't respond within the timeout period.
+Process Logs: Each process generates its own log file in the logs/processes directory, which you can review for detailed information.
+Would you like me to explain any other aspect of the process control system?

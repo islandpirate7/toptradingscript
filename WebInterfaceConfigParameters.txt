@@ -1,0 +1,54 @@
+Web Interface:
+1. Dashboard
+
+2. Configuration
+	General:
+		Initial Capital (default 300)
+		Default Holding Period (days - default 3)
+		Maximum Posotions (default 40)
+		Log Level: INFO, DEBUG, WARNING, ERROR (default INFO)
+	Signal Generation Settings
+		Signal Score Threshold (default 0.7)
+		Maximum Signals (default 100)
+		LONG Signal Threshold (default 0.7)
+		SHORT Signal Threshold (default 0.8)
+		Tier 1 Threshold (default 0.9)
+		RSI Weight (default 1.5)
+		MACD Weight (default 1.4)
+		Bollinger Bands Weight (default 1.4)
+		Market Regime Detection (default Enabled)
+		SMA Short Period (default 5)
+		SMA Long Period (default 20)
+		Change Period (default 5)
+	Position Sizing Settings
+		Base Position Size ($) (default 1000)
+		Base Position Size (%) (default 5)
+		Tier 1 Multiplier (default 3.0)
+		Tier 2 Multiplier (default 1.5)
+		LONG Position Multiplier (default 3.0)
+		Max Capital Per Direction ($) (default 60000)
+	Stop Loss Settings
+		Stop Loss (default Enabled)
+		LONG Stop Loss Threshold (%) (default -0.02) Negative value, e.g., -0.02 for 2% loss
+		Trailing Stop (default Enabled)
+		Trailing Stop Distance (%) (default 0.01)
+		Positive value, e.g., 0.01 for 1% below peak
+	Mid-Cap Integration
+		Include Mid-Cap Stocks (default Enabled)
+		Min Average Volume (default 500000)
+		Max Symbols (default 50)
+		Large-Cap Percentage (default 70)
+		Position Factor (default 0.8)
+		Boost Factor (default 1.2)
+	Backtest Settings
+		Start Date
+		End Date
+		Initial Capital
+		Commission per Trade (default 1.0)
+		Max Signals Per Day (default 40) Maximum number of trading signals to process each day
+		Holding Period (Days) (default 3) Number of days to hold positions before automatic closure
+	File Paths
+		Data Directorye (default ./data)
+		Results Directorye (default ./results)
+		Logs Directorye (default ./logs)
+		Models Directorye (default ./models)

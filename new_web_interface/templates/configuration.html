@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}Configuration - S&P 500 Trading Strategy{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5 mb-3">Trading Strategy Configuration</h1>
+            <p class="lead">Configure your trading strategy parameters</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Strategy Configuration</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="/view_configuration">
+                        <h4 class="mb-3">General Settings</h4>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="initialCapital" class="form-label">Initial Capital</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="initialCapital" name="initial_capital" value="{{ config.initial_capital }}" min="100" step="100">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="maxSignalsPerDay" class="form-label">Max Signals Per Day</label>
+                                <input type="number" class="form-control" id="maxSignalsPerDay" name="max_signals_per_day" value="{{ config.backtest.max_signals_per_day }}" min="1" max="100">
+                            </div>
+                        </div>
+
+                        <h4 class="mb-3">Position Sizing</h4>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="tier1Threshold" class="form-label">Tier 1 Threshold</label>
+                                <input type="number" class="form-control" id="tier1Threshold" name="tier1_threshold" value="{{ config.backtest.tier1_threshold }}" min="0" max="1" step="0.01">
+                                <small class="form-text text-muted">Signal strength threshold for tier 1 positions</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tier1Size" class="form-label">Tier 1 Size</label>
+                                <input type="number" class="form-control" id="tier1Size" name="tier1_size" value="{{ config.position_sizing.tier1_size }}" min="0" max="1" step="0.01">
+                                <small class="form-text text-muted">Position size for tier 1 signals (as fraction of capital)</small>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="tier2Threshold" class="form-label">Tier 2 Threshold</label>
+                                <input type="number" class="form-control" id="tier2Threshold" name="tier2_threshold" value="{{ config.backtest.tier2_threshold }}" min="0" max="1" step="0.01">
+                                <small class="form-text text-muted">Signal strength threshold for tier 2 positions</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tier2Size" class="form-label">Tier 2 Size</label>
+                                <input type="number" class="form-control" id="tier2Size" name="tier2_size" value="{{ config.position_sizing.tier2_size }}" min="0" max="1" step="0.01">
+                                <small class="form-text text-muted">Position size for tier 2 signals (as fraction of capital)</small>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="tier3Threshold" class="form-label">Tier 3 Threshold</label>
+                                <input type="number" class="form-control" id="tier3Threshold" name="tier3_threshold" value="{{ config.backtest.tier3_threshold }}" min="0" max="1" step="0.01">
+                                <small class="form-text text-muted">Signal strength threshold for tier 3 positions</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tier3Size" class="form-label">Tier 3 Size</label>
+                                <input type="number" class="form-control" id="tier3Size" name="tier3_size" value="{{ config.position_sizing.tier3_size }}" min="0" max="1" step="0.01">
+                                <small class="form-text text-muted">Position size for tier 3 signals (as fraction of capital)</small>
+                            </div>
+                        </div>
+
+                        <h4 class="mb-3">API Settings</h4>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="alpacaApiKey" class="form-label">Alpaca API Key</label>
+                                <input type="text" class="form-control" id="alpacaApiKey" name="alpaca_api_key" value="{{ config.alpaca.api_key }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="alpacaApiSecret" class="form-label">Alpaca API Secret</label>
+                                <input type="password" class="form-control" id="alpacaApiSecret" name="alpaca_api_secret" value="{{ config.alpaca.api_secret }}">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="paperTrading" name="paper_trading" {% if config.alpaca.paper_trading %}checked{% endif %}>
+                                <label class="form-check-label" for="paperTrading">
+                                    Use Paper Trading
+                                </label>
+                                <small class="form-text text-muted d-block">Use Alpaca paper trading environment instead of live trading</small>
+                            </div>
+                        </div>
+
+                        <h4 class="mb-3">Advanced Settings</h4>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="weeklySelection" name="weekly_selection" {% if config.backtest.weekly_selection %}checked{% endif %}>
+                                <label class="form-check-label" for="weeklySelection">
+                                    Weekly Selection
+                                </label>
+                                <small class="form-text text-muted d-block">Enable weekly stock selection refresh</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="continuousCapital" name="continuous_capital" {% if config.backtest.continuous_capital %}checked{% endif %}>
+                                <label class="form-check-label" for="continuousCapital">
+                                    Use Continuous Capital
+                                </label>
+                                <small class="form-text text-muted d-block">Pass final balance from one quarter to the next</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="randomSeed" class="form-label">Random Seed</label>
+                            <input type="number" class="form-control" id="randomSeed" name="random_seed" value="{{ config.backtest.random_seed|default(42) }}" min="1" max="1000">
+                            <small class="form-text text-muted">Seed for random number generator (for reproducibility)</small>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-primary">Save Configuration</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
