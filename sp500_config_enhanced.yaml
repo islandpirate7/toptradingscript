@@ -1,0 +1,91 @@
+alpaca:
+  api_key: ''
+  api_secret: ''
+  base_url: https://paper-api.alpaca.markets
+  data_url: https://data.alpaca.markets
+mode: paper
+strategy:
+  include_midcap: true
+  initial_capital: 300
+  max_positions: 100
+  midcap_stocks:
+    boost_factor: 1.2
+    large_cap_percentage: 70
+    max_stocks: 50
+    min_avg_volume: 500000
+    min_price: 5.0
+    position_factor: 0.8
+    ranking_metrics:
+      liquidity_weight: 0.2
+      momentum_weight: 0.3
+      volatility_weight: 0.2
+      volume_weight: 0.3
+    symbols:
+    - AAON
+    - ACHC
+    - AEO
+    - AFG
+    - AGCO
+    - ALE
+    - ALEX
+    - AMG
+    - ANAT
+    - APEI
+    - ARCB
+    - ARCC
+    - AROC
+    - ARW
+    - ASGN
+    - AVNS
+    - AXTA
+    - BCC
+    - BCO
+    - BDC
+    - BIG
+    - BJRI
+    - BLKB
+    - BPOP
+    - BRKL
+    - CABO
+    - CACI
+    - CADE
+    - CALM
+    - CATY
+    - CBT
+    - CCOI
+    - CGNX
+    - CHDN
+    - CIEN
+    - CNX
+    - COHR
+    - COLM
+    - COOP
+    - CORT
+    - CPE
+    - CRUS
+    - CSGS
+    - CSWI
+    - CTRE
+    - CUZ
+    - CW
+    - CYBR
+    - DCO
+    - DLX
+    use_dynamic_selection: true
+  position_sizing:
+    base_position_pct: 10
+    long_multiplier: 3.0
+    short_multiplier: 1.0
+    tier_multipliers:
+      Below Threshold (<0.8): 0.0
+      "Tier 1 (\xE2\u2030\xA50.9)": 3.0
+      "Tier 1 (\u22650.9)": 3.0
+      Tier 2 (0.8-0.9): 1.5
+  signal_thresholds:
+    long: 0.7
+    min_score: 0.7
+    short: 0.8
+    tier_1: 0.9
+    tier_2: 0.8
+    tier_3: 0.7
+    tier_4: 0.6
